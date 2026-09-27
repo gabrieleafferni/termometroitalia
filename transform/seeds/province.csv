@@ -1,0 +1,112 @@
+sigla,provincia,regione,cod_regione
+AG,Agrigento,Sicilia,19
+AL,Alessandria,Piemonte,01
+AN,Ancona,Marche,11
+AO,Aosta,Valle d'Aosta,02
+AP,Ascoli Piceno,Marche,11
+AQ,L'Aquila,Abruzzo,13
+AR,Arezzo,Toscana,09
+AT,Asti,Piemonte,01
+AV,Avellino,Campania,15
+BA,Bari,Puglia,16
+BG,Bergamo,Lombardia,03
+BI,Biella,Piemonte,01
+BL,Belluno,Veneto,05
+BN,Benevento,Campania,15
+BO,Bologna,Emilia-Romagna,08
+BR,Brindisi,Puglia,16
+BS,Brescia,Lombardia,03
+BT,Barletta-Andria-Trani,Puglia,16
+BZ,Bolzano,Trentino-Alto Adige,04
+CA,Cagliari,Sardegna,20
+CB,Campobasso,Molise,14
+CE,Caserta,Campania,15
+CH,Chieti,Abruzzo,13
+CI,Sulcis Iglesiente,Sardegna,20
+CL,Caltanissetta,Sicilia,19
+CN,Cuneo,Piemonte,01
+CO,Como,Lombardia,03
+CR,Cremona,Lombardia,03
+CS,Cosenza,Calabria,18
+CT,Catania,Sicilia,19
+CZ,Catanzaro,Calabria,18
+EN,Enna,Sicilia,19
+FC,Forlì-Cesena,Emilia-Romagna,08
+FE,Ferrara,Emilia-Romagna,08
+FG,Foggia,Puglia,16
+FI,Firenze,Toscana,09
+FM,Fermo,Marche,11
+FR,Frosinone,Lazio,12
+GE,Genova,Liguria,07
+GO,Gorizia,Friuli-Venezia Giulia,06
+GR,Grosseto,Toscana,09
+IM,Imperia,Liguria,07
+IS,Isernia,Molise,14
+KR,Crotone,Calabria,18
+LC,Lecco,Lombardia,03
+LE,Lecce,Puglia,16
+LI,Livorno,Toscana,09
+LO,Lodi,Lombardia,03
+LT,Latina,Lazio,12
+LU,Lucca,Toscana,09
+MB,Monza e della Brianza,Lombardia,03
+MC,Macerata,Marche,11
+ME,Messina,Sicilia,19
+MI,Milano,Lombardia,03
+MN,Mantova,Lombardia,03
+MO,Modena,Emilia-Romagna,08
+MS,Massa-Carrara,Toscana,09
+MT,Matera,Basilicata,17
+NA,Napoli,Campania,15
+NO,Novara,Piemonte,01
+NU,Nuoro,Sardegna,20
+OG,Ogliastra,Sardegna,20
+OR,Oristano,Sardegna,20
+OT,Gallura Nord-Est Sardegna,Sardegna,20
+PA,Palermo,Sicilia,19
+PC,Piacenza,Emilia-Romagna,08
+PD,Padova,Veneto,05
+PE,Pescara,Abruzzo,13
+PG,Perugia,Umbria,10
+PI,Pisa,Toscana,09
+PN,Pordenone,Friuli-Venezia Giulia,06
+PO,Prato,Toscana,09
+PR,Parma,Emilia-Romagna,08
+PT,Pistoia,Toscana,09
+PU,Pesaro e Urbino,Marche,11
+PV,Pavia,Lombardia,03
+PZ,Potenza,Basilicata,17
+RA,Ravenna,Emilia-Romagna,08
+RC,Reggio Calabria,Calabria,18
+RE,Reggio nell'Emilia,Emilia-Romagna,08
+RG,Ragusa,Sicilia,19
+RI,Rieti,Lazio,12
+RM,Roma,Lazio,12
+RN,Rimini,Emilia-Romagna,08
+RO,Rovigo,Veneto,05
+SA,Salerno,Campania,15
+SI,Siena,Toscana,09
+SO,Sondrio,Lombardia,03
+SP,La Spezia,Liguria,07
+SR,Siracusa,Sicilia,19
+SS,Sassari,Sardegna,20
+SU,Sud Sardegna,Sardegna,20
+SV,Savona,Liguria,07
+TA,Taranto,Puglia,16
+TE,Teramo,Abruzzo,13
+TN,Trento,Trentino-Alto Adige,04
+TO,Torino,Piemonte,01
+TP,Trapani,Sicilia,19
+TR,Terni,Umbria,10
+TS,Trieste,Friuli-Venezia Giulia,06
+TV,Treviso,Veneto,05
+UD,Udine,Friuli-Venezia Giulia,06
+VA,Varese,Lombardia,03
+VB,Verbano-Cusio-Ossola,Piemonte,01
+VC,Vercelli,Piemonte,01
+VE,Venezia,Veneto,05
+VI,Vicenza,Veneto,05
+VR,Verona,Veneto,05
+VS,Medio Campidano,Sardegna,20
+VT,Viterbo,Lazio,12
+VV,Vibo Valentia,Calabria,18

@@ -1,0 +1,40 @@
+name: termometro
+version: "1.0.0"
+config-version: 2
+profile: termometro
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Finestra di validità di un prezzo, come nella metodologia MIMIT per i
+  # prezzi medi: si considerano solo i prezzi comunicati negli ultimi 8 giorni.
+  giorni_validita_prezzo: 8
+  # Errori di digitazione: fuori da [60%, 150%] della mediana del giorno
+  soglia_outlier_bassa: 0.6
+  soglia_outlier_alta: 1.5
+
+models:
+  termometro:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: table
+    marts:
+      # I mart vengono scritti come file Parquet in data/marts/ e versionati
+      # nel repo: sono il "prodotto dati" che alimenta il sito.
+      +materialized: external
+      +format: parquet
+
+seeds:
+  termometro:
+    province:
+      +column_types:
+        sigla: varchar
+        provincia: varchar
+        regione: varchar
+        cod_regione: varchar

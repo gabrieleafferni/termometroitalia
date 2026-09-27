@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Metodo · Termometro Italia</title>
+    <meta name="description" content="Da dove vengono i dati di Termometro Italia, come vengono puliti e come sono calcolati gli indicatori." />
+    <meta name="theme-color" content="#05070f" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="page-head" style="grid-template-columns: 1fr">
+        <div>
+          <span class="eyebrow">Metodo e trasparenza</span>
+          <h1>Come nascono <em>questi numeri</em></h1>
+          <p class="lede">Ogni cifra del sito si può ricostruire: le fonti sono pubbliche, il codice è aperto e ogni passaggio è automatico e testato.</p>
+        </div>
+      </section>
+
+      <article class="prose">
+        <h2>La pipeline</h2>
+        <p>Ogni mattina un workflow di <strong>GitHub Actions</strong> esegue quattro passi:</p>
+        <ol>
+          <li><strong>Raccolta.</strong> Uno script Python scarica gli open data e li archivia in file <code>Parquet</code> datati e immutabili. Se la fonte ufficiale non risponde, usa un archivio pubblico di riserva.</li>
+          <li><strong>Trasformazione.</strong> Un progetto <strong>dbt</strong> su <strong>DuckDB</strong> pulisce i dati, li arricchisce con la geografia e produce le tabelle finali, controllate da test automatici (unicità, valori ammessi, intervalli plausibili, copertura minima).</li>
+          <li><strong>Novità.</strong> Un modulo confronta l'ultimo giorno con la storia e segnala record, strisce di rialzi o ribassi e variazioni giornaliere fuori dal normale (z-score oltre 2,5).</li>
+          <li><strong>Pubblicazione.</strong> Il sito viene ricostruito e pubblicato su GitHub Pages.</li>
+        </ol>
+
+        <h2>Carburanti: la fonte</h2>
+        <p>I dati vengono dall'<strong>Osservatorio prezzi carburanti</strong> del Ministero delle Imprese e del Made in Italy (MIMIT): i gestori sono obbligati per legge a comunicare i prezzi praticati. Il MIMIT pubblica ogni giorno due file, i prezzi in vigore alle 8 e l'anagrafica degli impianti attivi, con licenza <strong>IODL 2.0</strong>. Lo storico parte dal 28 luglio 2026 ed è stato ricostruito dall'archivio pubblico <code>LucaDDDD/benzina-data</code>, che conserva le stesse pubblicazioni.</p>
+
+        <h2>Carburanti: come calcoliamo le medie</h2>
+        <ul>
+          <li>Seguiamo l'impostazione del MIMIT per i prezzi medi: <strong>self service</strong> per benzina e gasolio, <strong>servito</strong> per GPL e metano. Consideriamo solo i prezzi comunicati negli <strong>ultimi 8 giorni</strong>.</li>
+          <li>Escludiamo solo gli errori di digitazione grossolani: prezzi sotto il 60% o sopra il 150% della mediana nazionale del giorno. Il filtro è volutamente largo, perché prezzi anomali ma veri (Livigno, zona extradoganale; pompe bianche; autostrade) devono restare nei dati.</li>
+          <li>La <strong>media</strong> è la media aritmetica tra i distributori, come nelle statistiche ufficiali. Nel grafico storico la fascia colorata va dal 10° al 90° percentile, cioè contiene l'80% dei distributori.</li>
+          <li>Sulla mappa il colore di ogni punto indica la differenza dal prezzo medio italiano del giorno: da −6 a +6 centesimi, oltre la scala satura.</li>
+          <li>I prezzi sono quelli <strong>esposti</strong> alla pompa: non includono sconti regionali (per esempio in Friuli-Venezia Giulia) né promozioni con carte fedeltà.</li>
+        </ul>
+
+        <h2>Anagrafica degli impianti</h2>
+        <p>L'anagrafica cambia di poche righe al giorno. Invece di copiarla ogni volta, ne salviamo le variazioni (nuovi impianti, modifiche, chiusure) in un <em>change log</em>, secondo lo schema noto come SCD di tipo 2. Così lo stato di ogni giorno resta ricostruibile e l'archivio non cresce inutilmente. Il nome del gestore non viene conservato: può contenere dati di persone fisiche e non serve all'analisi.</p>
+
+        <h2>Limiti</h2>
+        <ul>
+          <li>Il prezzo di un distributore è quello dell'ultima comunicazione: un gestore che non aggiorna il dato resta fermo al prezzo precedente, fino a 8 giorni.</li>
+          <li>Due giornate (4 e 5 settembre 2026) mancano nell'archivio storico. I grafici collegano i punti adiacenti.</li>
+          <li>La media nazionale tratta allo stesso modo tutti i distributori, a prescindere da quanto carburante vendono: non è un prezzo medio "pesato" sui volumi.</li>
+        </ul>
+
+        <h2>Codice e riuso</h2>
+        <p>Tutto il codice è su <a href="https://github.com/gabrieleafferni/termometroitalia">GitHub</a>. Le tabelle finali, in formato Parquet nella cartella <code>data/marts</code>, sono liberamente riutilizzabili citando la fonte originale (MIMIT) e questo progetto.</p>
+      </article>
+    </main>
+    <script type="module" src="./src/js/metodo.js"></script>
+  </body>
+</html>

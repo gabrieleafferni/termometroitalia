@@ -1,0 +1,9 @@
+termometro:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "target/termometro.duckdb"
+      threads: 4
+      # I modelli "external" finiscono qui come <nome_modello>.parquet
+      external_root: "{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/marts"

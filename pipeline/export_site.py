@@ -1,0 +1,116 @@
+"""Esporta i mart in JSON compatti per il sito (site/public/data/).
+
+I Parquet in data/marts sono il prodotto dati "ufficiale" e versionato;
+questi JSON sono solo il formato di consegna al browser, rigenerati a ogni build.
+
+Uso:  python -m pipeline.export_site
+"""
+
+from __future__ import annotations
+
+import datetime as dt
+import json
+import shutil
+from pathlib import Path
+
+import duckdb
+
+ROOT = Path(__file__).resolve().parents[1]
+MARTS = ROOT / "data" / "marts"
+OUT = ROOT / "site" / "public" / "data"
+
+
+def _default(o):
+    if isinstance(o, (dt.date, dt.datetime)):
+        return o.isoformat()
+    raise TypeError(type(o))
+
+
+def rows(sql: str) -> list[dict]:
+    rel = duckdb.sql(sql)
+    return [dict(zip(rel.columns, r)) for r in rel.fetchall()]
+
+
+def columns(sql: str) -> dict[str, list]:
+    """Formato colonnare: molto più compatto per migliaia di righe."""
+    rel = duckdb.sql(sql)
+    data = rel.fetchall()
+    return {c: [r[i] for r in data] for i, c in enumerate(rel.columns)}
+
+
+def write(name: str, payload) -> None:
+    path = OUT / name
+    path.write_text(json.dumps(payload, default=_default, ensure_ascii=False, separators=(",", ":")))
+    print(f"  {name:36s} {path.stat().st_size / 1024:8.1f} KB")
+
+
+def mart(name: str) -> str:
+    return f"'{MARTS / (name + '.parquet')}'"
+
+
+def main() -> int:
+    OUT.mkdir(parents=True, exist_ok=True)
+    print(f"Esporto in {OUT.relative_to(ROOT)}")
+
+    write("carburanti_nazionale.json", rows(f"""
+        select data as d, carburante as c, modalita as m, is_riferimento as rif,
+               media, mediana, p10, p25, p75, p90, n_impianti as n
+        from {mart('mart_carburanti__nazionale_giornaliero')}
+        order by data, carburante, modalita
+    """))
+
+    write("carburanti_regionale.json", rows(f"""
+        select data as d, regione as r, cod_regione as cod, carburante as c,
+               media, scarto_vs_italia as scarto, n_impianti as n, posizione as pos
+        from {mart('mart_carburanti__regionale_giornaliero')}
+        order by data, carburante, posizione
+    """))
+
+    write("carburanti_province_oggi.json", rows(f"""
+        select sigla, provincia, regione, carburante as c, media, scarto_vs_italia as scarto,
+               n_impianti as n, posizione as pos
+        from {mart('mart_carburanti__provinciale_giornaliero')}
+        where data = (select max(data) from {mart('mart_carburanti__provinciale_giornaliero')})
+        order by carburante, posizione
+    """))
+
+    write("carburanti_tipo.json", rows(f"""
+        select data as d, tipo_impianto as t, carburante as c, media, n_impianti as n
+        from {mart('mart_carburanti__tipo_impianto_giornaliero')}
+        order by data, carburante, tipo_impianto
+    """))
+
+    write("carburanti_bandiere.json", rows(f"""
+        select marchio, carburante as c, media, mediana, n_impianti as n
+        from {mart('mart_carburanti__bandiere_oggi')}
+        order by carburante, media desc
+    """))
+
+    write("carburanti_impianti.json", columns(f"""
+        select id_impianto as id,
+               round(lat, 4) as lat, round(lon, 4) as lon,
+               benzina as b, gasolio as g, benzina_7g as b7, gasolio_7g as g7,
+               nome, bandiera, comune, sigla,
+               case tipo_impianto when 'Autostradale' then 1 else 0 end as auto
+        from {mart('mart_carburanti__impianti_oggi')}
+        order by id_impianto
+    """))
+
+    shutil.copy(MARTS / "novita.json", OUT / "novita.json")
+    print(f"  {'novita.json':36s} {(OUT / 'novita.json').stat().st_size / 1024:8.1f} KB")
+
+    stato = json.loads((ROOT / "data/raw/carburanti/ultimo_aggiornamento.json").read_text())
+    write("meta.json", {
+        "carburanti": {
+            "aggiornato_al": stato["data_estrazione"],
+            "fonte": stato["fonte"],
+            "scaricato_il": stato["scaricato_il"],
+            "impianti_attivi": stato["impianti_attivi"],
+        },
+        "build": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+    })
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

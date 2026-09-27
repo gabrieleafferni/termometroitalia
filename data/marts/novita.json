@@ -1,0 +1,105 @@
+{
+  "aggiornato_al": "2026-09-26",
+  "generato_il": "2026-09-27T14:10:16+00:00",
+  "fonte": "MIMIT via mirror benzina-data",
+  "inizio_serie": "2026-07-28",
+  "novita": [
+    {
+      "id": "record_record_max",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "carburanti": [
+        "benzina",
+        "gasolio",
+        "metano"
+      ],
+      "titolo": "Nuovo massimo per 3 carburanti",
+      "testo": "Benzina self, gasolio self e metano toccano il prezzo medio più alto da quando li monitoriamo (28 luglio).",
+      "rilevanza": 92
+    },
+    {
+      "id": "benzina_quadro",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Benzina self",
+      "valore": 2.16,
+      "unita": "€/l",
+      "delta_7g": 0.0045,
+      "delta_30g": 0.1424,
+      "testo": "Benzina self a 2,160 €/l: +0,5 cent in una settimana, +14,2 cent in un mese.",
+      "rilevanza": 90
+    },
+    {
+      "id": "gasolio_quadro",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Gasolio self",
+      "valore": 2.359,
+      "unita": "€/l",
+      "delta_7g": 0.0268,
+      "delta_30g": 0.2228,
+      "testo": "Gasolio self a 2,359 €/l: +2,7 cent in una settimana, +22,3 cent in un mese.",
+      "rilevanza": 90
+    },
+    {
+      "id": "metano_quadro",
+      "tema": "carburanti",
+      "carburante": "metano",
+      "titolo": "Metano",
+      "valore": 1.88,
+      "unita": "€/kg",
+      "delta_7g": 0.0155,
+      "delta_30g": 0.2123,
+      "testo": "Metano a 1,880 €/kg: +1,6 cent in una settimana, +21,2 cent in un mese.",
+      "rilevanza": 90
+    },
+    {
+      "id": "pieno_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Il costo di un pieno",
+      "testo": "Un pieno da 50 litri di benzina self costa 107,99 €: 7,12 € in più di un mese fa.",
+      "valore": 107.99,
+      "unita": "€",
+      "rilevanza": 70
+    },
+    {
+      "id": "gap_gasolio_benzina",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Gasolio contro benzina",
+      "testo": "Oggi il gasolio costa 19,9 cent al litro più della benzina (self).",
+      "rilevanza": 65
+    },
+    {
+      "id": "regioni_forbice",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Divario tra regioni",
+      "testo": "Benzina self: Friuli-Venezia Giulia è la regione più cara (2,187 €/l), Marche la più economica (2,143). Differenza: 4,3 cent.",
+      "rilevanza": 55
+    },
+    {
+      "id": "gpl_quadro",
+      "tema": "carburanti",
+      "carburante": "gpl",
+      "titolo": "GPL",
+      "valore": 0.756,
+      "unita": "€/l",
+      "delta_7g": -0.0002,
+      "delta_30g": 0.0015,
+      "testo": "GPL a 0,756 €/l: ±0,0 cent in una settimana, +0,1 cent in un mese.",
+      "rilevanza": 50.6
+    },
+    {
+      "id": "autostrada_pieno",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Il pieno in autostrada",
+      "testo": "Un pieno di benzina da 50 litri costa in media 4,69 € in più in autostrada.",
+      "valore": 4.69,
+      "unita": "€",
+      "rilevanza": 50
+    }
+  ]
+}

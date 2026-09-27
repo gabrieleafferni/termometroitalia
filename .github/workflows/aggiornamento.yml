@@ -1,0 +1,106 @@
+name: Aggiornamento quotidiano
+
+on:
+  schedule:
+    # Il MIMIT pubblica i prezzi al mattino: primo giro alle 06:40 UTC
+    # (08:40 in estate, 07:40 in inverno), secondo giro di sicurezza alle 12:40 UTC.
+    # La pipeline è idempotente: se i dati del giorno ci sono già, non riscrive nulla.
+    - cron: "40 6 * * *"
+    - cron: "40 12 * * *"
+  workflow_dispatch:
+    inputs:
+      fonte:
+        description: "Fonte dei dati carburanti"
+        type: choice
+        options: [auto, mimit, mirror]
+        default: auto
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "transform/**"
+      - "pipeline/**"
+      - ".github/workflows/**"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: aggiornamento
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    name: Raccolta, trasformazione e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dipendenze Python
+        run: pip install -r requirements.txt
+
+      - name: 1 · Raccolta prezzi carburanti (MIMIT)
+        run: python -m pipeline.carburanti.ingest --source "${{ inputs.fonte || 'auto' }}"
+
+      - name: 2 · Trasformazione e test di qualità (dbt)
+        working-directory: transform
+        run: dbt build --profiles-dir .
+
+      - name: 3 · Novità del giorno
+        run: |
+          python -m pipeline.insights
+          {
+            echo "## Novità del $(jq -r .aggiornato_al data/marts/novita.json)"
+            jq -r '.novita[] | "- **" + .titolo + "**: " + .testo' data/marts/novita.json
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 4 · Salvataggio dei dati nel repository
+        run: |
+          git config user.name "termometro-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Nessun dato nuovo da salvare."
+          else
+            git commit -m "Dati carburanti del $(jq -r .data_estrazione data/raw/carburanti/ultimo_aggiornamento.json)"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+
+      - name: 5 · Esportazione per il sito
+        run: python -m pipeline.export_site
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: 6 · Build del sito
+        working-directory: site
+        run: |
+          npm ci
+          npm run build
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site/dist
+
+  pubblicazione:
+    name: Pubblicazione su GitHub Pages
+    needs: pipeline
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v5

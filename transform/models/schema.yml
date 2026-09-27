@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  - name: stg_carburanti__prezzi
+    description: Prezzi grezzi tipizzati, una riga per impianto x prodotto x modalità x giorno.
+    columns:
+      - name: data
+        tests: [not_null]
+      - name: id_impianto
+        tests: [not_null]
+      - name: carburante
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["benzina", "gasolio", "gpl", "metano", "altro"]
+      - name: modalita
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["self", "servito"]
+
+  - name: stg_carburanti__impianti
+    description: Anagrafica corrente degli impianti ricostruita dal change log.
+    columns:
+      - name: id_impianto
+        tests: [unique, not_null]
+      - name: tipo_impianto
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["Stradale", "Autostradale", "Altro"]
+              config:
+                severity: warn
+
+  - name: int_carburanti__prezzi_validi
+    description: Prezzi dei 4 carburanti base con geografia e flag di qualità.
+
+  - name: mart_carburanti__nazionale_giornaliero
+    description: Serie nazionale giornaliera (media, mediana, percentili).
+    columns:
+      - name: data
+        tests: [not_null]
+      - name: media
+        tests: [not_null]
+      - name: n_impianti
+        tests: [not_null]
+
+  - name: mart_carburanti__regionale_giornaliero
+    description: Media per regione e giorno, con scarto dalla media italiana.
+    columns:
+      - name: regione
+        tests: [not_null]
+
+  - name: mart_carburanti__provinciale_giornaliero
+    description: Media per provincia e giorno.
+    columns:
+      - name: sigla
+        tests: [not_null]
+
+  - name: mart_carburanti__impianti_oggi
+    description: Un impianto per riga nell'ultimo giorno, per la mappa.
+    columns:
+      - name: id_impianto
+        tests: [unique, not_null]
+      - name: lat
+        tests: [not_null]
+      - name: lon
+        tests: [not_null]
+
+  - name: mart_carburanti__bandiere_oggi
+    description: Prezzo medio per marchio nell'ultimo giorno.
+
+  - name: mart_carburanti__tipo_impianto_giornaliero
+    description: Strada vs autostrada, per giorno.

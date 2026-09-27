@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# dbt
+transform/target/
+transform/logs/
+transform/dbt_packages/
+logs/
+
+# sito
+site/node_modules/
+site/dist/
+site/public/data/
+
+# sistema
+.DS_Store

@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: carburanti_raw
+    description: >
+      Data lake dei carburanti, scritto da pipeline/carburanti/ingest.py.
+      Fonte originale: MIMIT - Osservaprezzi Carburanti (licenza IODL 2.0).
+    meta:
+      external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/carburanti/{name}/*/*.parquet', filename = true)"
+    tables:
+      - name: prezzi
+        description: Uno snapshot completo per ogni data di estrazione MIMIT.
+        columns:
+          - name: id_impianto
+          - name: carburante
+          - name: prezzo
+          - name: self
+          - name: dt_comunicazione
+      - name: impianti
+        description: Change log (SCD tipo 2) dell'anagrafica impianti.
+        columns:
+          - name: id_impianto
+          - name: valido_dal
+          - name: azione

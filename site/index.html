@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Termometro Italia · il polso del Paese in dati aperti</title>
+    <meta name="description" content="Dashboard aggiornate ogni giorno sui temi caldi dell'attualità italiana: carburanti, salari, immigrazione, elezioni. Dati pubblici, metodo trasparente." />
+    <meta property="og:title" content="Termometro Italia" />
+    <meta property="og:description" content="Il polso del Paese, misurato ogni giorno con dati aperti." />
+    <meta name="theme-color" content="#05070f" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <section class="hero">
+      <div class="hero-text">
+        <span class="eyebrow">Osservatorio quotidiano · dati aperti</span>
+        <h1>Il polso dell'Italia,<br /><span class="glow">misurato ogni giorno.</span></h1>
+        <p class="lede">
+          Termometro Italia raccoglie ogni mattina i dati pubblici sui temi di cui tutti parlano,
+          li verifica e li trasforma in cruscotti interattivi. Si parte dal pieno di benzina.
+        </p>
+        <div class="hero-cta">
+          <a class="cta" href="carburanti.html">Esplora i carburanti <span aria-hidden="true">→</span></a>
+          <a class="cta ghost" href="metodo.html">Come funziona</a>
+        </div>
+        <div class="ticker" id="ticker" aria-label="Indicatori di oggi"></div>
+      </div>
+      <div class="hero-map" id="hero-map">
+        <div class="hero-caption" id="hero-caption"></div>
+      </div>
+    </section>
+
+    <main class="page" style="padding-top: 0">
+      <div class="section-head">
+        <h2>Cosa è cambiato oggi</h2>
+        <span class="eyebrow" id="novita-data"></span>
+      </div>
+      <section class="grid grid-3" id="novita"></section>
+
+      <div class="section-head">
+        <h2>I termometri</h2>
+        <span class="eyebrow">4 temi · 1 attivo</span>
+      </div>
+      <section class="grid grid-4" id="temi"></section>
+
+      <div class="section-head">
+        <h2>Dalla fonte al grafico, in automatico</h2>
+        <a href="https://github.com/gabrieleafferni/termometroitalia" class="eyebrow">codice aperto su GitHub</a>
+      </div>
+      <section class="pipeline-strip reveal">
+        <div class="step"><div class="k">01 · FONTE</div><div class="h">Open data pubblici</div><div class="d">MIMIT, ISTAT, Viminale, Camera e Senato</div></div>
+        <div class="step"><div class="k">02 · RACCOLTA</div><div class="h">Python, ogni mattina</div><div class="d">GitHub Actions scarica e archivia in Parquet</div></div>
+        <div class="step"><div class="k">03 · QUALITÀ</div><div class="h">dbt + DuckDB</div><div class="d">Pulizia, modelli e 29 test automatici</div></div>
+        <div class="step"><div class="k">04 · NOVITÀ</div><div class="h">Cosa è cambiato</div><div class="d">Record, strisce e variazioni insolite</div></div>
+        <div class="step"><div class="k">05 · PUBBLICAZIONE</div><div class="h">Questo sito</div><div class="d">Ricostruito e pubblicato a ogni aggiornamento</div></div>
+      </section>
+    </main>
+    <script type="module" src="./src/js/home.js"></script>
+  </body>
+</html>

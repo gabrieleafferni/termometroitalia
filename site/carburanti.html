@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carburanti · Termometro Italia</title>
+    <meta name="description" content="Il prezzo di benzina, gasolio, GPL e metano in 20.000 distributori italiani, aggiornato ogni giorno con i dati aperti del MIMIT." />
+    <meta property="og:title" content="Carburanti · Termometro Italia" />
+    <meta property="og:description" content="Mappa, trend e classifiche dei prezzi dei carburanti in Italia, aggiornati ogni giorno." />
+    <meta name="theme-color" content="#05070f" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="page-head">
+        <div>
+          <span class="eyebrow">Termometro 01 · Carburanti</span>
+          <h1>Il prezzo del pieno, <em>distributore per distributore</em></h1>
+          <p class="lede">
+            Ogni mattina il Ministero delle Imprese pubblica i prezzi praticati da circa 22.000 distributori.
+            Li raccogliamo, li puliamo e li trasformiamo in un quadro che si aggiorna da solo, ogni giorno.
+          </p>
+        </div>
+        <div class="stamp" id="stamp"></div>
+      </section>
+
+      <section class="grid grid-4" id="kpis" aria-label="Prezzi medi nazionali di oggi"></section>
+
+      <div class="filters" role="toolbar" aria-label="Filtri della pagina">
+        <span class="label">Carburante</span>
+        <div class="seg" id="fuel-toggle">
+          <button type="button" data-fuel="benzina" aria-pressed="true"><span class="key" style="background: var(--benzina)"></span>Benzina self</button>
+          <button type="button" data-fuel="gasolio" aria-pressed="false"><span class="key" style="background: var(--gasolio)"></span>Gasolio self</button>
+        </div>
+        <label class="search">
+          <span class="sr-only">Cerca un comune</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input id="comune" list="comuni" placeholder="Cerca il tuo comune…" autocomplete="off" />
+          <datalist id="comuni"></datalist>
+        </label>
+      </div>
+
+      <section class="grid grid-map section">
+        <article class="panel reveal">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Mappa · ogni punto è un distributore</div>
+              <h2 id="map-title">Dove la benzina costa di più</h2>
+              <p class="sub">Colore = differenza dal prezzo medio italiano di oggi. Trascina e ingrandisci per entrare nelle città.</p>
+            </div>
+          </div>
+          <div class="map-wrap" id="map">
+            <div class="map-count" id="map-count"></div>
+            <div class="map-hint">Ctrl + rotella, doppio clic o due dita per lo zoom</div>
+            <div class="map-ui">
+              <div class="legend-ramp" id="map-legend"></div>
+              <div style="display: flex; gap: 6px">
+                <button class="btn" type="button" id="map-zoom-in" aria-label="Ingrandisci">+</button>
+                <button class="btn" type="button" id="map-zoom-out" aria-label="Riduci">−</button>
+                <button class="btn" type="button" id="map-reset">Vista Italia</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <aside class="stack">
+          <article class="panel reveal" id="finder">
+            <div class="panel-title">Trova il distributore</div>
+            <h2 id="finder-title">I più economici nel tuo comune</h2>
+            <p class="sub" id="finder-sub">Scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti.</p>
+            <ul class="result-list" id="finder-list"></ul>
+          </article>
+          <article class="panel reveal">
+            <div class="panel-title">Cosa dice il termometro oggi</div>
+            <ul class="feed" id="feed"></ul>
+          </article>
+        </aside>
+      </section>
+
+      <section class="panel section reveal">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Andamento nazionale</div>
+            <h2 id="trend-title">Benzina e gasolio, giorno per giorno</h2>
+            <p class="sub">Prezzo medio self in Italia. La fascia colorata contiene l'80% dei distributori.</p>
+          </div>
+        </div>
+        <div class="legend" id="trend-legend"></div>
+        <div class="chart" id="trend"></div>
+      </section>
+
+      <section class="grid grid-3 section">
+        <article class="panel reveal">
+          <div class="panel-title">Regioni</div>
+          <h2 id="reg-title">Più care e più economiche</h2>
+          <p class="sub">Differenza dal prezzo medio italiano, in centesimi al litro.</p>
+          <div class="chart" id="regions" style="margin-top: 10px"></div>
+        </article>
+        <article class="panel reveal">
+          <div class="panel-title">Marchi</div>
+          <h2>Quanto conta l'insegna</h2>
+          <p class="sub">Prezzo medio per marchio rispetto alla media italiana, in centesimi.</p>
+          <div class="chart" id="brands" style="margin-top: 10px"></div>
+          <div class="panel-title" style="margin-top: 22px">Strada e autostrada</div>
+          <div class="big-stat" id="auto-stat"></div>
+          <p class="sub" id="auto-sub"></p>
+        </article>
+        <article class="panel reveal">
+          <div class="panel-title">Province</div>
+          <h2>Gli estremi della classifica</h2>
+          <p class="sub">Prezzo medio di oggi, 107 province.</p>
+          <div id="provinces"></div>
+        </article>
+      </section>
+
+      <section class="panel section reveal">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Distribuzione</div>
+            <h2 id="hist-title">Come si distribuiscono i prezzi</h2>
+            <p class="sub">Numero di distributori per fascia di prezzo (1 centesimo), oggi.</p>
+          </div>
+        </div>
+        <div class="chart" id="hist"></div>
+      </section>
+
+      <p class="panel-foot" style="margin-top: 20px">
+        <span>Fonte: MIMIT – Osservaprezzi Carburanti, licenza IODL 2.0. Elaborazione Termometro Italia.</span>
+        <a href="metodo.html">Come sono calcolati questi numeri →</a>
+      </p>
+    </main>
+    <script type="module" src="./src/js/carburanti.js"></script>
+  </body>
+</html>
