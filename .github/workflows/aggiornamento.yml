@@ -67,11 +67,11 @@ jobs:
           git config user.name "termometro-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
-          if git diff --cached --quiet; then
+          # si salva solo se cambiano i dati veri (nuova estrazione o mart diversi):
+          # i mart sono deterministici, quindi a parità di dati non cambiano di un byte.
+          # Le sole date di generazione (novita.json, ultimo_aggiornamento.json) non bastano.
+          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti 'data/marts/*.parquet'; then
             echo "Nessun dato nuovo da salvare."
-          elif [ "${{ github.event_name }}" = "schedule" ] && git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti; then
-            # nessuna nuova estrazione MIMIT: non versiono mart e metadati rigenerati identici
-            echo "Nessuna nuova estrazione: niente da salvare."
             git reset -q
           else
             git commit -m "Dati carburanti del $(jq -r .data_estrazione data/raw/carburanti/ultimo_aggiornamento.json)"
