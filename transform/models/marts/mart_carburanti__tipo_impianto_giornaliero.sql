@@ -4,7 +4,7 @@ select
     data,
     tipo_impianto,
     carburante,
-    round(avg(prezzo), 4) as media,
+    round(avg(cast(prezzo as decimal(9, 4))), 4) as media,
     round(median(prezzo), 4) as mediana,
     count(distinct id_impianto) as n_impianti
 from {{ ref('int_carburanti__prezzi_validi') }}

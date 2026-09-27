@@ -16,3 +16,4 @@ site/public/data/
 
 # sistema
 .DS_Store
+transform/.user.yml

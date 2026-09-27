@@ -7,7 +7,7 @@ with regioni as (
         regione,
         cod_regione,
         carburante,
-        avg(prezzo) as media,
+        avg(cast(prezzo as decimal(9, 4))) as media,
         median(prezzo) as mediana,
         count(distinct id_impianto) as n_impianti
     from {{ ref('int_carburanti__prezzi_validi') }}
@@ -30,7 +30,7 @@ select
     round(r.mediana, 4) as mediana,
     r.n_impianti,
     round(r.media - i.media_italia, 4) as scarto_vs_italia,
-    rank() over (partition by r.data, r.carburante order by r.media desc) as posizione
+    rank() over (partition by r.data, r.carburante order by r.media desc, r.regione) as posizione
 from regioni r
 join italia i using (data, carburante)
-order by r.data, r.carburante, posizione
+order by r.data, r.carburante, posizione, r.regione

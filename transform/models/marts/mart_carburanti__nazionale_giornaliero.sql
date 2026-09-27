@@ -6,7 +6,7 @@ select
     carburante,
     modalita,
     is_riferimento,
-    round(avg(prezzo), 4) as media,
+    round(avg(cast(prezzo as decimal(9, 4))), 4) as media,
     round(median(prezzo), 4) as mediana,
     round(quantile_cont(prezzo, 0.10), 4) as p10,
     round(quantile_cont(prezzo, 0.25), 4) as p25,
