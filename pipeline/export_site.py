@@ -8,7 +8,9 @@ Uso:  python -m pipeline.export_site
 
 from __future__ import annotations
 
+import csv
 import datetime as dt
+import decimal
 import json
 import shutil
 from pathlib import Path
@@ -23,6 +25,8 @@ OUT = ROOT / "site" / "public" / "data"
 def _default(o):
     if isinstance(o, (dt.date, dt.datetime)):
         return o.isoformat()
+    if isinstance(o, decimal.Decimal):
+        return float(o)
     raise TypeError(type(o))
 
 
@@ -98,6 +102,24 @@ def main() -> int:
 
     shutil.copy(MARTS / "novita.json", OUT / "novita.json")
     print(f"  {'novita.json':36s} {(OUT / 'novita.json').stat().st_size / 1024:8.1f} KB")
+
+    write("carburanti_storico.json", columns(f"""
+        select data as d, carburante as c, prezzo as p, prezzo_netto as n, tasse as t, massimo_precedente as mp
+        from {mart('mart_carburanti__storico_settimanale')}
+        where carburante in ('benzina', 'gasolio')
+        order by carburante, data
+    """))
+
+    write("carburanti_marchi.json", rows(f"""
+        select data as d, marchio as m, carburante as c, media, n_impianti as n,
+               quota_entro_tetto_eni as q, tetto_eni as tetto
+        from {mart('mart_carburanti__marchi_giornaliero')}
+        order by data, carburante, marchio
+    """))
+
+    seed = ROOT / "transform" / "seeds" / "misure_prezzo.csv"
+    with seed.open(encoding="utf-8") as f:
+        write("misure.json", list(csv.DictReader(f)))
 
     stato = json.loads((ROOT / "data/raw/carburanti/ultimo_aggiornamento.json").read_text())
     write("meta.json", {

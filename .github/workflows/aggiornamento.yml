@@ -2,11 +2,12 @@ name: Aggiornamento quotidiano
 
 on:
   schedule:
-    # Il MIMIT pubblica i prezzi al mattino: primo giro alle 06:40 UTC
-    # (08:40 in estate, 07:40 in inverno), secondo giro di sicurezza alle 12:40 UTC.
-    # La pipeline è idempotente: se i dati del giorno ci sono già, non riscrive nulla.
-    - cron: "40 6 * * *"
-    - cron: "40 12 * * *"
+    # Il MIMIT pubblica i prezzi di ogni giorno (in vigore alle 8:00) di solito la
+    # mattina successiva, ma l'orario varia; GitHub inoltre può ritardare o saltare
+    # singole esecuzioni programmate. Per questo si controlla ogni 2 ore (al minuto
+    # 23, lontano dallo scoccare dell'ora, quando i server sono più carichi).
+    # La pipeline è idempotente: se non c'è niente di nuovo, non salva e non ripubblica.
+    - cron: "23 */2 * * *"
   workflow_dispatch:
     inputs:
       fonte:
@@ -36,6 +37,8 @@ jobs:
     name: Raccolta, trasformazione e build
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      pubblica: ${{ steps.salva.outputs.pubblica }}
     steps:
       - uses: actions/checkout@v6
 
@@ -50,6 +53,12 @@ jobs:
       - name: 1 · Raccolta prezzi carburanti (MIMIT)
         run: python -m pipeline.carburanti.ingest --source "${{ inputs.fonte || 'auto' }}"
 
+      - name: 1b · Serie settimanale MASE (dal 2005)
+        # fonte esterna con protezioni anti-bot: se fallisce si usa l'ultimo snapshot
+        # salvato e la pipeline giornaliera prosegue (un test dbt avvisa se è ferma da 3 settimane)
+        continue-on-error: true
+        run: python -m pipeline.carburanti.settimanali
+
       - name: 2 · Trasformazione e test di qualità (dbt)
         working-directory: transform
         run: dbt build --profiles-dir .
@@ -63,6 +72,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 4 · Salvataggio dei dati nel repository
+        id: salva
         run: |
           git config user.name "termometro-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -70,37 +80,45 @@ jobs:
           # si salva solo se cambiano i dati veri (nuova estrazione o mart diversi):
           # i mart sono deterministici, quindi a parità di dati non cambiano di un byte.
           # Le sole date di generazione (novita.json, ultimo_aggiornamento.json) non bastano.
-          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti 'data/marts/*.parquet'; then
+          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali 'data/marts/*.parquet'; then
             echo "Nessun dato nuovo da salvare."
             git reset -q
+            # senza dati nuovi, i run programmati non ripubblicano il sito
+            echo "pubblica=${{ github.event_name != 'schedule' }}" >> "$GITHUB_OUTPUT"
           else
             git commit -m "Dati carburanti del $(jq -r .data_estrazione data/raw/carburanti/ultimo_aggiornamento.json)"
             git pull --rebase origin main
             git push origin HEAD:main
+            echo "pubblica=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: 5 · Esportazione per il sito
+        if: steps.salva.outputs.pubblica == 'true'
         run: python -m pipeline.export_site
 
       - uses: actions/setup-node@v6
+        if: steps.salva.outputs.pubblica == 'true'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: site/package-lock.json
 
       - name: 6 · Build del sito
+        if: steps.salva.outputs.pubblica == 'true'
         working-directory: site
         run: |
           npm ci
           npm run build
 
       - uses: actions/upload-pages-artifact@v5
+        if: steps.salva.outputs.pubblica == 'true'
         with:
           path: site/dist
 
   pubblicazione:
     name: Pubblicazione su GitHub Pages
     needs: pipeline
+    if: needs.pipeline.outputs.pubblica == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

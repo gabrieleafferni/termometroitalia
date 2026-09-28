@@ -12,9 +12,13 @@ import { fmt, parseDay, NOMI_RIF, UNITA } from "./lib/format.js";
 import { chrome, el, tooltip, ttTitle, ttRow, tableView, countUp, reveal, deltaSpan } from "./lib/ui.js";
 import { glowMap, colorScale, DIVERGING } from "./charts/map.js";
 import { trendChart } from "./charts/trend.js";
-import { sparkline, divergingBars, histogram } from "./charts/small.js";
+import { sparkline, divergingBars, histogram, taxArea } from "./charts/small.js";
 
 const COLORE = { benzina: "#c98500", gasolio: "#8f6ff0", gpl: "#3ecf8e", metano: "#4c9df5" };
+// grafico dei marchi: forma "enfasi" (Eni e IP in evidenza, gli altri in grigio). Colori validati.
+const COL_ENI = "#199fb5", COL_IP = "#9a7cf0", COL_ALTRI = "#56607a";
+const NOME_MARCHIO = { "Agip Eni": "Eni", "Api-Ip": "IP" };
+const FONTE_IP = "https://www.ilfattoquotidiano.it/2026/09/27/dopo-eni-ip-promette-un-tetto-al-prezzo-del-carburante-progressivamente-dal-28-settembre-ma-non-dice-il-prezzo/8519800/";
 const CAMPO = { benzina: "b", gasolio: "g" };
 const RANGE = 0.06; // ±6 cent: saturazione della scala colori della mappa
 
@@ -27,7 +31,7 @@ const titleCase = (s) =>
   s.toLowerCase().replace(/(^|[\s'’\-(/])([a-zà-ÿ])/g, (m, p, c) => p + c.toUpperCase()).replace(/\b(Di|De|Del|Della|Dei|Delle|Degli|In|Sul|Sulla|Nel|Nell|Al|Alla|E)\b/g, (w) => w.toLowerCase());
 
 async function main() {
-  const [meta, naz, reg, prov, tipo, bandiere, imp, novita, topo] = await Promise.all([
+  const [meta, naz, reg, prov, tipo, bandiere, imp, novita, topo, marchi, storico, misure] = await Promise.all([
     load("meta.json"),
     load("carburanti_nazionale.json"),
     load("carburanti_regionale.json"),
@@ -37,6 +41,9 @@ async function main() {
     load("carburanti_impianti.json"),
     load("novita.json"),
     loadGeo("regioni.topo.json"),
+    load("carburanti_marchi.json"),
+    load("carburanti_storico.json"),
+    load("misure.json"),
   ]);
   chrome("carburanti", meta);
 
@@ -56,9 +63,10 @@ async function main() {
   // ---------- intestazione ----------
   const stamp = document.getElementById("stamp");
   stamp.append(
-    el("strong", null, `Dati del ${fmt.giornoAnno(oggi).trim()}`),
-    el("span", null, `${fmt.intero(stations.length)} distributori sulla mappa · storico dal ${fmt.giorno(byFuel.get("benzina")[0].date).trim()}`)
+    el("strong", null, `Prezzi alle 8:00 del ${fmt.giornoAnno(oggi).trim()}`),
+    el("span", null, `aggiornamento automatico ogni 2 ore · ${fmt.intero(stations.length)} distributori · storico giornaliero dal ${fmt.giorno(byFuel.get("benzina")[0].date).trim()}, settimanale dal 2005`)
   );
+  stamp.title = "Il MIMIT pubblica i prezzi in vigore alle 8:00 di ogni giorno, di solito la mattina successiva.";
 
   // ---------- KPI ----------
   const kpis = document.getElementById("kpis");
@@ -235,6 +243,167 @@ async function main() {
     return [...by].reverse().map(([d, o]) => ({ d, b: o.benzina, g: o.gasolio, l: o.gpl, m: o.metano }));
   });
 
+  // ---------- vent'anni di prezzi (serie settimanale MASE) ----------
+  const sto = fromColumns(storico).map((r) => ({ ...r, date: parseDay(r.d) }));
+  const stoBy = d3.group(sto, (r) => r.c);
+  const storicoEl = document.getElementById("storico");
+  const stoSeries = ["benzina", "gasolio"].map((c) => ({
+    key: c,
+    name: NOMI_RIF[c].split(" ")[0],
+    color: COLORE[c],
+    points: stoBy.get(c).map((r) => ({ date: r.date, v: r.p })),
+  }));
+  const slg = document.getElementById("storico-legend");
+  for (const sr of stoSeries) {
+    const sp = el("span");
+    const k = el("span", "key-line");
+    k.style.background = sr.color;
+    sp.append(k, document.createTextNode(sr.name));
+    slg.append(sp);
+  }
+  trendChart(storicoEl, {
+    series: stoSeries,
+    height: 360,
+    xTicks: "anni",
+    markMax: true,
+    events: [{ date: new Date(2022, 1, 24), label: "Invasione russa dell'Ucraina" }],
+    tooltipTitle: (d) => `Settimana del ${fmt.giornoAnno(d).trim()}`,
+    ariaLabel: "Prezzi settimanali di benzina e gasolio dal 2005",
+  });
+  const contesto = (c) => {
+    const s = stoBy.get(c), u = s.at(-1);
+    const sopra = s.slice(0, -1).filter((r) => r.p >= u.p);
+    return sopra.length ? { record: false, da: sopra.at(-1) } : { record: true };
+  };
+  const cg = contesto("gasolio"), cb = contesto("benzina");
+  const meseIt = (d) => fmt.giornoAnno(d).trim().split(" ").slice(1).join(" ");
+  document.getElementById("storico-title").textContent =
+    `${cg.record ? "Gasolio al record dal 2005" : `Gasolio ai massimi da ${meseIt(cg.da.date)}`}, ` +
+    `${cb.record ? "benzina al record dal 2005" : `benzina ai massimi da ${meseIt(cb.da.date)}`}`;
+  tableView(storicoEl.parentElement, [
+    { key: "d", label: "Settimana" },
+    { key: "b", label: "Benzina (€/l)", num: true, format: fmt.prezzo },
+    { key: "g", label: "Gasolio (€/l)", num: true, format: fmt.prezzo },
+  ], () => {
+    const by = d3.rollup(sto, (v) => Object.fromEntries(v.map((r) => [r.c, r.p])), (r) => r.d);
+    return [...by].reverse().map(([d, o]) => ({ d, b: o.benzina, g: o.gasolio }));
+  });
+
+  const tasseEl = document.getElementById("tasse");
+  function renderTasse() {
+    const pts = stoBy.get(fuel).filter((r) => r.n != null).map((r) => ({ date: r.date, netto: r.n, tasse: r.t }));
+    tasseEl.replaceChildren();
+    taxArea(tasseEl, { points: pts, color: COLORE[fuel] });
+    const u = pts.at(-1);
+    document.getElementById("tasse-title").textContent =
+      `${fmt.prezzo(u.tasse)} € su ${fmt.prezzo(u.netto + u.tasse)} sono accise e IVA`;
+    document.getElementById("tasse-sub").textContent =
+      `${NOMI_RIF[fuel].split(" ")[0]}, settimana del ${fmt.giornoAnno(u.date).trim()}: le tasse valgono il ${Math.round((u.tasse / (u.netto + u.tasse)) * 100)}% del prezzo. Negli shock di prezzo si muove soprattutto il prezzo industriale.`;
+    const tl = document.getElementById("tasse-legend");
+    tl.replaceChildren();
+    for (const [c, t] of [[COLORE[fuel], "Prezzo industriale"], ["#56607a", "Accise e IVA"]]) {
+      const sp = el("span");
+      const k = el("span", "key-rect");
+      k.style.background = c;
+      sp.append(k, document.createTextNode(t));
+      tl.append(sp);
+    }
+  }
+
+  // ---------- tetto Eni e reazione degli altri marchi ----------
+  marchi.forEach((r) => (r.date = parseDay(r.d)));
+  const misura = misure.filter((m) => m.misura_id === "tetto_eni_2026");
+  const tetto = Object.fromEntries(misura.map((m) => [m.carburante, +m.prezzo_max]));
+  const tDal = parseDay(misura[0].valida_dal);
+  const tAl = parseDay(misura[0].valida_al);
+  const ultimoMarchi = d3.max(marchi, (r) => r.date);
+  const marchiEl = document.getElementById("marchi-chart");
+
+  function renderTetto() {
+    const inVigore = ultimoMarchi >= tDal;
+    const badge = el("span", `badge ${inVigore ? "on" : "wait"}`,
+      inVigore ? `in vigore dal ${fmt.giorno(tDal).trim()} al ${fmt.giorno(tAl).trim()}` : `in vigore dal ${fmt.giorno(tDal).trim()} · dati in arrivo`);
+    const sub = document.getElementById("tetto-sub");
+    sub.replaceChildren(badge, el("br"), document.createTextNode(
+      `Eni ha fissato un prezzo massimo self di ${fmt.prezzo2(tetto.benzina)} €/l per la benzina e ${fmt.prezzo2(tetto.gasolio)} €/l per il gasolio. ` +
+      (inVigore
+        ? `Qui misuriamo ogni giorno quanti distributori Eni lo rispettano davvero.`
+        : `Il MIMIT pubblica i prezzi di ogni giorno la mattina successiva: la prima rilevazione con il tetto (${fmt.giorno(tDal).trim()}) comparirà qui con l'aggiornamento del ${fmt.giorno(d3.timeDay.offset(tDal, 1)).trim()}. Per ora vedi la situazione di partenza.`)
+    ));
+
+    const stats = document.getElementById("tetto-stats");
+    stats.replaceChildren();
+    for (const c of ["benzina", "gasolio"]) {
+      const r = marchi.find((q) => +q.date === +ultimoMarchi && q.m === "Agip Eni" && q.c === c);
+      if (!r) continue;
+      const box = el("div", "tetto-stat");
+      const l = el("div", "l");
+      const key = el("span");
+      key.style.cssText = `width:14px;height:3px;border-radius:2px;background:${COLORE[c]}`;
+      l.append(key, document.createTextNode(`${NOMI_RIF[c]} ≤ ${fmt.prezzo2(tetto[c])} €/l`));
+      const v = el("div", "v");
+      const perc = r.q * 100;
+      v.append(document.createTextNode(`${perc < 10 ? perc.toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : fmt.intero(Math.round(perc))}%`), el("small", null, "dei distributori Eni"));
+      const meter = el("div", "meter");
+      const bar = el("span");
+      bar.style.width = `${Math.max(1, r.q * 100)}%`;
+      meter.append(bar);
+      const d = el("div", "d", `${inVigore ? "Rilevazione" : "Prima del tetto"} del ${fmt.giorno(ultimoMarchi).trim()} · ${fmt.intero(Math.round(r.q * r.n))} su ${fmt.intero(r.n)} impianti · media Eni ${fmt.prezzo(r.media)} €/l`);
+      box.append(l, v, meter, d);
+      stats.append(box);
+    }
+
+    const note = document.getElementById("tetto-note");
+    note.replaceChildren(
+      document.createTextNode("Il tetto vale nei circa 3.000 impianti gestiti direttamente da Enilive (su circa 3.900 a marchio Eni) ed esclude l'autostrada: anche se applicato ovunque, la quota non arriverà al 100%. "),
+      Object.assign(el("a", null, "Comunicato Eni"), { href: misura[0].fonte, target: "_blank", rel: "noopener" }),
+      document.createTextNode(". Anche IP ha annunciato un tetto «progressivo» dal 28 settembre, senza indicare i prezzi massimi: lo seguiamo nel grafico a fianco ("),
+      Object.assign(el("a", null, "fonte"), { href: FONTE_IP, target: "_blank", rel: "noopener" }),
+      document.createTextNode(")."),
+    );
+
+    // grafico: prezzo medio per marchio, ultimi 30 giorni
+    const inizio = d3.timeDay.offset(ultimoMarchi, -30);
+    const righe = marchi.filter((r) => r.c === fuel && r.date >= inizio);
+    const perMarchio = d3.group(righe, (r) => r.m);
+    const ordine = ["Q8", "Esso", "Tamoil", "Pompe Bianche", "Altri marchi", "Api-Ip", "Agip Eni"];
+    const series = ordine.filter((m) => perMarchio.has(m)).map((m) => ({
+      key: m,
+      name: NOME_MARCHIO[m] ?? m,
+      color: m === "Agip Eni" ? COL_ENI : m === "Api-Ip" ? COL_IP : COL_ALTRI,
+      width: m === "Agip Eni" || m === "Api-Ip" ? 2 : 1.25,
+      label: m === "Agip Eni" || m === "Api-Ip",
+      points: perMarchio.get(m).map((r) => ({ date: r.date, v: r.media })),
+    }));
+    marchiEl.replaceChildren();
+    trendChart(marchiEl, {
+      series,
+      height: 320,
+      refLines: [{ value: tetto[fuel], label: `Tetto Eni ${fmt.prezzo2(tetto[fuel])} €/l` }],
+      events: [{ date: tDal, label: "Tetto Eni in vigore" }],
+      tooltipNote: "Media self dei distributori fuori autostrada",
+      ariaLabel: `Prezzo medio del ${fuel} self per marchio negli ultimi 30 giorni, con il tetto Eni`,
+    });
+    const ml = document.getElementById("marchi-legend");
+    ml.replaceChildren();
+    for (const [c, t] of [[COL_ENI, "Eni"], [COL_IP, "IP"], [COL_ALTRI, "Q8, Esso, Tamoil, pompe bianche, altri"]]) {
+      const sp = el("span");
+      const k = el("span", "key-line");
+      k.style.background = c;
+      sp.append(k, document.createTextNode(t));
+      ml.append(sp);
+    }
+    document.getElementById("marchi-title").textContent = `${fuel === "benzina" ? "Benzina" : "Gasolio"} self per marchio, rete stradale`;
+    marchiEl.parentElement.querySelector("details.table-view")?.remove();
+    tableView(marchiEl.parentElement, [
+      { key: "d", label: "Data" },
+      { key: "m", label: "Marchio", format: (m) => NOME_MARCHIO[m] ?? m },
+      { key: "media", label: "Media (€/l)", num: true, format: fmt.prezzo },
+      { key: "q", label: `≤ ${fmt.prezzo2(tetto[fuel])} €/l`, num: true, format: (q) => fmt.pct(q) },
+      { key: "n", label: "Impianti", num: true, format: fmt.intero },
+    ], () => [...righe].sort((a, b) => d3.descending(a.d, b.d) || d3.ascending(a.media, b.media)));
+  }
+
   // ---------- pannelli che dipendono dal carburante ----------
   const regionsEl = document.getElementById("regions");
   const brandsEl = document.getElementById("brands");
@@ -244,6 +413,8 @@ async function main() {
   const tipoOggi = tipo.filter((r) => r.d === d3.max(tipo, (q) => q.d));
 
   function renderFuelPanels() {
+    renderTetto();
+    renderTasse();
     const regRows = reg.filter((r) => r.d === oggiISO && r.c === fuel)
       .map((r) => ({ label: r.r, value: r.scarto, media: r.media, n: r.n }))
       .sort((a, b) => b.value - a.value);

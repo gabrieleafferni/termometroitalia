@@ -275,7 +275,7 @@ def stato_impianti(fino_a: dt.date | None = None) -> dict[int, dict]:
           from read_parquet({[str(p) for p in files]})
         ) where rn = 1 and azione <> 'chiusura'
         """
-    ).fetch_arrow_table().to_pylist()
+    ).to_arrow_table().to_pylist()
     return {r["id_impianto"]: {c: r[c] for c in IMPIANTI_COLS} for r in rows}
 
 

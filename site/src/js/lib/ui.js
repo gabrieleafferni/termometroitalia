@@ -187,6 +187,8 @@ export function reveal() {
 
 /** Richiama fn quando la larghezza del contenitore cambia. */
 export function onResize(node, fn) {
+  // un solo osservatore per nodo: se il grafico viene ricreato, il vecchio smette di ridisegnare
+  node._ro?.disconnect();
   let w = node.clientWidth;
   const ro = new ResizeObserver(() => {
     if (Math.abs(node.clientWidth - w) > 2) {
@@ -195,6 +197,7 @@ export function onResize(node, fn) {
     }
   });
   ro.observe(node);
+  node._ro = ro;
 }
 
 /** Frase di variazione con freccia (colore + simbolo, mai solo colore). */

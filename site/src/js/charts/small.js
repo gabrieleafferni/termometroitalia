@@ -172,3 +172,65 @@ export function histogram(container, { values, color, markers = [], height = 260
   render();
   onResize(container, render);
 }
+
+/**
+ * Composizione del prezzo nel tempo: prezzo industriale (sotto) + accise e IVA
+ * (sopra). Due strati impilati separati da un filo del colore della superficie.
+ * points: [{ date, netto, tasse }]
+ */
+export function taxArea(container, { points, color, grey = "#56607a", height = 300 }) {
+  const tip = tooltip();
+
+  function render() {
+    d3.select(container).selectAll("svg").remove();
+    const W = container.clientWidth;
+    const m = { top: 12, right: 12, bottom: 30, left: 46 };
+    const w = W - m.left - m.right, h = height - m.top - m.bottom;
+    const x = d3.scaleTime().domain(d3.extent(points, (p) => p.date)).range([0, w]);
+    const y = d3.scaleLinear().domain([0, d3.max(points, (p) => p.netto + p.tasse)]).nice(5).range([h, 0]);
+
+    const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${W} ${height}`).attr("role", "img")
+      .attr("aria-label", "Composizione del prezzo: prezzo industriale e tasse");
+    const g = svg.append("g").attr("transform", `translate(${m.left},${m.top})`);
+    const yt = y.ticks(5);
+    g.append("g").attr("class", "grid").selectAll("line").data(yt).join("line")
+      .attr("x1", 0).attr("x2", w).attr("y1", (d) => y(d)).attr("y2", (d) => y(d));
+    g.append("g").selectAll("text").data(yt).join("text").attr("class", "tick-label")
+      .attr("x", -10).attr("y", (d) => y(d)).attr("dy", "0.32em").attr("text-anchor", "end").text(fmt.prezzo2);
+    g.append("g").selectAll("text").data(x.ticks(d3.timeYear.every(W < 480 ? 10 : 5))).join("text").attr("class", "tick-label")
+      .attr("x", (d) => x(d)).attr("y", h + 20).attr("text-anchor", "middle").text(d3.timeFormat("%Y"));
+
+    const curve = d3.curveMonotoneX;
+    g.append("path").datum(points).attr("fill", color).attr("fill-opacity", 0.75)
+      .attr("d", d3.area().x((p) => x(p.date)).y0(h).y1((p) => y(p.netto)).curve(curve));
+    g.append("path").datum(points).attr("fill", grey).attr("fill-opacity", 0.7)
+      .attr("d", d3.area().x((p) => x(p.date)).y0((p) => y(p.netto)).y1((p) => y(p.netto + p.tasse)).curve(curve));
+    // filo di separazione del colore della superficie (niente bordi disegnati sui dati)
+    g.append("path").datum(points).attr("fill", "none").attr("stroke", "var(--panel)").attr("stroke-width", 2)
+      .attr("d", d3.line().x((p) => x(p.date)).y((p) => y(p.netto)).curve(curve));
+    g.append("line").attr("x1", 0).attr("x2", w).attr("y1", h).attr("y2", h).attr("stroke", "var(--axis)");
+
+    const cross = g.append("line").attr("class", "crosshair").attr("y1", 0).attr("y2", h).attr("opacity", 0);
+    const bis = d3.bisector((p) => p.date).center;
+    g.append("rect").attr("width", w).attr("height", h).attr("fill", "transparent")
+      .on("pointermove", (e) => {
+        const [mx] = d3.pointer(e);
+        const p = points[bis(points, x.invert(mx))];
+        cross.attr("x1", x(p.date)).attr("x2", x(p.date)).attr("opacity", 1);
+        tip.show((t) => {
+          ttTitle(t, `Settimana del ${fmt.giornoAnno(p.date).trim()}`);
+          ttRow(t, null, "Prezzo alla pompa", `${fmt.prezzo(p.netto + p.tasse)} €/l`);
+          ttRow(t, grey, "Accise e IVA", `${fmt.prezzo(p.tasse)} €/l`);
+          ttRow(t, color, "Prezzo industriale", `${fmt.prezzo(p.netto)} €/l`);
+          ttRow(t, null, "Quota tasse", fmt.pct(p.tasse / (p.netto + p.tasse)));
+        }, e.clientX, e.clientY);
+      })
+      .on("pointerleave", () => {
+        cross.attr("opacity", 0);
+        tip.hide();
+      });
+  }
+
+  render();
+  onResize(container, render);
+}

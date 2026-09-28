@@ -72,3 +72,22 @@ models:
 
   - name: mart_carburanti__tipo_impianto_giornaliero
     description: Strada vs autostrada, per giorno.
+
+  - name: stg_carburanti__settimanali
+    description: Ultimo snapshot della serie settimanale MASE.
+
+  - name: mart_carburanti__storico_settimanale
+    description: Serie settimanale MASE dal 2005 con tasse e massimo precedente.
+    columns:
+      - name: data
+        tests: [not_null]
+      - name: prezzo
+        tests: [not_null]
+
+  - name: mart_carburanti__marchi_giornaliero
+    description: Prezzo per marchio e giorno (rete stradale) con adesione al tetto Eni.
+    columns:
+      - name: marchio
+        tests: [not_null]
+      - name: quota_entro_tetto_eni
+        tests: [not_null]

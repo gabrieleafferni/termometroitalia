@@ -22,3 +22,9 @@ sources:
           - name: id_impianto
           - name: valido_dal
           - name: azione
+      - name: settimanali
+        description: >
+          Serie settimanale MASE dal 2005 (prezzi al consumo e netti), uno snapshot
+          per ogni pubblicazione. Scritta da pipeline/carburanti/settimanali.py.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/carburanti/{name}/*.parquet', filename = true)"

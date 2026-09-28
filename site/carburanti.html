@@ -40,6 +40,24 @@
         </label>
       </div>
 
+
+      <section class="grid grid-tetto section" id="tetto" aria-labelledby="tetto-title">
+        <article class="panel reveal tetto-panel">
+          <div class="panel-title">Tetto ai prezzi · Eni</div>
+          <h2 id="tetto-title">Eni sta applicando il tetto?</h2>
+          <p class="sub" id="tetto-sub"></p>
+          <div class="tetto-stats" id="tetto-stats"></div>
+          <p class="note" id="tetto-note"></p>
+        </article>
+        <article class="panel reveal">
+          <div class="panel-title">Chi segue Eni</div>
+          <h2 id="marchi-title">Prezzo medio per marchio, rete stradale</h2>
+          <p class="sub">Media self dei distributori fuori autostrada per insegna. La linea bianca è il tetto Eni: se gli altri marchi scendono verso quella linea, stanno reagendo.</p>
+          <div class="legend" id="marchi-legend"></div>
+          <div class="chart" id="marchi-chart"></div>
+        </article>
+      </section>
+
       <section class="grid grid-map section">
         <article class="panel reveal">
           <div class="panel-head">
@@ -89,6 +107,28 @@
         <div class="chart" id="trend"></div>
       </section>
 
+
+      <section class="grid grid-storico section">
+        <article class="panel reveal">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Vent'anni di prezzi · serie settimanale MASE</div>
+              <h2 id="storico-title">I prezzi dal 2005 a oggi</h2>
+              <p class="sub">Prezzo medio nazionale settimanale pubblicato dal Ministero dell'Ambiente (MASE). Valori nominali, non corretti per l'inflazione.</p>
+            </div>
+          </div>
+          <div class="legend" id="storico-legend"></div>
+          <div class="chart" id="storico"></div>
+        </article>
+        <article class="panel reveal">
+          <div class="panel-title">Quanto pesano le tasse</div>
+          <h2 id="tasse-title">Accise e IVA nel prezzo</h2>
+          <p class="sub" id="tasse-sub">Composizione del prezzo settimanale: prezzo industriale più accise e IVA.</p>
+          <div class="legend" id="tasse-legend"></div>
+          <div class="chart" id="tasse"></div>
+        </article>
+      </section>
+
       <section class="grid grid-3 section">
         <article class="panel reveal">
           <div class="panel-title">Regioni</div>
@@ -125,7 +165,7 @@
       </section>
 
       <p class="panel-foot" style="margin-top: 20px">
-        <span>Fonte: MIMIT – Osservaprezzi Carburanti, licenza IODL 2.0. Elaborazione Termometro Italia.</span>
+        <span>Fonti: MIMIT – Osservaprezzi Carburanti (IODL 2.0); MASE – prezzi medi settimanali. Elaborazione Termometro Italia.</span>
         <a href="metodo.html">Come sono calcolati questi numeri →</a>
       </p>
     </main>

@@ -32,6 +32,11 @@ models:
 
 seeds:
   termometro:
+    misure_prezzo:
+      +column_types:
+        prezzo_max: decimal(6, 3)
+        valida_dal: date
+        valida_al: date
     province:
       +column_types:
         sigla: varchar

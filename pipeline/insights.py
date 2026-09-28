@@ -149,6 +149,127 @@ def novita_carburante(carb: str, serie: list[dict]) -> list[dict]:
     return out
 
 
+def pct(x: float, dec: int = 0) -> str:
+    """'il 62%', 'l'8%', 'lo 0,8%': articolo corretto davanti a una percentuale."""
+    s = euro(x * 100, dec)
+    intero = s.split(",")[0]
+    art = "lo" if intero == "0" else ("l'" if intero in ("1", "11") or intero.startswith("8") else "il")
+    return f"{art}{'' if art.endswith(chr(39)) else ' '}{s}%"
+
+
+def mese_anno(d: dt.date) -> str:
+    return f"{MESI[d.month - 1]} {d.year}"
+
+
+def novita_storico() -> list[dict]:
+    """Contesto lungo dalla serie settimanale MASE (dal 2005)."""
+    path = MARTS / "mart_carburanti__storico_settimanale.parquet"
+    if not path.exists():
+        return []
+    out = []
+    rows = q(f"select data, carburante, prezzo, tasse, quota_tasse from '{path}' order by carburante, data")
+    serie: dict[str, list[dict]] = {}
+    for r in rows:
+        serie.setdefault(r["carburante"], []).append(r)
+    for carb in ("benzina", "gasolio"):
+        s = serie.get(carb)
+        if not s:
+            continue
+        ult = s[-1]
+        inizio = s[0]["data"]
+        superiori = [r for r in s[:-1] if r["prezzo"] >= ult["prezzo"]]
+        nome = NOMI[carb].split()[0]
+        if not superiori:
+            testo = (f"{nome}: {euro(ult['prezzo'])} €/l nella settimana del {data_it(ult['data'])}, "
+                     f"il prezzo settimanale più alto dall'inizio della serie MASE ({inizio.year}), in termini nominali.")
+            rilev = 93
+            titolo = "Record dal " + str(inizio.year)
+        else:
+            ultima = superiori[-1]
+            testo = (f"{nome}: {euro(ult['prezzo'])} €/l nella settimana del {data_it(ult['data'])}, "
+                     f"il livello più alto da {mese_anno(ultima['data'])} ({euro(ultima['prezzo'])} €/l).")
+            anni = (ult["data"] - ultima["data"]).days / 365.25
+            rilev = 70 + min(20, anni * 5)
+            titolo = f"Il più alto da {mese_anno(ultima['data'])}"
+        out.append({"id": f"storico_{carb}", "tema": "carburanti", "carburante": carb,
+                    "titolo": titolo, "testo": testo, "rilevanza": rilev})
+    b = serie.get("benzina")
+    if b and b[-1]["tasse"] is not None:
+        u = b[-1]
+        out.append({
+            "id": "tasse_benzina", "tema": "carburanti", "carburante": "benzina",
+            "titolo": "Quanto pesano le tasse",
+            "testo": f"Dei {euro(u['prezzo'])} €/l della benzina, {euro(u['tasse'])} sono accise e IVA "
+                     f"({round(u['quota_tasse'] * 100)}%). Dato MASE, settimana del {data_it(u['data'])}.",
+            "rilevanza": 58,
+        })
+    return out
+
+
+def novita_tetto(ultimo: dt.date) -> list[dict]:
+    """Monitoraggio del tetto ai prezzi Eni e delle mosse degli altri marchi."""
+    seed = ROOT / "transform" / "seeds" / "misure_prezzo.csv"
+    path = MARTS / "mart_carburanti__marchi_giornaliero.parquet"
+    if not seed.exists() or not path.exists():
+        return []
+    import csv
+
+    misure = [r for r in csv.DictReader(seed.open(encoding="utf-8")) if r["misura_id"] == "tetto_eni_2026"]
+    if not misure:
+        return []
+    dal = dt.date.fromisoformat(misure[0]["valida_dal"])
+    al = dt.date.fromisoformat(misure[0]["valida_al"])
+    tetti = {m["carburante"]: float(m["prezzo_max"]) for m in misure}
+    rows = q(f"select * from '{path}' order by data")
+    per = {(r["data"], r["marchio"], r["carburante"]): r for r in rows}
+    date = sorted({r["data"] for r in rows})
+    out = []
+
+    if ultimo < dal:
+        eni = per.get((ultimo, "Agip Eni", "benzina"))
+        base = f" Nell'ultima rilevazione ({data_it(ultimo)}) solo {pct(eni['quota_entro_tetto_eni'], 1)} dei distributori Eni fuori autostrada vendeva la benzina self a {euro(tetti['benzina'], 2)} € o meno." if eni else ""
+        out.append({
+            "id": "tetto_eni_attesa", "tema": "carburanti", "carburante": "benzina",
+            "titolo": "Tetto Eni: in arrivo nei dati",
+            "testo": f"Il tetto Eni (benzina {euro(tetti['benzina'], 2)}, gasolio {euro(tetti['gasolio'], 2)} €/l, self, fuori autostrada) "
+                     f"vale dal {data_it(dal)}: i prezzi di quel giorno arrivano con la pubblicazione MIMIT successiva.{base}",
+            "rilevanza": 91,
+        })
+        return out
+    if ultimo > al:
+        return out
+
+    prec = [d for d in date if d < ultimo]
+    ieri = prec[-1] if prec else None
+    for carb in ("benzina", "gasolio"):
+        e = per.get((ultimo, "Agip Eni", carb))
+        if not e:
+            continue
+        e0 = per.get((ieri, "Agip Eni", carb)) if ieri else None
+        confronto = f" (il giorno prima: {euro(e0['quota_entro_tetto_eni'] * 100, 0)}%)" if e0 else ""
+        frase = pct(e["quota_entro_tetto_eni"])
+        out.append({
+            "id": f"tetto_eni_{carb}", "tema": "carburanti", "carburante": carb,
+            "titolo": f"Tetto Eni · {NOMI[carb].split()[0].lower()}",
+            "testo": f"{frase[0].upper() + frase[1:]} dei distributori Eni fuori autostrada vende il {carb} self "
+                     f"a {euro(tetti[carb], 2)} €/l o meno{confronto}. Prezzo medio Eni: {euro(e['media'])} €/l.",
+            "rilevanza": 95 if carb == "benzina" else 94,
+        })
+        # chi segue? ribassi marcati degli altri marchi rispetto al giorno prima
+        if ieri:
+            for m in ("Api-Ip", "Q8", "Esso", "Tamoil", "Pompe Bianche"):
+                a, b = per.get((ultimo, m, carb)), per.get((ieri, m, carb))
+                if a and b and a["media"] - b["media"] <= -0.02:
+                    out.append({
+                        "id": f"ribasso_{m}_{carb}", "tema": "carburanti", "carburante": carb,
+                        "titolo": f"{m} abbassa i prezzi",
+                        "testo": f"{m}: {carb} self {cent(a['media'] - b['media'])} in un giorno (media {euro(a['media'])} €/l); "
+                                 f"entro il tetto Eni {pct(a['quota_entro_tetto_eni'])} dei suoi impianti.",
+                        "rilevanza": 90,
+                    })
+    return out
+
+
 def novita_territorio(ultimo: dt.date) -> list[dict]:
     out = []
     reg = q(f"""
@@ -241,6 +362,8 @@ def main() -> int:
             })
 
     novita += novita_territorio(ultimo)
+    novita += novita_storico()
+    novita += novita_tetto(ultimo)
     novita = accorpa_record(novita, serie)
     novita.sort(key=lambda n: -n["rilevanza"])
     for n in novita:
