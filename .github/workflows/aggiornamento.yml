@@ -1,4 +1,5 @@
 name: Aggiornamento quotidiano
+# calendario attivato da Gabriele il 28/09/2026
 
 on:
   schedule:
