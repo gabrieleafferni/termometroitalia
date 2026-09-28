@@ -1,0 +1,19 @@
+HTTP/1.1 200 OK
+Date: Mon, 28 Sep 2026 10:21:43 GMT
+X-Powered-By: 
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Server-Timing: intid;desc=519f96b702ad300e
+Content-Disposition: attachment; filename="prezzi_carburanti_settimanali_dal_2005_a_20260928.csv"
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+Cache-Control: no-cache, no-store, must-revalidate, pre-check=0, post-check=0
+Pragma: no-cache
+Expires: 0
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Frame-Options: DENY
+Content-Security-Policy: frame-ancestors 'none';
+Transfer-Encoding: chunked
+Content-Type: text/csv;charset=ISO-8859-1
+Content-Language: en-US
+

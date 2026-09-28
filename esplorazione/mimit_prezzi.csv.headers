@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Date: Mon, 28 Sep 2026 10:21:47 GMT
+X-Content-Type-Options: nosniff
+Last-Modified: Mon, 28 Sep 2026 07:09:23 GMT
+ETag: "3c2f96-65c85bee315ee"
+Accept-Ranges: bytes
+Content-Length: 3944342
+Content-Security-Policy: frame-ancestors 'self';
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+Content-Type: text/csv
+Set-Cookie: TS01f4b6fc=019564bb5061a849dc3e7332ee886562265ab1458b7d332b41053107ae4a37554039a685279557eceaff5b3daa57b7f73b71201e41; Path=/
+Set-Cookie: TS01f4b6fc028=01c16b7fcd0ef09dffb9625b9b94b21cbde940e3d7a9b66bfd6d7b35cc279ed59afef7cc03b8cc1fc05592c2e538fd474b071491c2; Path=/
+X-Frame-Options: SAMEORIGIN
+X-XSS-Protection: 1; mode=block
+
