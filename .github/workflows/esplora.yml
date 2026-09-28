@@ -1,0 +1,29 @@
+name: Esplorazione fonti (temporaneo)
+on:
+  push:
+    branches: [esplorazione]
+permissions:
+  contents: write
+jobs:
+  scarica:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Scarica le fonti candidate
+        run: |
+          mkdir -p esplorazione
+          UA="termometroitalia/1.0 (+https://github.com/gabrieleafferni/termometroitalia)"
+          get() { curl -sSL -A "$UA" --max-time 120 -D "esplorazione/$1.headers" -o "esplorazione/$1" "$2" -w "$1 %{http_code} %{size_download} %{content_type}\n" || echo "$1 FALLITO"; }
+          get mase_csv.csv "https://sisen.mase.gov.it/dgsaie/api/v1/weekly-prices/report/export?format=CSV&lang=it"
+          get mase_excel.xlsx "https://sisen.mase.gov.it/dgsaie/api/v1/weekly-prices/report/export?format=EXCEL&lang=it"
+          get mase_net_csv.csv "https://sisen.mase.gov.it/dgsaie/api/v1/weekly-prices/report/export?type=NET&format=CSV&lang=it"
+          get ue_oil_bulletin.xlsx "https://energy.ec.europa.eu/document/download/906e60ca-8b6a-44e7-8589-652854d2fd3f_en?filename=Weekly_Oil_Bulletin_Prices_History_maticni_4web.xlsx"
+          get mimit_prezzi.csv "https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv"
+          head -c 300 esplorazione/mimit_prezzi.csv > esplorazione/mimit_prezzi_head.txt; rm -f esplorazione/mimit_prezzi.csv
+          ls -la esplorazione
+      - name: Salva sul ramo di esplorazione
+        run: |
+          git config user.name "termometro-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add esplorazione
+          git commit -m "Esplorazione fonti" && git push origin HEAD:esplorazione
