@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-09-28",
-  "generato_il": "2026-09-29T09:36:28+00:00",
+  "generato_il": "2026-09-29T16:33:46+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -25,7 +25,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Record dal 2005",
-      "testo": "Gasolio: 2,281 €/l nella settimana del 21 settembre, il prezzo settimanale più alto dall'inizio della serie MASE (2005), in termini nominali.",
+      "testo": "Gasolio: 2,351 €/l nella settimana del 28 settembre, il prezzo settimanale più alto dall'inizio della serie MASE (2005), in termini nominali.",
       "rilevanza": 93
     },
     {
@@ -69,7 +69,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il più alto da marzo 2022",
-      "testo": "Benzina: 2,141 €/l nella settimana del 21 settembre, il livello più alto da marzo 2022 (2,185 €/l).",
+      "testo": "Benzina: 2,156 €/l nella settimana del 28 settembre, il livello più alto da marzo 2022 (2,185 €/l).",
       "rilevanza": 90
     },
     {
@@ -95,7 +95,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Quanto pesano le tasse",
-      "testo": "Dei 2,141 €/l della benzina, 1,059 sono accise e IVA (49%). Dato MASE, settimana del 21 settembre.",
+      "testo": "Dei 2,156 €/l della benzina, 1,062 sono accise e IVA (49%). Dato MASE, settimana del 28 settembre.",
       "rilevanza": 58
     },
     {
