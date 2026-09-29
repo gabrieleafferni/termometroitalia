@@ -35,6 +35,14 @@ select
     round(median(m.prezzo), 4) as mediana,
     t.prezzo_max as tetto_eni,
     round(avg(case when m.prezzo <= t.prezzo_max + 0.0005 then 1 else 0 end), 4) as quota_entro_tetto_eni,
+    -- il file MIMIT fotografa i prezzi alle 8:00: chi non ha ancora comunicato un
+    -- nuovo prezzo quel giorno risulta col prezzo precedente. Per leggere l'adesione
+    -- a una misura appena partita conta anche la quota tra chi ha aggiornato.
+    count(distinct case when cast(m.dt_comunicazione as date) = m.data then m.id_impianto end) as n_aggiornati_oggi,
+    round(
+        sum(case when cast(m.dt_comunicazione as date) = m.data and m.prezzo <= t.prezzo_max + 0.0005 then 1 else 0 end)
+        / nullif(sum(case when cast(m.dt_comunicazione as date) = m.data then 1 else 0 end), 0),
+    4) as quota_entro_tetto_aggiornati,
     m.data between t.valida_dal and t.valida_al as tetto_in_vigore
 from marchi m
 join tetto t using (carburante)

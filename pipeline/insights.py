@@ -157,6 +157,12 @@ def pct(x: float, dec: int = 0) -> str:
     return f"{art}{'' if art.endswith(chr(39)) else ' '}{s}%"
 
 
+def al_pct(x: float) -> str:
+    """'al 62%', 'all'84%', 'all'11%'."""
+    s = euro(x * 100, 0)
+    return f"all'{s}%" if s in ("1", "11") or s.startswith("8") else f"al {s}%"
+
+
 def mese_anno(d: dt.date) -> str:
     return f"{MESI[d.month - 1]} {d.year}"
 
@@ -251,8 +257,11 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
         out.append({
             "id": f"tetto_eni_{carb}", "tema": "carburanti", "carburante": carb,
             "titolo": f"Tetto Eni · {NOMI[carb].split()[0].lower()}",
-            "testo": f"{frase[0].upper() + frase[1:]} dei distributori Eni fuori autostrada vende il {carb} self "
-                     f"a {euro(tetti[carb], 2)} €/l o meno{confronto}. Prezzo medio Eni: {euro(e['media'])} €/l.",
+            "testo": f"{frase[0].upper() + frase[1:]} dei distributori Eni fuori autostrada vende {'la benzina' if carb == 'benzina' else 'il gasolio'} self "
+                     f"a {euro(tetti[carb], 2)} €/l o meno{confronto}. Prezzo medio Eni: {euro(e['media'])} €/l."
+                     + (f" Tra quelli che avevano già comunicato il prezzo del giorno alle 8:00 ({e['n_aggiornati_oggi']}), "
+                        f"la quota sale {al_pct(e['quota_entro_tetto_aggiornati'])}."
+                        if e.get("quota_entro_tetto_aggiornati") is not None and e["quota_entro_tetto_aggiornati"] > e["quota_entro_tetto_eni"] + 0.1 else ""),
             "rilevanza": 95 if carb == "benzina" else 94,
         })
         # chi segue? ribassi marcati degli altri marchi rispetto al giorno prima
@@ -263,7 +272,7 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
                     out.append({
                         "id": f"ribasso_{m}_{carb}", "tema": "carburanti", "carburante": carb,
                         "titolo": f"{m} abbassa i prezzi",
-                        "testo": f"{m}: {carb} self {cent(a['media'] - b['media'])} in un giorno (media {euro(a['media'])} €/l); "
+                        "testo": f"{m}: {'benzina' if carb == 'benzina' else 'gasolio'} self {cent(a['media'] - b['media'])} in un giorno (media {euro(a['media'])} €/l); "
                                  f"entro il tetto Eni {pct(a['quota_entro_tetto_eni'])} dei suoi impianti.",
                         "rilevanza": 90,
                     })

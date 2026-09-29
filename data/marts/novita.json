@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-09-28",
-  "generato_il": "2026-09-29T08:39:38+00:00",
+  "generato_il": "2026-09-29T09:34:38+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -9,7 +9,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Tetto Eni · benzina",
-      "testo": "Il 21% dei distributori Eni fuori autostrada vende il benzina self a 1,99 €/l o meno (il giorno prima: 1%). Prezzo medio Eni: 2,111 €/l.",
+      "testo": "Il 21% dei distributori Eni fuori autostrada vende la benzina self a 1,99 €/l o meno (il giorno prima: 1%). Prezzo medio Eni: 2,111 €/l. Tra quelli che avevano già comunicato il prezzo del giorno alle 8:00 (863), la quota sale all'84%.",
       "rilevanza": 95
     },
     {
@@ -17,7 +17,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Tetto Eni · gasolio",
-      "testo": "Il 22% dei distributori Eni fuori autostrada vende il gasolio self a 2,19 €/l o meno (il giorno prima: 1%). Prezzo medio Eni: 2,347 €/l.",
+      "testo": "Il 22% dei distributori Eni fuori autostrada vende il gasolio self a 2,19 €/l o meno (il giorno prima: 1%). Prezzo medio Eni: 2,347 €/l. Tra quelli che avevano già comunicato il prezzo del giorno alle 8:00 (891), la quota sale all'81%.",
       "rilevanza": 94
     },
     {

@@ -18,7 +18,7 @@ const COLORE = { benzina: "#c98500", gasolio: "#8f6ff0", gpl: "#3ecf8e", metano:
 // grafico dei marchi: forma "enfasi" (Eni e IP in evidenza, gli altri in grigio). Colori validati.
 const COL_ENI = "#199fb5", COL_IP = "#9a7cf0", COL_ALTRI = "#56607a";
 const NOME_MARCHIO = { "Agip Eni": "Eni", "Api-Ip": "IP" };
-const FONTE_IP = "https://www.ilfattoquotidiano.it/2026/09/27/dopo-eni-ip-promette-un-tetto-al-prezzo-del-carburante-progressivamente-dal-28-settembre-ma-non-dice-il-prezzo/8519800/";
+const FONTE_IP = "https://www.ansa.it/sito/notizie/economia/2026/09/28/parte-da-circa-300-distributori-limite-prezzi-ip-tetto-uguale-ad-eni_954645af-a337-4eab-ba58-a19e874b8bdc.html";
 const CAMPO = { benzina: "b", gasolio: "g" };
 const RANGE = 0.06; // ±6 cent: saturazione della scala colori della mappa
 
@@ -348,8 +348,13 @@ async function main() {
       const bar = el("span");
       bar.style.width = `${Math.max(1, r.q * 100)}%`;
       meter.append(bar);
-      const d = el("div", "d", `${inVigore ? "Rilevazione" : "Prima del tetto"} del ${fmt.giorno(ultimoMarchi).trim()} · ${fmt.intero(Math.round(r.q * r.n))} su ${fmt.intero(r.n)} impianti · media Eni ${fmt.prezzo(r.media)} €/l`);
+      const d = el("div", "d", `${inVigore ? "Prezzi alle 8:00 del" : "Prima del tetto,"} ${fmt.giorno(ultimoMarchi).trim()} · ${fmt.intero(Math.round(r.q * r.n))} su ${fmt.intero(r.n)} impianti · media Eni ${fmt.prezzo(r.media)} €/l`);
       box.append(l, v, meter, d);
+      // il file MIMIT fotografa le 8:00: chi non ha ancora aggiornato il prezzo quel giorno
+      // conserva il prezzo vecchio. Tra chi ha aggiornato, l'adesione si legge meglio.
+      if (inVigore && r.qa != null && r.qa > r.q + 0.1) {
+        box.append(el("div", "d", `Tra i ${fmt.intero(r.na)} che alle 8:00 avevano già aggiornato il prezzo: ${fmt.intero(Math.round(r.qa * 100))}% entro il tetto`));
+      }
       stats.append(box);
     }
 
@@ -357,7 +362,7 @@ async function main() {
     note.replaceChildren(
       document.createTextNode("Il tetto vale nei circa 3.000 impianti gestiti direttamente da Enilive (su circa 3.900 a marchio Eni) ed esclude l'autostrada: anche se applicato ovunque, la quota non arriverà al 100%. "),
       Object.assign(el("a", null, "Comunicato Eni"), { href: misura[0].fonte, target: "_blank", rel: "noopener" }),
-      document.createTextNode(". Anche IP ha annunciato un tetto «progressivo» dal 28 settembre, senza indicare i prezzi massimi: lo seguiamo nel grafico a fianco ("),
+      document.createTextNode(". I dati MIMIT sono i prezzi in vigore alle 8:00: nei primi giorni di una misura molti distributori non hanno ancora aggiornato il prezzo a quell'ora, quindi la quota cresce nei giorni successivi. Anche IP applica gli stessi prezzi massimi, per ora su circa 300 dei suoi impianti con estensione progressiva: lo seguiamo nel grafico a fianco ("),
       Object.assign(el("a", null, "fonte"), { href: FONTE_IP, target: "_blank", rel: "noopener" }),
       document.createTextNode(")."),
     );

@@ -112,7 +112,8 @@ def main() -> int:
 
     write("carburanti_marchi.json", rows(f"""
         select data as d, marchio as m, carburante as c, media, n_impianti as n,
-               quota_entro_tetto_eni as q, tetto_eni as tetto
+               quota_entro_tetto_eni as q, tetto_eni as tetto,
+               n_aggiornati_oggi as na, quota_entro_tetto_aggiornati as qa
         from {mart('mart_carburanti__marchi_giornaliero')}
         order by data, carburante, marchio
     """))
