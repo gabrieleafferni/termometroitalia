@@ -41,6 +41,7 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import duckdb
 import pyarrow as pa
@@ -368,15 +369,41 @@ def archivia(testi: dict[str, str], fonte: str, force: bool = False) -> dt.date:
     return day_p
 
 
-def run_oggi(source: str, force: bool) -> None:
+def pubblicazione_attesa() -> dt.date:
+    """La pubblicazione che ci aspettiamo oggi: i prezzi di ieri (ora italiana)."""
+    oggi_roma = dt.datetime.now(ZoneInfo("Europe/Rome")).date()
+    return oggi_roma - dt.timedelta(days=1)
+
+
+def run_oggi(source: str, force: bool, attendi_minuti: int = 0) -> None:
+    """Scarica la pubblicazione del giorno.
+
+    Con attendi_minuti > 0, se il MIMIT non ha ancora pubblicato un giorno nuovo,
+    riprova ogni 5 minuti fino allo scadere dell'attesa: così un avvio fisso poco
+    prima dell'orario di pubblicazione (circa le 9:30) aggiorna il sito appena
+    escono i dati, invece di aspettare il giro successivo.
+    """
+    scadenza = time.monotonic() + attendi_minuti * 60
+    atteso = pubblicazione_attesa()
     if source in ("auto", "mimit"):
-        try:
-            archivia(fetch_mimit(), "MIMIT", force)
-            return
-        except Exception as err:  # noqa: BLE001 - qualunque errore -> fallback
-            if source == "mimit":
-                raise
-            log.warning("MIMIT non disponibile (%s): uso il mirror", err)
+        while True:
+            try:
+                testi = fetch_mimit()
+            except Exception as err:  # noqa: BLE001 - qualunque errore -> fallback
+                if source == "mimit":
+                    raise
+                log.warning("MIMIT non disponibile (%s): uso il mirror", err)
+                break
+            nuova = data_estrazione(testi["prezzi"])
+            if nuova >= atteso or time.monotonic() >= scadenza:
+                archivia(testi, "MIMIT", force)
+                return
+            log.info(
+                "Il MIMIT pubblica ancora l'estrazione del %s (attesa: %s). Riprovo tra 5 minuti.",
+                nuova,
+                atteso,
+            )
+            time.sleep(300)
     day = mirror_last_date()
     archivia(fetch_mirror(day), "MIMIT via mirror benzina-data", force)
 
@@ -398,13 +425,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--backfill-from", type=dt.date.fromisoformat)
     ap.add_argument("--backfill-to", type=dt.date.fromisoformat)
     ap.add_argument("--force", action="store_true", help="riscrive i prezzi anche se già presenti")
+    ap.add_argument("--attendi-minuti", type=int, default=0,
+                    help="se il MIMIT non ha ancora pubblicato i prezzi di ieri, riprova ogni 5 minuti per N minuti")
     args = ap.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     if args.backfill_from:
         run_backfill(args.backfill_from, args.backfill_to, args.force)
     else:
-        run_oggi(args.source, args.force)
+        run_oggi(args.source, args.force, args.attendi_minuti)
     return 0
 
 

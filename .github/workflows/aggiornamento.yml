@@ -9,6 +9,11 @@ on:
     # 23, lontano dallo scoccare dell'ora, quando i server sono più carichi).
     # La pipeline è idempotente: se non c'è niente di nuovo, non salva e non ripubblica.
     - cron: "23 */2 * * *"
+    # Giro fisso del mattino: parte poco prima della pubblicazione MIMIT (circa le 9:30
+    # ora italiana) e, se i dati di ieri non sono ancora usciti, li aspetta fino a 2 ore.
+    # Orari in UTC: 7:20 UTC = 9:20 con l'ora legale, 8:20 con l'ora solare (l'attesa
+    # copre comunque la finestra di pubblicazione).
+    - cron: "20 7 * * *"
   workflow_dispatch:
     inputs:
       fonte:
@@ -16,6 +21,10 @@ on:
         type: choice
         options: [auto, mimit, mirror]
         default: auto
+      attendi_minuti:
+        description: "Se i dati di ieri non sono ancora pubblicati, aspettali per N minuti"
+        type: string
+        default: "0"
   push:
     branches: [main]
     paths:
@@ -31,13 +40,14 @@ permissions:
 
 concurrency:
   group: aggiornamento
+  # un giro in corso (anche in attesa della pubblicazione) non viene interrotto
   cancel-in-progress: false
 
 jobs:
   pipeline:
     name: Raccolta, trasformazione e build
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 150
     outputs:
       pubblica: ${{ steps.salva.outputs.pubblica }}
     steps:
@@ -52,7 +62,14 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 1 · Raccolta prezzi carburanti (MIMIT)
-        run: python -m pipeline.carburanti.ingest --source "${{ inputs.fonte || 'auto' }}"
+        run: |
+          ATTESA="${{ inputs.attendi_minuti }}"
+          if [ -z "$ATTESA" ]; then
+            # il giro fisso del mattino (7:20 UTC) aspetta la pubblicazione; gli altri no
+            if [ "${{ github.event.schedule }}" = "20 7 * * *" ]; then ATTESA=120; else ATTESA=0; fi
+          fi
+          echo "Attesa massima della pubblicazione: $ATTESA minuti"
+          python -m pipeline.carburanti.ingest --source "${{ inputs.fonte || 'auto' }}" --attendi-minuti "$ATTESA"
 
       - name: 1b · Serie settimanale MASE (dal 2005)
         # fonte esterna con protezioni anti-bot: se fallisce si usa l'ultimo snapshot
