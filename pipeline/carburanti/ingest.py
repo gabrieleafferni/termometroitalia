@@ -81,13 +81,15 @@ PREZZI_SCHEMA = pa.schema(
     ]
 )
 
-IMPIANTI_COLS = ["id_impianto", "bandiera", "tipo", "nome", "comune", "provincia", "lat", "lon"]
+IMPIANTI_COLS = ["id_impianto", "bandiera", "tipo", "nome", "indirizzo", "comune", "provincia", "lat", "lon"]
 IMPIANTI_SCHEMA = pa.schema(
     [
         ("id_impianto", pa.int32()),
         ("bandiera", pa.string()),
         ("tipo", pa.string()),
         ("nome", pa.string()),
+        # dal 2/10/2026: i file precedenti non hanno la colonna (si leggono con union_by_name)
+        ("indirizzo", pa.string()),
         ("comune", pa.string()),
         ("provincia", pa.string()),
         ("lat", pa.float64()),
@@ -208,7 +210,8 @@ def parse_impianti(text: str) -> tuple[list[dict], int]:
     """Restituisce le righe dell'anagrafica.
 
     Il campo Gestore viene scartato di proposito: può contenere nomi di persone
-    fisiche e non serve all'analisi. Anche l'indirizzo viene scartato.
+    fisiche e non serve all'analisi. L'indirizzo dell'impianto invece si tiene
+    (dal 2/10/2026): è un dato pubblico dell'attività e serve a chi consulta la mappa.
     """
     out, scartate = [], 0
     for line in _righe(text):
@@ -226,6 +229,7 @@ def parse_impianti(text: str) -> tuple[list[dict], int]:
         comune, prov, lat, lon = f[-4:]
         mezzo = f[4:-4]
         nome = " ".join("|".join(mezzo[:-1]).split())
+        indirizzo = " ".join(mezzo[-1].split())
         lat_f, lon_f = _coord(lat), _coord(lon)
         if lat_f is not None and not (LAT_RANGE[0] <= lat_f <= LAT_RANGE[1]):
             lat_f = None
@@ -239,6 +243,7 @@ def parse_impianti(text: str) -> tuple[list[dict], int]:
                 "bandiera": " ".join(f[2].split()) or None,
                 "tipo": f[3].strip() or None,
                 "nome": nome or None,
+                "indirizzo": indirizzo or None,
                 "comune": " ".join(comune.split()).upper() or None,
                 "provincia": prov.strip().upper() or None,
                 "lat": lat_f,
@@ -273,11 +278,11 @@ def stato_impianti(fino_a: dt.date | None = None) -> dict[int, dict]:
         f"""
         select * exclude (rn) from (
           select *, row_number() over (partition by id_impianto order by valido_dal desc) rn
-          from read_parquet({[str(p) for p in files]})
+          from read_parquet({[str(p) for p in files]}, union_by_name = true)
         ) where rn = 1 and azione <> 'chiusura'
         """
     ).to_arrow_table().to_pylist()
-    return {r["id_impianto"]: {c: r[c] for c in IMPIANTI_COLS} for r in rows}
+    return {r["id_impianto"]: {c: r.get(c) for c in IMPIANTI_COLS} for r in rows}
 
 
 def ultima_data_impianti() -> dt.date | None:

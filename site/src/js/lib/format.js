@@ -13,6 +13,8 @@ const time = timeFormatLocale({
   shortMonths: ["gen", "feb", "mar", "apr", "mag", "giu", "lug", "ago", "set", "ott", "nov", "dic"],
 });
 
+const primo = (f) => (d) => f(d).replace(/^(\s?)1 /, "$11° ");
+
 export const fmt = {
   prezzo: num.format(",.3f"), // 2,159
   prezzo2: num.format(",.2f"), // 2,16
@@ -24,9 +26,10 @@ export const fmt = {
     return (c > 0 ? "+" : "−") + num.format(`,.${digits}f`)(Math.abs(c));
   },
   pct: num.format(",.1%"),
-  giorno: time.format("%e %B"),
-  giornoAnno: time.format("%e %B %Y"),
-  giornoBreve: time.format("%e %b"),
+  // il primo del mese si scrive "1°": "del 1° ottobre"
+  giorno: primo(time.format("%e %B")),
+  giornoAnno: primo(time.format("%e %B %Y")),
+  giornoBreve: primo(time.format("%e %b")),
   settimana: time.format("%a %e %b"),
 };
 

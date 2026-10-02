@@ -35,11 +35,11 @@ Tutto gira su **GitHub Actions** (`.github/workflows/aggiornamento.yml`), senza 
 | Livello | Cosa fa | Dove |
 |---|---|---|
 | **Ingestion** | Scarica i CSV del MIMIT, li valida e li archivia in Parquet immutabili (uno per data di estrazione). Idempotente, con retry e fallback su un mirror pubblico. La serie settimanale MASE dal 2005 viene salvata come snapshot a ogni nuova settimana. | `pipeline/carburanti/ingest.py`, `settimanali.py` |
-| **Data lake** | Prezzi: uno snapshot completo al giorno. Anagrafica impianti: *change log* SCD tipo 2 (solo nuovi, modificati, chiusi), perché cambia di poche righe al giorno. | `data/raw/` |
+| **Data lake** | Prezzi: uno snapshot completo al giorno. Anagrafica impianti: *change log* SCD tipo 2 (solo nuovi, modificati, chiusi), perché cambia di poche righe al giorno. Lo schema evolve senza riscrivere il passato: la colonna `indirizzo` esiste dai file del 2/10/2026 e i file precedenti si leggono con `union_by_name`. | `data/raw/` |
 | **Trasformazione** | Progetto dbt su DuckDB: staging → intermediate → mart, con i mart materializzati come Parquet (`external`). | `transform/` |
-| **Qualità** | 41 test dbt: unicità, valori ammessi, intervalli plausibili, copertura minima del giorno, province mappate. Se un test fallisce, il sito non viene aggiornato. | `transform/models/schema.yml`, `transform/tests/` |
+| **Qualità** | 28 test dbt: unicità, valori ammessi, intervalli plausibili, copertura minima del giorno, province mappate, coerenza tra istogramma e medie. Se un test fallisce, il sito non viene aggiornato. | `transform/models/schema.yml`, `transform/tests/` |
 | **Novità** | Confronta l'ultimo giorno con la storia: variazioni a 7 e 30 giorni, record sulla finestra, strisce di rialzi o ribassi, scatti insoliti (z-score > 2,5). | `pipeline/insights.py` |
-| **Sito** | Vite + D3, senza framework. Mappa canvas di 20.000 punti con zoom e hover, grafici SVG, vista tabellare per l'accessibilità. | `site/` |
+| **Sito** | Vite + D3, senza framework. Mappa canvas di 20.000 punti con zoom, hover e scheda del distributore (indirizzo e indicazioni stradali), istogramma dei prezzi consultabile giorno per giorno, grafici SVG, vista tabellare per l'accessibilità. | `site/` |
 
 ## I dati prodotti
 
@@ -51,7 +51,8 @@ I mart in `data/marts/` sono versionati e riutilizzabili:
 | `mart_carburanti__regionale_giornaliero` | giorno × regione × carburante, con scarto dalla media italiana |
 | `mart_carburanti__provinciale_giornaliero` | giorno × provincia × carburante |
 | `mart_carburanti__tipo_impianto_giornaliero` | giorno × strada/autostrada × carburante |
-| `mart_carburanti__impianti_oggi` | un distributore per riga (ultimo giorno, con confronto a 7 giorni) |
+| `mart_carburanti__impianti_oggi` | un distributore per riga (ultimo giorno, con indirizzo e confronto a 7 giorni) |
+| `mart_carburanti__distribuzione_giornaliera` | giorno × carburante × Eni/altri × fascia di 1 centesimo: alimenta l'istogramma consultabile per data |
 | `mart_carburanti__bandiere_oggi` | marchio × carburante |
 | `mart_carburanti__marchi_giornaliero` | giorno × marchio × carburante (rete stradale), con la quota di impianti entro il tetto Eni |
 | `mart_carburanti__storico_settimanale` | settimana × carburante dal 2005 (MASE), con accise e IVA e massimo precedente |

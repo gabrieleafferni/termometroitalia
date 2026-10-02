@@ -49,6 +49,10 @@
 
         <h2>Anagrafica degli impianti</h2>
         <p>L'anagrafica cambia di poche righe al giorno. Invece di copiarla ogni volta, ne salviamo le variazioni (nuovi impianti, modifiche, chiusure) in un <em>change log</em>, secondo lo schema noto come SCD di tipo 2. Così lo stato di ogni giorno resta ricostruibile e l'archivio non cresce inutilmente. Il nome del gestore non viene conservato: può contenere dati di persone fisiche e non serve all'analisi.</p>
+        <p>Dal 2 ottobre 2026 salviamo anche l'<strong>indirizzo</strong> di ogni impianto, mostrato nella scheda che si apre toccando un distributore sulla mappa. Gli indirizzi sono quelli comunicati dai gestori al MIMIT, così come sono scritti; il link "Indicazioni stradali" usa invece le coordinate dell'impianto. Il primo giorno con gli indirizzi conta tutti gli impianti come "modificati": è l'effetto dell'aggiunta della nuova colonna, non di veri cambiamenti.</p>
+
+        <h2>La distribuzione giorno per giorno</h2>
+        <p>L'istogramma conta i distributori per fascia di prezzo di 1 centesimo, con gli stessi filtri della media nazionale (lo verifica un test: la somma delle fasce è uguale al numero di distributori della media). Le fasce sono <strong>chiuse a destra</strong>: la fascia "1,99" contiene i prezzi da 1,981 a 1,990 €/l, quindi "fino a 1,99" coincide esattamente con le barre fino a quella del tetto. Gli assi sono gli stessi per tutti i giorni, perché spostandosi tra le date si vedano i cambiamenti della distribuzione e non degli assi. L'asse va dallo 0,5° al 99,5° percentile di tutti i giorni insieme: i pochi prezzi fuori scala (Livigno, alcune autostrade) sono contati a parte.</p>
 
         <h2>Limiti</h2>
         <ul>

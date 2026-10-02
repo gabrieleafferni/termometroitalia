@@ -64,7 +64,7 @@
             <div>
               <div class="panel-title">Mappa · ogni punto è un distributore</div>
               <h2 id="map-title">Dove la benzina costa di più</h2>
-              <p class="sub">Colore = differenza dal prezzo medio italiano di oggi. Trascina e ingrandisci per entrare nelle città.</p>
+              <p class="sub">Colore = differenza dal prezzo medio italiano di oggi. Trascina e ingrandisci per entrare nelle città, poi tocca un punto per vedere indirizzo e prezzi del distributore.</p>
             </div>
           </div>
           <div class="map-wrap" id="map">
@@ -83,9 +83,10 @@
 
         <aside class="stack">
           <article class="panel reveal" id="finder">
+            <div class="station-card" id="station-card" hidden></div>
             <div class="panel-title">Trova il distributore</div>
             <h2 id="finder-title">I più economici nel tuo comune</h2>
-            <p class="sub" id="finder-sub">Scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti.</p>
+            <p class="sub" id="finder-sub">Scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti, con l'indirizzo. Oppure tocca un punto sulla mappa.</p>
             <ul class="result-list" id="finder-list"></ul>
           </article>
           <article class="panel reveal">
@@ -153,15 +154,27 @@
         </article>
       </section>
 
-      <section class="panel section reveal">
+      <section class="panel section reveal" id="distribuzione">
         <div class="panel-head">
           <div>
-            <div class="panel-title">Distribuzione</div>
+            <div class="panel-title">Distribuzione · giorno per giorno</div>
             <h2 id="hist-title">Come si distribuiscono i prezzi</h2>
-            <p class="sub">Numero di distributori per fascia di prezzo (1 centesimo), oggi.</p>
+            <p class="sub">Numero di distributori per fascia di prezzo di 1 centesimo. Sposta il cursore o premi ▶ per vedere come è cambiata la distribuzione giorno dopo giorno.</p>
           </div>
         </div>
+        <div class="hist-controls">
+          <button class="btn hist-play" type="button" id="hist-play" aria-label="Riproduci i giorni in sequenza">▶</button>
+          <div class="hist-slider">
+            <input type="range" id="hist-day" min="0" max="0" step="1" value="0" aria-label="Giorno da visualizzare" />
+            <div class="hist-ticks" id="hist-ticks" aria-hidden="true"></div>
+          </div>
+          <output class="hist-date" id="hist-date" for="hist-day"></output>
+        </div>
+        <div class="hist-jumps" id="hist-jumps"></div>
+        <div class="hist-stats" id="hist-stats"></div>
+        <div class="legend" id="hist-legend"></div>
         <div class="chart" id="hist"></div>
+        <p class="note" id="hist-note"></p>
       </section>
 
       <p class="panel-foot" style="margin-top: 20px">

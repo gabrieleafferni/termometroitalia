@@ -12,7 +12,8 @@ import { fmt, parseDay, NOMI_RIF, UNITA } from "./lib/format.js";
 import { chrome, el, tooltip, ttTitle, ttRow, tableView, countUp, reveal, deltaSpan } from "./lib/ui.js";
 import { glowMap, colorScale, DIVERGING } from "./charts/map.js";
 import { trendChart } from "./charts/trend.js";
-import { sparkline, divergingBars, histogram, taxArea } from "./charts/small.js";
+import { sparkline, divergingBars, taxArea } from "./charts/small.js";
+import { histogramByDay } from "./charts/histday.js";
 
 const COLORE = { benzina: "#c98500", gasolio: "#8f6ff0", gpl: "#3ecf8e", metano: "#4c9df5" };
 // grafico dei marchi: forma "enfasi" (Eni e IP in evidenza, gli altri in grigio). Colori validati.
@@ -29,9 +30,16 @@ const EVENTI = [
 
 const titleCase = (s) =>
   s.toLowerCase().replace(/(^|[\s'’\-(/])([a-zà-ÿ])/g, (m, p, c) => p + c.toUpperCase()).replace(/\b(Di|De|Del|Della|Dei|Delle|Degli|In|Sul|Sulla|Nel|Nell|Al|Alla|E)\b/g, (w) => w.toLowerCase());
+// indirizzi MIMIT (spesso tutti in maiuscolo): sigle di provincia e di strada restano maiuscole
+const titleAddr = (s) =>
+  titleCase(s).replace(/\((\w{2})\)/g, (m, p) => `(${p.toUpperCase()})`).replace(/\b(Ss|Sp|Sr|Sc|Sn|Snc|Sgc)(?=\d|\b)/g, (w) => w.toUpperCase());
+const nomeImpianto = (s) => (s.nome ? titleCase(s.nome) : `Impianto ${s.id}`);
+// ora della comunicazione: il MIMIT la scrive in ora italiana, l'export la conserva "come UTC"
+const fmtComunicazione = new Intl.DateTimeFormat("it-IT", { timeZone: "UTC", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
+const indicazioni = (s) => `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}`;
 
 async function main() {
-  const [meta, naz, reg, prov, tipo, bandiere, imp, novita, topo, marchi, storico, misure] = await Promise.all([
+  const [meta, naz, reg, prov, tipo, bandiere, imp, novita, topo, marchi, storico, misure, distrib] = await Promise.all([
     load("meta.json"),
     load("carburanti_nazionale.json"),
     load("carburanti_regionale.json"),
@@ -44,6 +52,7 @@ async function main() {
     load("carburanti_marchi.json"),
     load("carburanti_storico.json"),
     load("misure.json"),
+    load("carburanti_distribuzione.json"),
   ]);
   chrome("carburanti", meta);
 
@@ -108,7 +117,7 @@ async function main() {
     onHover(s, x, y) {
       if (!s) return tip.hide();
       tip.show((t) => {
-        ttTitle(t, s.nome ? titleCase(s.nome) : `Impianto ${s.id}`, `${s.bandiera ?? ""} · ${titleCase(s.comune ?? "")} (${s.sigla ?? ""})${s.auto ? " · autostrada" : ""}`);
+        ttTitle(t, nomeImpianto(s), `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""} · ${s.ind ? titleAddr(s.ind) + ", " : ""}${titleCase(s.comune ?? "")} (${s.sigla ?? ""})`);
         for (const c of ["benzina", "gasolio"]) {
           const v = s[CAMPO[c]];
           if (v == null) continue;
@@ -121,9 +130,72 @@ async function main() {
           note.textContent = `${NOMI_RIF[fuel]}: ${fmt.cent(diff)} cent rispetto alla media italiana` + (v7 != null ? `, ${fmt.cent(v - v7)} cent in 7 giorni` : "");
           t.append(note);
         }
+        t.append(el("div", "tt-note", "Clic per indirizzo e indicazioni stradali"));
       }, x, y);
     },
+    onSelect(s) {
+      tip.hide();
+      showStation(s, { scroll: true });
+    },
   });
+
+  // ---------- scheda del distributore selezionato ----------
+  const cardEl = document.getElementById("station-card");
+  function showStation(s, { scroll = false } = {}) {
+    cardEl.replaceChildren();
+    cardEl.hidden = !s;
+    if (!s) return;
+    const head = el("div", "sc-head");
+    const who = el("div");
+    who.append(
+      el("div", "sc-kicker", "Distributore selezionato"),
+      el("div", "sc-name", nomeImpianto(s)),
+      el("div", "sc-brand", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`),
+    );
+    const close = el("button", "sc-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Chiudi la scheda del distributore");
+    close.addEventListener("click", () => {
+      showStation(null);
+      map.select(-1);
+    });
+    head.append(who, close);
+    const addr = el("p", "sc-addr");
+    if (s.ind) addr.append(el("span", "sc-street", titleAddr(s.ind)));
+    addr.append(el("span", null, `${titleCase(s.comune ?? "")} (${s.sigla ?? ""})`));
+    const prices = el("div", "sc-prices");
+    for (const c of ["benzina", "gasolio"]) {
+      const v = s[CAMPO[c]];
+      const box = el("div", "sc-price");
+      const l = el("div", "l");
+      const key = el("span", "key");
+      key.style.background = COLORE[c];
+      l.append(key, document.createTextNode(NOMI_RIF[c]));
+      const val = el("div", "v");
+      if (v != null) {
+        val.append(document.createTextNode(fmt.prezzo(v)), el("small", null, "€/l"));
+        box.append(l, val, deltaSpan(v - ultimo(c).media, " vs media"));
+      } else {
+        val.append(el("small", null, "non comunicato"));
+        box.append(l, val);
+      }
+      prices.append(box);
+    }
+    cardEl.append(head, addr, prices);
+    if (s.ts) {
+      // i gestori devono comunicare ogni variazione: una comunicazione vecchia di
+      // qualche giorno di solito vuol dire che il prezzo non è cambiato
+      cardEl.append(el("p", "sc-time", `Ultima comunicazione del gestore: ${fmtComunicazione.format(new Date(s.ts * 60000))}`));
+    }
+    const actions = el("div", "sc-actions");
+    const go = Object.assign(el("a", "btn btn-go", "Indicazioni stradali ↗"), { href: indicazioni(s), target: "_blank", rel: "noopener" });
+    actions.append(go);
+    cardEl.append(actions);
+    if (scroll) {
+      const r = cardEl.getBoundingClientRect();
+      if (r.top < 60 || r.bottom > window.innerHeight) cardEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }
 
   const legend = document.getElementById("map-legend");
   function renderLegend() {
@@ -168,13 +240,16 @@ async function main() {
     for (const s of items.slice(0, 6)) {
       const li = el("li");
       const left = el("div");
-      left.append(el("span", "n", s.nome ? titleCase(s.nome) : `Impianto ${s.id}`), el("span", "b", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`));
+      left.append(el("span", "n", nomeImpianto(s)), el("span", "b", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`));
+      if (s.ind) left.append(el("span", "a", titleAddr(s.ind)));
       li.append(left, el("span", "p", `${fmt.prezzo(s[CAMPO[fuel]])} €`));
       li.tabIndex = 0;
       const go = () => {
         const i = map.indexOf(s);
         map.highlight([i]);
+        map.select(i);
         map.focus([i]);
+        showStation(s);
       };
       li.addEventListener("click", go);
       li.addEventListener("keydown", (e) => e.key === "Enter" && go());
@@ -183,7 +258,9 @@ async function main() {
   }
   input.addEventListener("change", () => {
     const k = input.value.trim();
-    if (!byComune.has(k)) return;
+    // se il comune è già quello scelto non ridisegno la lista: altrimenti il "change"
+    // che parte quando la casella perde il fuoco sostituirebbe l'elemento appena cliccato
+    if (!byComune.has(k) || k === comuneScelto) return;
     comuneScelto = k;
     const idx = byComune.get(k).map((s) => map.indexOf(s));
     map.highlight(idx);
@@ -409,10 +486,171 @@ async function main() {
     ], () => [...righe].sort((a, b) => d3.descending(a.d, b.d) || d3.ascending(a.media, b.media)));
   }
 
+  // ---------- distribuzione dei prezzi, giorno per giorno ----------
+  const histEl = document.getElementById("hist");
+  const slider = document.getElementById("hist-day");
+  const playBtn = document.getElementById("hist-play");
+  const dateOut = document.getElementById("hist-date");
+  const nazPer = d3.index(rif, (r) => r.c, (r) => r.d);
+  let hist = null, histFuel = null, histDay = null, play = null;
+
+  function renderHist() {
+    const D = distrib[fuel];
+    const date = D.date.map(parseDay);
+    const isoScelto = histDay != null ? distrib[histFuel].date[histDay] : null;
+    histFuel = fuel;
+    histEl.replaceChildren();
+    hist = histogramByDay(histEl, {
+      data: D,
+      colors: { eni: COL_ENI, altri: COLORE[fuel] },
+      dateLabel: (i) => fmt.giorno(date[i]).trim(),
+      ariaLabel: (i) => `Distribuzione dei prezzi del ${fuel} self tra i distributori il ${fmt.giornoAnno(date[i]).trim()}`,
+    });
+    // giorno di riferimento: l'ultimo prima del tetto Eni (contorno tratteggiato)
+    const iRef = D.date.indexOf(d3.timeFormat("%Y-%m-%d")(d3.timeDay.offset(tDal, -1)));
+    const ref = iRef >= 0 ? iRef : null;
+    hist.setReference(ref);
+    slider.max = String(D.date.length - 1);
+    const soglia = Math.round(tetto[fuel] * 100); // fasce fino alla 199 = prezzi fino a 1,99
+    const finoAlTetto = (i) => D.sotto[i] + d3.sum(D.eni[i].map((e, k) => (D.da + k <= soglia ? e + D.altri[i][k] : 0)));
+    const totale = (i) => D.sotto[i] + D.sopra[i] + d3.sum(D.eni[i]) + d3.sum(D.altri[i]);
+
+    // tacche sotto il cursore: inizio di ogni mese e inizio del tetto
+    const ticks = document.getElementById("hist-ticks");
+    ticks.replaceChildren();
+    const pos = (i) => `calc(9px + (100% - 18px) * ${i / (D.date.length - 1)})`;
+    const primoMese = date.findIndex((d) => d.getDate() === 1);
+    date.forEach((d, i) => {
+      // il primo giorno della serie ha la sua tacca, se non è troppo vicino all'inizio di un mese
+      if (!(d.getDate() === 1 || (i === 0 && (primoMese < 0 || primoMese > 7)))) return;
+      const s = el("span", null, fmt.giornoBreve(d).trim());
+      s.style.left = pos(i);
+      ticks.append(s);
+    });
+    if (ref != null) {
+      const s = el("span", "evt", "tetto Eni");
+      s.style.left = pos(ref + 1);
+      ticks.append(s);
+    }
+
+    // scorciatoie
+    const jumps = document.getElementById("hist-jumps");
+    jumps.replaceChildren();
+    const salti = [
+      [0, `${fmt.giorno(date[0]).trim()} · inizio della serie`],
+      ...(ref != null ? [[ref, `${fmt.giorno(date[ref]).trim()} · prima del tetto Eni`]] : []),
+      [D.date.length - 1, `${fmt.giorno(date.at(-1)).trim()} · ultimo giorno`],
+    ];
+    for (const [i, label] of salti) {
+      const b = el("button", "chip", label);
+      b.type = "button";
+      b.dataset.i = i;
+      b.addEventListener("click", () => {
+        stop();
+        goTo(i, 600);
+      });
+      jumps.append(b);
+    }
+
+    const legend = document.getElementById("hist-legend");
+    legend.replaceChildren();
+    for (const [c, label, cls] of [[COL_ENI, "Distributori Eni", "key-rect"], [COLORE[fuel], "Altri marchi", "key-rect"], [null, ref != null ? `Contorno: ${fmt.giorno(date[ref]).trim()}, prima del tetto` : null, "key-outline"]]) {
+      if (!label) continue;
+      const sp = el("span");
+      const k = el("span", cls);
+      if (c) k.style.background = c;
+      sp.append(k, document.createTextNode(label));
+      legend.append(sp);
+    }
+
+    function goTo(i, duration = 250) {
+      histDay = i;
+      slider.value = String(i);
+      slider.setAttribute("aria-valuetext", fmt.giornoAnno(date[i]).trim());
+      hist.setDay(i, { duration });
+      dateOut.textContent = `Prezzi alle 8:00 del ${fmt.giornoAnno(date[i]).trim()}`;
+      const r = nazPer.get(fuel)?.get(D.date[i]);
+      const inVigore = date[i] >= tDal && date[i] <= tAl;
+      hist.setMarkers([
+        ...(r ? [{ value: r.media, label: `Media ${fmt.prezzo(r.media)}`, color: "#e6edf7" }] : []),
+        ...(inVigore ? [{ value: tetto[fuel], label: `Tetto Eni ${fmt.prezzo2(tetto[fuel])}`, color: "#e6edf7", dashed: true }] : []),
+      ]);
+      jumps.querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
+
+      // numeri del giorno
+      const stats = document.getElementById("hist-stats");
+      stats.replaceChildren();
+      const stat = (l, v, small) => {
+        const d = el("div", "hist-stat");
+        const vv = el("div", "v", v);
+        if (small) vv.append(el("small", null, small));
+        d.append(el("div", "l", l), vv);
+        stats.append(d);
+      };
+      if (r) {
+        stat("Prezzo medio", fmt.prezzo(r.media), "€/l");
+        stat("Metà dei distributori", `${fmt.prezzo2(r.p25)} – ${fmt.prezzo2(r.p75)}`, "€/l");
+      }
+      const n = finoAlTetto(i), tot = totale(i);
+      stat(`Fino a ${fmt.prezzo2(tetto[fuel])} €/l`, fmt.intero(n), `distributori (${fmt.pct(n / tot)})` + (ref != null && i > ref ? ` · erano ${fmt.intero(finoAlTetto(ref))} il ${fmt.giorno(date[ref]).trim()}` : ""));
+
+      const nome = fuel === "benzina" ? "la benzina" : "il gasolio";
+      document.getElementById("hist-title").textContent = ref != null && i > ref
+        ? `Dal ${fmt.giorno(date[ref]).trim()} i distributori con ${nome} fino a ${fmt.prezzo2(tetto[fuel])} €/l sono passati da ${fmt.intero(finoAlTetto(ref))} a ${fmt.intero(n)}`
+        : r ? `Il ${fmt.giorno(date[i]).trim()} metà dei distributori vendeva ${nome} tra ${fmt.prezzo2(r.p25)} e ${fmt.prezzo2(r.p75)} €/l` : "Come si distribuiscono i prezzi";
+
+      const fuori = D.sotto[i] + D.sopra[i];
+      document.getElementById("hist-note").textContent =
+        `Fasce di 1 centesimo, chiuse a destra: la fascia di ${fmt.prezzo2(tetto[fuel])} contiene i prezzi da ${fmt.prezzo(tetto[fuel] - 0.009)} a ${fmt.prezzo(tetto[fuel])} €/l. ` +
+        `Gli assi sono gli stessi per tutti i giorni, così i cambiamenti si vedono a colpo d'occhio. ` +
+        `Restano fuori scala ${fmt.intero(fuori)} distributori su ${fmt.intero(tot)} (sotto ${fmt.prezzo2(D.da / 100 - 0.01)} o sopra ${fmt.prezzo2(D.a / 100)} €/l, per esempio Livigno e alcune autostrade). ` +
+        `I picchi su prezzi come ${fmt.prezzo(1.999)} o ${fmt.prezzo2(tetto[fuel])} sono reali: molti gestori scelgono gli stessi prezzi "tondi".`;
+    }
+
+    slider.oninput = () => {
+      stop();
+      goTo(+slider.value, 120);
+    };
+    const passo = () => {
+      const i = histDay + 1;
+      if (i > D.date.length - 1) return stop();
+      goTo(i, 150);
+    };
+    function stop() {
+      if (play) clearInterval(play);
+      play = null;
+      playBtn.textContent = "▶";
+      playBtn.setAttribute("aria-label", "Riproduci i giorni in sequenza");
+    }
+    playBtn.onclick = () => {
+      if (play) return stop();
+      if (histDay >= D.date.length - 1) goTo(0, 0);
+      playBtn.textContent = "❚❚";
+      playBtn.setAttribute("aria-label", "Metti in pausa");
+      play = setInterval(passo, 170);
+    };
+    stop();
+    const iniziale = isoScelto && D.date.includes(isoScelto) ? D.date.indexOf(isoScelto) : D.date.length - 1;
+    goTo(iniziale, 0);
+
+    // tabella: riepilogo di tutti i giorni
+    histEl.parentElement.querySelector("details.table-view")?.remove();
+    tableView(histEl.parentElement, [
+      { key: "d", label: "Giorno" },
+      { key: "media", label: "Media (€/l)", num: true, format: fmt.prezzo },
+      { key: "p25", label: "25° perc.", num: true, format: fmt.prezzo },
+      { key: "p75", label: "75° perc.", num: true, format: fmt.prezzo },
+      { key: "fino", label: `Fino a ${fmt.prezzo2(tetto[fuel])} €/l`, num: true, format: fmt.intero },
+      { key: "n", label: "Distributori", num: true, format: fmt.intero },
+    ], () => D.date.map((d, i) => {
+      const r = nazPer.get(fuel)?.get(d) ?? {};
+      return { d, media: r.media, p25: r.p25, p75: r.p75, fino: finoAlTetto(i), n: totale(i) };
+    }).reverse(), "Mostra i numeri di ogni giorno");
+  }
+
   // ---------- pannelli che dipendono dal carburante ----------
   const regionsEl = document.getElementById("regions");
   const brandsEl = document.getElementById("brands");
-  const histEl = document.getElementById("hist");
   const provEl = document.getElementById("provinces");
   const oggiISO = d3.max(reg, (r) => r.d);
   const tipoOggi = tipo.filter((r) => r.d === d3.max(tipo, (q) => q.d));
@@ -480,24 +718,7 @@ async function main() {
       { key: "scarto", label: "vs Italia (cent)", num: true, format: (v) => fmt.cent(v) },
     ], () => pr.map((r, i) => ({ ...r, pos: i + 1 })), `Tutte le ${pr.length} province`);
 
-    // istogramma
-    histEl.replaceChildren();
-    const vals = stations.map((s) => s[CAMPO[fuel]]).filter((v) => v != null).sort(d3.ascending);
-    histogram(histEl, {
-      values: vals,
-      color: COLORE[fuel],
-      markers: [
-        { value: ref, label: "Media Italia", color: "#e6edf7" },
-        ...(tAuto ? [{ value: tAuto.media, label: "Media autostrade", color: DIVERGING[2] }] : []),
-      ],
-    });
-    const sotto = vals.filter((v) => v < ref - 0.05).length;
-    document.getElementById("hist-title").textContent =
-      `Metà dei distributori sta tra ${fmt.prezzo(d3.quantile(vals, 0.25))} e ${fmt.prezzo(d3.quantile(vals, 0.75))} €/l; ${fmt.intero(sotto)} sono almeno 5 cent sotto la media`;
-    tableView(histEl, [
-      { key: "q", label: "Percentile" },
-      { key: "v", label: "€/l", num: true, format: fmt.prezzo },
-    ], () => [0.01, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99].map((q) => ({ q: `${Math.round(q * 100)}°`, v: d3.quantile(vals, q) })));
+    renderHist();
 
     document.getElementById("map-title").textContent =
       fuel === "benzina" ? "Dove la benzina costa di più (e di meno)" : "Dove il gasolio costa di più (e di meno)";

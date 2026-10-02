@@ -52,6 +52,48 @@ def mart(name: str) -> str:
     return f"'{MARTS / (name + '.parquet')}'"
 
 
+def distribuzione() -> dict:
+    """Istogramma per giorno in forma compatta: per ogni carburante un asse fisso
+    di fasce da 1 centesimo (uguale per tutti i giorni, così i cambiamenti si vedono)
+    e, per ogni giorno, i conteggi della rete Eni e degli altri marchi.
+    L'asse va dallo 0,5° al 99,5° percentile di tutti i giorni insieme: i pochi
+    prezzi fuori scala (Livigno, alcune autostrade) sono contati a parte."""
+    src = mart("mart_carburanti__distribuzione_giornaliera")
+    out = {}
+    for c in ("benzina", "gasolio"):
+        pool = rows(f"""
+            select centesimo, sum(n_impianti) as n from {src}
+            where carburante = '{c}' group by 1 order by 1
+        """)
+        tot = sum(r["n"] for r in pool)
+        cum, da, a = 0, None, None
+        for r in pool:
+            cum += r["n"]
+            if da is None and cum >= 0.005 * tot:
+                da = r["centesimo"]
+            if a is None and cum >= 0.995 * tot:
+                a = r["centesimo"]
+        date = [r["d"] for r in rows(f"select distinct data as d from {src} where carburante = '{c}' order by 1")]
+        celle = rows(f"""
+            select data as d, gruppo as g, centesimo as k, n_impianti as n
+            from {src} where carburante = '{c}'
+        """)
+        larghezza = a - da + 1
+        idx = {d: i for i, d in enumerate(date)}
+        serie = {g: [[0] * larghezza for _ in date] for g in ("eni", "altri")}
+        sotto, sopra = [0] * len(date), [0] * len(date)
+        for r in celle:
+            i = idx[r["d"]]
+            if r["k"] < da:
+                sotto[i] += r["n"]
+            elif r["k"] > a:
+                sopra[i] += r["n"]
+            else:
+                serie[r["g"]][i][r["k"] - da] += r["n"]
+        out[c] = {"da": da, "a": a, "date": date, **serie, "sotto": sotto, "sopra": sopra}
+    return out
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     print(f"Esporto in {OUT.relative_to(ROOT)}")
@@ -94,8 +136,11 @@ def main() -> int:
         select id_impianto as id,
                round(lat, 4) as lat, round(lon, 4) as lon,
                benzina as b, gasolio as g, benzina_7g as b7, gasolio_7g as g7,
-               nome, bandiera, comune, sigla,
-               case tipo_impianto when 'Autostradale' then 1 else 0 end as auto
+               nome, indirizzo as ind, bandiera, comune, sigla,
+               case tipo_impianto when 'Autostradale' then 1 else 0 end as auto,
+               -- ora dell'ultima comunicazione dei prezzi, in minuti dall'epoca Unix
+               -- (ora italiana come la scrive il MIMIT, letta dal browser come UTC)
+               cast(epoch(ultima_comunicazione) / 60 as integer) as ts
         from {mart('mart_carburanti__impianti_oggi')}
         order by id_impianto
     """))
@@ -117,6 +162,8 @@ def main() -> int:
         from {mart('mart_carburanti__marchi_giornaliero')}
         order by data, carburante, marchio
     """))
+
+    write("carburanti_distribuzione.json", distribuzione())
 
     seed = ROOT / "transform" / "seeds" / "misure_prezzo.csv"
     with seed.open(encoding="utf-8") as f:

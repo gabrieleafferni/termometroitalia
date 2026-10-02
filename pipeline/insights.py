@@ -39,7 +39,8 @@ def cent(delta_euro: float) -> str:
 
 
 def data_it(d: dt.date) -> str:
-    return f"{d.day} {MESI[d.month - 1]}"
+    # il primo del mese si scrive "1°" ("del 1° ottobre")
+    return f"{'1°' if d.day == 1 else d.day} {MESI[d.month - 1]}"
 
 
 def q(sql: str) -> list[dict]:

@@ -6,7 +6,7 @@ sources:
       Data lake dei carburanti, scritto da pipeline/carburanti/ingest.py.
       Fonte originale: MIMIT - Osservaprezzi Carburanti (licenza IODL 2.0).
     meta:
-      external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/carburanti/{name}/*/*.parquet', filename = true)"
+      external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/carburanti/{name}/*/*.parquet', filename = true, union_by_name = true)"
     tables:
       - name: prezzi
         description: Uno snapshot completo per ogni data di estrazione MIMIT.
@@ -17,7 +17,9 @@ sources:
           - name: self
           - name: dt_comunicazione
       - name: impianti
-        description: Change log (SCD tipo 2) dell'anagrafica impianti.
+        description: >
+          Change log (SCD tipo 2) dell'anagrafica impianti. La colonna indirizzo
+          esiste dai file del 2/10/2026: i file precedenti si leggono con union_by_name.
         columns:
           - name: id_impianto
           - name: valido_dal

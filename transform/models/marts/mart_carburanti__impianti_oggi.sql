@@ -32,6 +32,7 @@ per_impianto as (
         o.id_impianto,
         any_value(o.data) as data,
         any_value(o.nome) as nome,
+        any_value(o.indirizzo) as indirizzo,
         any_value(o.bandiera) as bandiera,
         any_value(o.tipo_impianto) as tipo_impianto,
         any_value(o.comune) as comune,

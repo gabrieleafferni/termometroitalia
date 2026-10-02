@@ -53,6 +53,7 @@ export function glowMap(container, opts) {
     ambient = false,
     labels = true,
     onHover = () => {},
+    onSelect = null, // clic o tocco su un distributore (null = clic nel vuoto)
   } = opts;
 
   const canvas = document.createElement("canvas");
@@ -74,6 +75,7 @@ export function glowMap(container, opts) {
   let revealAt = new Float32Array(stations.length);
   let progress = reducedMotion() ? 1 : 0;
   let hovered = -1;
+  let selected = -1;
   let highlighted = [];
   let baseImage = null; // per la modalità ambient
 
@@ -221,6 +223,10 @@ export function glowMap(container, opts) {
     octx.setTransform(dpr, 0, 0, dpr, 0, 0);
     octx.clearRect(0, 0, W, H);
     for (const i of highlighted) ring(octx, i, "#e6edf7", 6);
+    if (selected >= 0) {
+      ring(octx, selected, "#ffffff", 9);
+      ring(octx, selected, "#ffffff", 4);
+    }
     if (hovered >= 0) ring(octx, hovered, "#ffffff", 8);
   }
 
@@ -260,6 +266,23 @@ export function glowMap(container, opts) {
       drawOverlay();
       onHover(null);
     });
+
+    // clic (o tocco) su un punto: seleziona il distributore. d3.zoom non genera
+    // il click dopo un trascinamento, quindi spostare la mappa non seleziona nulla.
+    if (onSelect) {
+      canvas.addEventListener("click", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+        const bx = (mx - transform.x) / transform.k, by = (my - transform.y) / transform.k;
+        // raggio più largo al tocco: il dito è meno preciso del mouse
+        const r = (e.pointerType === "touch" ? 24 : 14) / transform.k;
+        const i = quadtree.find(bx, by, r);
+        const idx = i === undefined || buckets[i] < 0 ? -1 : i;
+        selected = idx;
+        drawOverlay();
+        onSelect(idx >= 0 ? stations[idx] : null);
+      });
+    }
   }
 
   // ---------- modalità ambient (home): scintillio leggero ----------
@@ -340,6 +363,10 @@ export function glowMap(container, opts) {
       computeBuckets();
       baseImage = null;
       draw();
+    },
+    select(i) {
+      selected = i ?? -1;
+      drawOverlay();
     },
     highlight(indices) {
       highlighted = indices;

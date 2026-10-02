@@ -23,6 +23,7 @@ con_geo as (
     select
         p.*,
         i.nome,
+        i.indirizzo,
         i.bandiera,
         i.tipo_impianto,
         i.comune,
