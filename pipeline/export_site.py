@@ -55,7 +55,7 @@ def mart(name: str) -> str:
 def distribuzione() -> dict:
     """Istogramma per giorno in forma compatta: per ogni carburante un asse fisso
     di fasce da 1 centesimo (uguale per tutti i giorni, così i cambiamenti si vedono)
-    e, per ogni giorno, i conteggi della rete Eni e degli altri marchi.
+    e, per ogni giorno, il numero di distributori in ogni fascia.
     L'asse va dallo 0,5° al 99,5° percentile di tutti i giorni insieme: i pochi
     prezzi fuori scala (Livigno, alcune autostrade) sono contati a parte."""
     src = mart("mart_carburanti__distribuzione_giornaliera")
@@ -75,12 +75,12 @@ def distribuzione() -> dict:
                 a = r["centesimo"]
         date = [r["d"] for r in rows(f"select distinct data as d from {src} where carburante = '{c}' order by 1")]
         celle = rows(f"""
-            select data as d, gruppo as g, centesimo as k, n_impianti as n
+            select data as d, centesimo as k, n_impianti as n
             from {src} where carburante = '{c}'
         """)
         larghezza = a - da + 1
         idx = {d: i for i, d in enumerate(date)}
-        serie = {g: [[0] * larghezza for _ in date] for g in ("eni", "altri")}
+        conteggi = [[0] * larghezza for _ in date]
         sotto, sopra = [0] * len(date), [0] * len(date)
         for r in celle:
             i = idx[r["d"]]
@@ -89,8 +89,8 @@ def distribuzione() -> dict:
             elif r["k"] > a:
                 sopra[i] += r["n"]
             else:
-                serie[r["g"]][i][r["k"] - da] += r["n"]
-        out[c] = {"da": da, "a": a, "date": date, **serie, "sotto": sotto, "sopra": sopra}
+                conteggi[i][r["k"] - da] += r["n"]
+        out[c] = {"da": da, "a": a, "date": date, "n": conteggi, "sotto": sotto, "sopra": sopra}
     return out
 
 

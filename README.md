@@ -52,7 +52,7 @@ I mart in `data/marts/` sono versionati e riutilizzabili:
 | `mart_carburanti__provinciale_giornaliero` | giorno × provincia × carburante |
 | `mart_carburanti__tipo_impianto_giornaliero` | giorno × strada/autostrada × carburante |
 | `mart_carburanti__impianti_oggi` | un distributore per riga (ultimo giorno, con indirizzo e confronto a 7 giorni) |
-| `mart_carburanti__distribuzione_giornaliera` | giorno × carburante × Eni/altri × fascia di 1 centesimo: alimenta l'istogramma consultabile per data |
+| `mart_carburanti__distribuzione_giornaliera` | giorno × carburante × fascia di 1 centesimo: alimenta l'istogramma consultabile per data |
 | `mart_carburanti__bandiere_oggi` | marchio × carburante |
 | `mart_carburanti__marchi_giornaliero` | giorno × marchio × carburante (rete stradale), con la quota di impianti entro il tetto Eni |
 | `mart_carburanti__storico_settimanale` | settimana × carburante dal 2005 (MASE), con accise e IVA e massimo precedente |

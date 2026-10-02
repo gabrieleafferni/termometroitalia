@@ -9,26 +9,24 @@ import { tooltip, ttTitle, ttRow, onResize, reducedMotion } from "../lib/ui.js";
  * conteggi): solo così, spostandosi da un giorno all'altro, si vede davvero la
  * distribuzione cambiare invece degli assi che si riadattano.
  *
- * Ogni fascia (1 centesimo, chiusa a destra: "199" = da 1,981 a 1,990 €/l) è una
- * barra impilata: rete Eni in basso, altri marchi sopra, separati da un filo del
- * colore dello sfondo. Un contorno opzionale mostra un giorno di riferimento.
+ * Ogni fascia è di 1 centesimo, chiusa a destra ("200" = da 1,991 a 2,000 €/l).
+ * Un contorno opzionale mostra un giorno di confronto (per esempio 7 giorni prima).
  *
- * data: { da, a, date: [ISO], eni: [[n per fascia]], altri: [[...]], sotto, sopra }
+ * data: { da, a, date: [ISO], n: [[distributori per fascia]], sotto, sopra }
  */
 export function histogramByDay(container, opts) {
-  const { data, colors, height = 300 } = opts;
+  const { data, color, height = 300 } = opts;
   const tip = tooltip();
   const nBins = data.a - data.da + 1;
   const cent = (k) => (data.da + k) / 100; // estremo destro della fascia, in €/l
-  const totale = (i) => data.eni[i].map((e, k) => e + data.altri[i][k]);
-  const yMax = d3.max(data.date, (_, i) => d3.max(totale(i)));
+  const yMax = d3.max(data.n, (giorno) => d3.max(giorno));
 
   let day = data.date.length - 1;
-  let ref = null; // indice del giorno di riferimento (contorno)
+  let ref = null; // indice del giorno di confronto (contorno)
   let markers = [];
   let svg, g, x, y, w, h, bars;
-  const m = { top: 46, right: 16, bottom: 30, left: 50 };
-  const GAP = 2; // filo tra barre e tra segmenti impilati
+  const m = { top: 30, right: 16, bottom: 30, left: 50 };
+  const GAP = 2; // filo tra una barra e l'altra
 
   function render() {
     d3.select(container).selectAll("svg").remove();
@@ -51,34 +49,28 @@ export function histogramByDay(container, opts) {
     g.append("g").selectAll("text").data(xt).join("text").attr("class", "tick-label")
       .attr("x", (k) => x(k / 100 - 0.005)).attr("y", h + 20).attr("text-anchor", "middle").text((k) => fmt.prezzo2(k / 100));
 
+    bars = g.append("g").attr("class", "bars").selectAll("rect").data(d3.range(nBins)).join("rect")
+      .attr("rx", 2).attr("fill", color);
     g.append("g").attr("class", "ghost-layer");
-    bars = g.append("g").attr("class", "bars").selectAll("g").data(d3.range(nBins)).join("g");
-    bars.append("rect").attr("class", "seg-eni").attr("rx", 2).attr("fill", colors.eni);
-    bars.append("rect").attr("class", "seg-altri").attr("rx", 2).attr("fill", colors.altri);
     g.append("line").attr("x1", 0).attr("x2", w).attr("y1", h).attr("y2", h).attr("stroke", "var(--axis)");
     g.append("g").attr("class", "marker-layer");
 
     // bersagli di hover: tutta l'altezza della fascia, più facili da prendere della barra
     g.append("g").selectAll("rect").data(d3.range(nBins)).join("rect")
-      .attr("x", (k) => x(cent(k) - 0.01)).attr("width", Math.max(1, w / nBins)).attr("y", -m.top + 8).attr("height", h + m.top - 8)
+      .attr("x", (k) => x(cent(k) - 0.01)).attr("width", Math.max(1, w / nBins)).attr("y", -m.top + 4).attr("height", h + m.top - 4)
       .attr("fill", "transparent")
       .on("pointermove", (e, k) => {
-        bars.filter((j) => j === k).attr("opacity", 1);
-        bars.filter((j) => j !== k).attr("opacity", 0.55);
-        const eni = data.eni[day][k], altri = data.altri[day][k], tot = eni + altri;
-        const n = d3.sum(totale(day)) + data.sotto[day] + data.sopra[day];
+        bars.attr("fill-opacity", (j) => (j === k ? 1 : 0.55));
+        const n = data.n[day][k];
+        const tot = d3.sum(data.n[day]) + data.sotto[day] + data.sopra[day];
         tip.show((t) => {
           ttTitle(t, `${fmt.prezzo(cent(k) - 0.009)} – ${fmt.prezzo(cent(k))} €/l`, opts.dateLabel(day));
-          ttRow(t, colors.eni, "Eni", fmt.intero(eni));
-          ttRow(t, colors.altri, "Altri marchi", fmt.intero(altri));
-          ttRow(t, null, "Totale", `${fmt.intero(tot)} (${fmt.pct(tot / n)})`);
-          if (ref != null && day > ref) {
-            ttRow(t, null, `Il ${opts.dateLabel(ref)}`, fmt.intero(data.eni[ref][k] + data.altri[ref][k]));
-          }
+          ttRow(t, color, "Distributori", `${fmt.intero(n)} (${fmt.pct(n / tot)})`);
+          if (ref != null) ttRow(t, null, `Il ${opts.dateLabel(ref)}`, fmt.intero(data.n[ref][k]));
         }, e.clientX, e.clientY);
       })
       .on("pointerleave", () => {
-        bars.attr("opacity", 1);
+        bars.attr("fill-opacity", 1);
         tip.hide();
       });
 
@@ -89,51 +81,36 @@ export function histogramByDay(container, opts) {
     if (!g) return;
     const dur = reducedMotion() ? 0 : duration;
     const bw = Math.max(1, w / nBins - GAP);
-    const eni = data.eni[day], altri = data.altri[day];
-    const t = d3.transition().duration(dur).ease(d3.easeCubicOut);
-    bars.attr("transform", (k) => `translate(${x(cent(k) - 0.01) + GAP / 2},0)`);
-    bars.select(".seg-eni").attr("width", bw).transition(t)
-      .attr("y", (k) => y(eni[k]))
-      .attr("height", (k) => h - y(eni[k]));
-    bars.select(".seg-altri").attr("width", bw).transition(t)
-      // sopra la parte Eni, staccata da un filo di 2px (solo se c'è una parte Eni)
-      .attr("y", (k) => y(eni[k] + altri[k]) - (eni[k] > 0 && altri[k] > 0 ? GAP : 0))
-      .attr("height", (k) => Math.max(0, y(eni[k]) - y(eni[k] + altri[k])));
+    const n = data.n[day];
+    bars.attr("x", (k) => x(cent(k) - 0.01) + GAP / 2).attr("width", bw)
+      .transition().duration(dur).ease(d3.easeCubicOut)
+      .attr("y", (k) => y(n[k]))
+      .attr("height", (k) => h - y(n[k]));
 
-    // contorno del giorno di riferimento: profilo a gradini dei totali
+    // contorno del giorno di confronto: profilo a gradini
     const ghost = g.select(".ghost-layer");
     ghost.selectAll("*").remove();
-    if (ref != null && day > ref) {
-      const tot = totale(ref);
+    if (ref != null) {
       const pts = [];
-      tot.forEach((v, k) => {
-        pts.push([x(cent(k) - 0.01), y(v)], [x(cent(k)), y(v)]);
-      });
+      data.n[ref].forEach((v, k) => pts.push([x(cent(k) - 0.01), y(v)], [x(cent(k)), y(v)]));
       ghost.append("path").attr("d", d3.line()([[x(cent(0) - 0.01), h], ...pts, [x(cent(nBins - 1)), h]]))
         .attr("fill", "none").attr("stroke", "var(--text)").attr("stroke-opacity", 0.7)
         .attr("stroke-width", 1.5).attr("stroke-linejoin", "round").attr("stroke-dasharray", "4 3");
     }
 
-    // linee di riferimento (media del giorno, tetto ai prezzi...)
+    // linee di riferimento (es. la media del giorno), sul bordo destro della fascia che le contiene
     const ml = g.select(".marker-layer");
     ml.selectAll("*").remove();
-    const visibili = markers.filter((mk) => mk.value >= x.domain()[0] && mk.value <= x.domain()[1])
-      .sort((a, b) => a.value - b.value);
-    // le linee stanno sul bordo destro della fascia che contiene il valore
-    const xs = visibili.map((mk) => x(Math.ceil(mk.value * 100 - 1e-6) / 100));
-    visibili.forEach((mk, i) => {
-      const mx = xs[i];
-      ml.append("line").attr("x1", mx).attr("x2", mx).attr("y1", -8 - (i % 2) * 18).attr("y2", h)
-        .attr("stroke", mk.color || "var(--text)").attr("stroke-width", 1.5)
-        .attr("stroke-dasharray", mk.dashed ? "5 4" : null);
-      // etichetta a sinistra della linea se un'altra linea è vicina a destra (o se siamo sul bordo)
-      const vicinaDestra = i < xs.length - 1 && xs[i + 1] - mx < 150;
-      const vicinaSinistra = i > 0 && mx - xs[i - 1] < 150;
-      const anchorEnd = vicinaDestra ? true : vicinaSinistra ? false : mx > w * 0.72;
+    for (const mk of markers) {
+      if (mk.value < x.domain()[0] || mk.value > x.domain()[1]) continue;
+      const mx = x(Math.ceil(mk.value * 100 - 1e-6) / 100);
+      ml.append("line").attr("x1", mx).attr("x2", mx).attr("y1", -8).attr("y2", h)
+        .attr("stroke", mk.color || "var(--text)").attr("stroke-width", 1.5);
+      const anchorEnd = mx > w * 0.72;
       ml.append("text").attr("class", "label-2").style("fill", "var(--text)")
-        .attr("x", mx + (anchorEnd ? -6 : 6)).attr("y", -14 - (i % 2) * 18).attr("text-anchor", anchorEnd ? "end" : "start")
+        .attr("x", mx + (anchorEnd ? -6 : 6)).attr("y", -14).attr("text-anchor", anchorEnd ? "end" : "start")
         .text(mk.label);
-    });
+    }
     svg.attr("aria-label", opts.ariaLabel(day));
   }
 
@@ -141,20 +118,11 @@ export function histogramByDay(container, opts) {
   onResize(container, render);
 
   return {
-    setDay(i, { duration = 350 } = {}) {
+    setDay(i, { duration = 350, reference = null, markers: mks = [] } = {}) {
       day = i;
+      ref = reference;
+      markers = mks;
       update(duration);
-    },
-    setReference(i) {
-      ref = i;
-      update(0);
-    },
-    setMarkers(list) {
-      markers = list;
-      update(0);
-    },
-    get day() {
-      return day;
     },
   };
 }

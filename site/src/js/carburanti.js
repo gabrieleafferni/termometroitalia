@@ -493,6 +493,7 @@ async function main() {
   const dateOut = document.getElementById("hist-date");
   const nazPer = d3.index(rif, (r) => r.c, (r) => r.d);
   let hist = null, histFuel = null, histDay = null, play = null;
+  const CONFRONTO = 7; // il contorno mostra lo stesso grafico di 7 giorni prima
 
   function renderHist() {
     const D = distrib[fuel];
@@ -502,20 +503,20 @@ async function main() {
     histEl.replaceChildren();
     hist = histogramByDay(histEl, {
       data: D,
-      colors: { eni: COL_ENI, altri: COLORE[fuel] },
+      color: COLORE[fuel],
       dateLabel: (i) => fmt.giorno(date[i]).trim(),
       ariaLabel: (i) => `Distribuzione dei prezzi del ${fuel} self tra i distributori il ${fmt.giornoAnno(date[i]).trim()}`,
     });
-    // giorno di riferimento: l'ultimo prima del tetto Eni (contorno tratteggiato)
-    const iRef = D.date.indexOf(d3.timeFormat("%Y-%m-%d")(d3.timeDay.offset(tDal, -1)));
-    const ref = iRef >= 0 ? iRef : null;
-    hist.setReference(ref);
     slider.max = String(D.date.length - 1);
-    const soglia = Math.round(tetto[fuel] * 100); // fasce fino alla 199 = prezzi fino a 1,99
-    const finoAlTetto = (i) => D.sotto[i] + d3.sum(D.eni[i].map((e, k) => (D.da + k <= soglia ? e + D.altri[i][k] : 0)));
-    const totale = (i) => D.sotto[i] + D.sopra[i] + d3.sum(D.eni[i]) + d3.sum(D.altri[i]);
+    const totale = (i) => D.sotto[i] + D.sopra[i] + d3.sum(D.n[i]);
+    // giorno di confronto: l'ultimo disponibile ad almeno 7 giorni di distanza (gestisce i buchi)
+    const confronto = (i) => {
+      const target = d3.timeDay.offset(date[i], -CONFRONTO);
+      for (let j = i - 1; j >= 0; j--) if (date[j] <= target) return j;
+      return null;
+    };
 
-    // tacche sotto il cursore: inizio di ogni mese e inizio del tetto
+    // tacche sotto il cursore: inizio di ogni mese, più gli eventi che hanno mosso i prezzi
     const ticks = document.getElementById("hist-ticks");
     ticks.replaceChildren();
     const pos = (i) => `calc(9px + (100% - 18px) * ${i / (D.date.length - 1)})`;
@@ -527,20 +528,25 @@ async function main() {
       s.style.left = pos(i);
       ticks.append(s);
     });
-    if (ref != null) {
+    const iTetto = D.date.indexOf(d3.timeFormat("%Y-%m-%d")(tDal));
+    if (iTetto >= 0) {
       const s = el("span", "evt", "tetto Eni");
-      s.style.left = pos(ref + 1);
+      s.title = "Dal 28 settembre Eni applica un prezzo massimo, seguita da altri distributori";
+      s.style.left = pos(iTetto);
       ticks.append(s);
     }
 
     // scorciatoie
     const jumps = document.getElementById("hist-jumps");
     jumps.replaceChildren();
+    const ultimoI = D.date.length - 1;
+    const s1 = confronto(ultimoI), s2 = s1 != null ? confronto(s1) : null;
     const salti = [
       [0, `${fmt.giorno(date[0]).trim()} · inizio della serie`],
-      ...(ref != null ? [[ref, `${fmt.giorno(date[ref]).trim()} · prima del tetto Eni`]] : []),
-      [D.date.length - 1, `${fmt.giorno(date.at(-1)).trim()} · ultimo giorno`],
-    ];
+      s2 != null && [s2, `${fmt.giorno(date[s2]).trim()} · due settimane prima`],
+      s1 != null && [s1, `${fmt.giorno(date[s1]).trim()} · una settimana prima`],
+      [ultimoI, `${fmt.giorno(date[ultimoI]).trim()} · ultimo giorno`],
+    ].filter(Boolean);
     for (const [i, label] of salti) {
       const b = el("button", "chip", label);
       b.type = "button";
@@ -552,59 +558,66 @@ async function main() {
       jumps.append(b);
     }
 
-    const legend = document.getElementById("hist-legend");
-    legend.replaceChildren();
-    for (const [c, label, cls] of [[COL_ENI, "Distributori Eni", "key-rect"], [COLORE[fuel], "Altri marchi", "key-rect"], [null, ref != null ? `Contorno: ${fmt.giorno(date[ref]).trim()}, prima del tetto` : null, "key-outline"]]) {
-      if (!label) continue;
-      const sp = el("span");
-      const k = el("span", cls);
-      if (c) k.style.background = c;
-      sp.append(k, document.createTextNode(label));
-      legend.append(sp);
-    }
-
     function goTo(i, duration = 250) {
       histDay = i;
+      const j = confronto(i);
+      const r = nazPer.get(fuel)?.get(D.date[i]);
+      const rj = j != null ? nazPer.get(fuel)?.get(D.date[j]) : null;
       slider.value = String(i);
       slider.setAttribute("aria-valuetext", fmt.giornoAnno(date[i]).trim());
-      hist.setDay(i, { duration });
+      hist.setDay(i, {
+        duration,
+        reference: j,
+        markers: r ? [{ value: r.media, label: `Media ${fmt.prezzo(r.media)}`, color: "#e6edf7" }] : [],
+      });
       dateOut.textContent = `Prezzi alle 8:00 del ${fmt.giornoAnno(date[i]).trim()}`;
-      const r = nazPer.get(fuel)?.get(D.date[i]);
-      const inVigore = date[i] >= tDal && date[i] <= tAl;
-      hist.setMarkers([
-        ...(r ? [{ value: r.media, label: `Media ${fmt.prezzo(r.media)}`, color: "#e6edf7" }] : []),
-        ...(inVigore ? [{ value: tetto[fuel], label: `Tetto Eni ${fmt.prezzo2(tetto[fuel])}`, color: "#e6edf7", dashed: true }] : []),
-      ]);
       jumps.querySelectorAll(".chip").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
 
-      // numeri del giorno
+      // legenda: barre del giorno scelto e contorno del giorno di confronto
+      const legend = document.getElementById("hist-legend");
+      legend.replaceChildren();
+      const voce = (cls, c, label) => {
+        const sp = el("span");
+        const k = el("span", cls);
+        if (c) k.style.background = c;
+        sp.append(k, document.createTextNode(label));
+        legend.append(sp);
+      };
+      voce("key-rect", COLORE[fuel], `Distributori, ${fmt.giorno(date[i]).trim()}`);
+      if (j != null) voce("key-outline", null, `Contorno: ${fmt.giorno(date[j]).trim()}, una settimana prima`);
+
+      // numeri del giorno, con il confronto a una settimana
       const stats = document.getElementById("hist-stats");
       stats.replaceChildren();
-      const stat = (l, v, small) => {
+      const stat = (l, v, small, extra) => {
         const d = el("div", "hist-stat");
         const vv = el("div", "v", v);
         if (small) vv.append(el("small", null, small));
         d.append(el("div", "l", l), vv);
+        if (extra) d.append(extra);
         stats.append(d);
       };
       if (r) {
-        stat("Prezzo medio", fmt.prezzo(r.media), "€/l");
-        stat("Metà dei distributori", `${fmt.prezzo2(r.p25)} – ${fmt.prezzo2(r.p75)}`, "€/l");
+        stat("Prezzo medio", fmt.prezzo(r.media), "€/l", rj ? deltaSpan(r.media - rj.media, " in una settimana") : null);
+        stat("Metà dei distributori", `${fmt.prezzo2(r.p25)} – ${fmt.prezzo2(r.p75)}`, "€/l",
+          rj ? el("div", "hist-prima", `una settimana prima ${fmt.prezzo2(rj.p25)} – ${fmt.prezzo2(rj.p75)}`) : null);
+        stat("8 distributori su 10", `${fmt.prezzo2(r.p10)} – ${fmt.prezzo2(r.p90)}`, "€/l",
+          rj ? el("div", "hist-prima", `una settimana prima ${fmt.prezzo2(rj.p10)} – ${fmt.prezzo2(rj.p90)}`) : null);
       }
-      const n = finoAlTetto(i), tot = totale(i);
-      stat(`Fino a ${fmt.prezzo2(tetto[fuel])} €/l`, fmt.intero(n), `distributori (${fmt.pct(n / tot)})` + (ref != null && i > ref ? ` · erano ${fmt.intero(finoAlTetto(ref))} il ${fmt.giorno(date[ref]).trim()}` : ""));
 
       const nome = fuel === "benzina" ? "la benzina" : "il gasolio";
-      document.getElementById("hist-title").textContent = ref != null && i > ref
-        ? `Dal ${fmt.giorno(date[ref]).trim()} i distributori con ${nome} fino a ${fmt.prezzo2(tetto[fuel])} €/l sono passati da ${fmt.intero(finoAlTetto(ref))} a ${fmt.intero(n)}`
-        : r ? `Il ${fmt.giorno(date[i]).trim()} metà dei distributori vendeva ${nome} tra ${fmt.prezzo2(r.p25)} e ${fmt.prezzo2(r.p75)} €/l` : "Come si distribuiscono i prezzi";
+      document.getElementById("hist-title").textContent = r
+        ? `Il ${fmt.giorno(date[i]).trim()} metà dei distributori vendeva ${nome} tra ${fmt.prezzo2(r.p25)} e ${fmt.prezzo2(r.p75)} €/l` +
+          (rj ? `, una settimana prima tra ${fmt.prezzo2(rj.p25)} e ${fmt.prezzo2(rj.p75)}` : "")
+        : "Come si distribuiscono i prezzi";
 
       const fuori = D.sotto[i] + D.sopra[i];
       document.getElementById("hist-note").textContent =
-        `Fasce di 1 centesimo, chiuse a destra: la fascia di ${fmt.prezzo2(tetto[fuel])} contiene i prezzi da ${fmt.prezzo(tetto[fuel] - 0.009)} a ${fmt.prezzo(tetto[fuel])} €/l. ` +
+        `Fasce di 1 centesimo, chiuse a destra: la fascia di 2,00 contiene i prezzi da 1,991 a 2,000 €/l. ` +
         `Gli assi sono gli stessi per tutti i giorni, così i cambiamenti si vedono a colpo d'occhio. ` +
-        `Restano fuori scala ${fmt.intero(fuori)} distributori su ${fmt.intero(tot)} (sotto ${fmt.prezzo2(D.da / 100 - 0.01)} o sopra ${fmt.prezzo2(D.a / 100)} €/l, per esempio Livigno e alcune autostrade). ` +
-        `I picchi su prezzi come ${fmt.prezzo(1.999)} o ${fmt.prezzo2(tetto[fuel])} sono reali: molti gestori scelgono gli stessi prezzi "tondi".`;
+        `Restano fuori scala ${fmt.intero(fuori)} distributori su ${fmt.intero(totale(i))} (sotto ${fmt.prezzo2(D.da / 100 - 0.01)} o sopra ${fmt.prezzo2(D.a / 100)} €/l, per esempio Livigno e alcune autostrade). ` +
+        `I picchi su prezzi "tondi" come 1,999 sono reali: molti gestori scelgono gli stessi prezzi. ` +
+        `Dal 28 settembre il picco a ${fmt.prezzo2(tetto.benzina)} (benzina) e ${fmt.prezzo2(tetto.gasolio)} (gasolio) riflette il prezzo massimo applicato da Eni e poi da altri distributori.`;
     }
 
     slider.oninput = () => {
@@ -613,7 +626,7 @@ async function main() {
     };
     const passo = () => {
       const i = histDay + 1;
-      if (i > D.date.length - 1) return stop();
+      if (i > ultimoI) return stop();
       goTo(i, 150);
     };
     function stop() {
@@ -624,13 +637,13 @@ async function main() {
     }
     playBtn.onclick = () => {
       if (play) return stop();
-      if (histDay >= D.date.length - 1) goTo(0, 0);
+      if (histDay >= ultimoI) goTo(0, 0);
       playBtn.textContent = "❚❚";
       playBtn.setAttribute("aria-label", "Metti in pausa");
       play = setInterval(passo, 170);
     };
     stop();
-    const iniziale = isoScelto && D.date.includes(isoScelto) ? D.date.indexOf(isoScelto) : D.date.length - 1;
+    const iniziale = isoScelto && D.date.includes(isoScelto) ? D.date.indexOf(isoScelto) : ultimoI;
     goTo(iniziale, 0);
 
     // tabella: riepilogo di tutti i giorni
@@ -638,13 +651,14 @@ async function main() {
     tableView(histEl.parentElement, [
       { key: "d", label: "Giorno" },
       { key: "media", label: "Media (€/l)", num: true, format: fmt.prezzo },
+      { key: "p10", label: "10° perc.", num: true, format: fmt.prezzo },
       { key: "p25", label: "25° perc.", num: true, format: fmt.prezzo },
       { key: "p75", label: "75° perc.", num: true, format: fmt.prezzo },
-      { key: "fino", label: `Fino a ${fmt.prezzo2(tetto[fuel])} €/l`, num: true, format: fmt.intero },
+      { key: "p90", label: "90° perc.", num: true, format: fmt.prezzo },
       { key: "n", label: "Distributori", num: true, format: fmt.intero },
     ], () => D.date.map((d, i) => {
       const r = nazPer.get(fuel)?.get(d) ?? {};
-      return { d, media: r.media, p25: r.p25, p75: r.p75, fino: finoAlTetto(i), n: totale(i) };
+      return { d, media: r.media, p10: r.p10, p25: r.p25, p75: r.p75, p90: r.p90, n: totale(i) };
     }).reverse(), "Mostra i numeri di ogni giorno");
   }
 
