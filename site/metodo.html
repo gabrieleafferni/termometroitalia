@@ -22,7 +22,7 @@
         <h2>La pipeline</h2>
         <p>Ogni mattina un workflow di <strong>GitHub Actions</strong> esegue quattro passi:</p>
         <ol>
-          <li><strong>Raccolta.</strong> Uno script Python scarica gli open data e li archivia in file <code>Parquet</code> datati e immutabili. Se la fonte ufficiale non risponde, usa un archivio pubblico di riserva. Il controllo gira ogni 2 ore: quando il MIMIT pubblica un nuovo giorno, entro al massimo due ore il sito si aggiorna.</li>
+          <li><strong>Raccolta.</strong> Uno script Python scarica gli open data e li archivia in file <code>Parquet</code> datati e immutabili. Se la fonte ufficiale non risponde, usa un archivio pubblico di riserva. Ogni mattina un giro della pipeline resta in attesa della pubblicazione del MIMIT (di solito verso le 9:30) e la scarica appena esce; in più un controllo gira ogni 2 ore. Se il calendario di GitHub salta un giro, quello in attesa ne avvia da solo un altro, fino alle 14.</li>
           <li><strong>Trasformazione.</strong> Un progetto <strong>dbt</strong> su <strong>DuckDB</strong> pulisce i dati, li arricchisce con la geografia e produce le tabelle finali, controllate da test automatici (unicità, valori ammessi, intervalli plausibili, copertura minima).</li>
           <li><strong>Novità.</strong> Un modulo confronta l'ultimo giorno con la storia e segnala record, strisce di rialzi o ribassi e variazioni giornaliere fuori dal normale (z-score oltre 2,5).</li>
           <li><strong>Pubblicazione.</strong> Il sito viene ricostruito e pubblicato su GitHub Pages.</li>

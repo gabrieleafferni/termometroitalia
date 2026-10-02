@@ -64,7 +64,7 @@ async function main() {
   const stamp = document.getElementById("stamp");
   stamp.append(
     el("strong", null, `Prezzi alle 8:00 del ${fmt.giornoAnno(oggi).trim()}`),
-    el("span", null, `aggiornamento automatico ogni 2 ore · ${fmt.intero(stations.length)} distributori · storico giornaliero dal ${fmt.giorno(byFuel.get("benzina")[0].date).trim()}, settimanale dal 2005`)
+    el("span", null, `aggiornamento automatico ogni mattina · ${fmt.intero(stations.length)} distributori · storico giornaliero dal ${fmt.giorno(byFuel.get("benzina")[0].date).trim()}, settimanale dal 2005`)
   );
   stamp.title = "Il MIMIT pubblica i prezzi in vigore alle 8:00 di ogni giorno, di solito la mattina successiva.";
 

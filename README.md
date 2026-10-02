@@ -30,7 +30,7 @@ flowchart LR
     G --> H[Sito Vite + D3<br/>GitHub Pages]
 ```
 
-Tutto gira su **GitHub Actions** (`.github/workflows/aggiornamento.yml`), con un controllo ogni 2 ore, senza server né costi. Se non ci sono dati nuovi, non salva e non ripubblica.
+Tutto gira su **GitHub Actions** (`.github/workflows/aggiornamento.yml`), senza server né costi. Ogni mattina un giro aspetta la pubblicazione del MIMIT (circa le 9:30) e, se il calendario di GitHub salta dei giri, il giro in attesa ne avvia da solo un altro fino alle 14:00; in più un controllo gira ogni 2 ore. Se non ci sono dati nuovi, non salva e non ripubblica.
 
 | Livello | Cosa fa | Dove |
 |---|---|---|

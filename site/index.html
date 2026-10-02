@@ -49,7 +49,7 @@
       </div>
       <section class="pipeline-strip reveal">
         <div class="step"><div class="k">01 · FONTE</div><div class="h">Open data pubblici</div><div class="d">MIMIT, ISTAT, Viminale, Camera e Senato</div></div>
-        <div class="step"><div class="k">02 · RACCOLTA</div><div class="h">Python, ogni 2 ore</div><div class="d">GitHub Actions controlla ogni 2 ore e archivia in Parquet</div></div>
+        <div class="step"><div class="k">02 · RACCOLTA</div><div class="h">Python, ogni mattina</div><div class="d">GitHub Actions aspetta la pubblicazione del MIMIT e archivia in Parquet</div></div>
         <div class="step"><div class="k">03 · QUALITÀ</div><div class="h">dbt + DuckDB</div><div class="d">Pulizia, modelli e 41 test automatici</div></div>
         <div class="step"><div class="k">04 · NOVITÀ</div><div class="h">Cosa è cambiato</div><div class="d">Record, strisce e variazioni insolite</div></div>
         <div class="step"><div class="k">05 · PUBBLICAZIONE</div><div class="h">Questo sito</div><div class="d">Ricostruito e pubblicato a ogni aggiornamento</div></div>

@@ -9,10 +9,12 @@ on:
     # 23, lontano dallo scoccare dell'ora, quando i server sono più carichi).
     # La pipeline è idempotente: se non c'è niente di nuovo, non salva e non ripubblica.
     - cron: "23 */2 * * *"
-    # Giro fisso del mattino: parte poco prima della pubblicazione MIMIT (circa le 9:30
-    # ora italiana) e, se i dati di ieri non sono ancora usciti, li aspetta fino a 2 ore.
-    # Orari in UTC: 7:20 UTC = 9:20 con l'ora legale, 8:20 con l'ora solare (l'attesa
-    # copre comunque la finestra di pubblicazione).
+    # Giro del mattino: parte poco prima della pubblicazione MIMIT (circa le 9:30 ora
+    # italiana). Orari in UTC: 7:20 UTC = 9:20 con l'ora legale, 8:20 con l'ora solare.
+    # In pratica GitHub salta o ritarda di ore molti giri programmati: per questo
+    # OGNI giro programmato, se i dati di ieri non sono ancora usciti, li aspetta
+    # (vedi il passo 1). Basta che un giro qualsiasi parta tra la notte e la
+    # mattina perché i dati arrivino pochi minuti dopo la pubblicazione.
     - cron: "20 7 * * *"
   workflow_dispatch:
     inputs:
@@ -35,19 +37,24 @@ on:
 
 permissions:
   contents: write
+  actions: write   # per il passaggio di testimone (avvio di un nuovo giro)
   pages: write
   id-token: write
 
 concurrency:
   group: aggiornamento
-  # un giro in corso (anche in attesa della pubblicazione) non viene interrotto
+  # un giro in corso (anche in attesa della pubblicazione) non viene interrotto:
+  # i giri programmati che arrivano nel frattempo restano in coda e partono dopo,
+  # così c'è sempre qualcuno che aspetta i dati. (Per provare subito una modifica
+  # al codice mentre un giro è in attesa, annulla quel giro dalla pagina Actions.)
   cancel-in-progress: false
 
 jobs:
   pipeline:
     name: Raccolta, trasformazione e build
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    # massimo consentito da GitHub: 360 minuti (attesa fino a 320 + elaborazione)
+    timeout-minutes: 345
     outputs:
       pubblica: ${{ steps.salva.outputs.pubblica }}
     steps:
@@ -65,11 +72,36 @@ jobs:
         run: |
           ATTESA="${{ inputs.attendi_minuti }}"
           if [ -z "$ATTESA" ]; then
-            # il giro fisso del mattino (7:20 UTC) aspetta la pubblicazione; gli altri no
-            if [ "${{ github.event.schedule }}" = "20 7 * * *" ]; then ATTESA=120; else ATTESA=0; fi
+            ATTESA=0
+            if [ "${{ github.event_name }}" = "schedule" ]; then
+              # I giri programmati aspettano i dati di ieri fino alle 14:00 ora italiana,
+              # al massimo 320 minuti (limite di durata di un job GitHub).
+              # Se i dati sono già usciti, lo script non aspetta affatto.
+              ADESSO=$(date +%s)
+              LIMITE=$(TZ=Europe/Rome date -d "today 14:00" +%s)
+              ATTESA=$(( (LIMITE - ADESSO) / 60 ))
+              if [ "$ATTESA" -lt 0 ]; then ATTESA=0; fi
+              if [ "$ATTESA" -gt 320 ]; then ATTESA=320; fi
+            fi
           fi
           echo "Attesa massima della pubblicazione: $ATTESA minuti"
           python -m pipeline.carburanti.ingest --source "${{ inputs.fonte || 'auto' }}" --attendi-minuti "$ATTESA"
+
+          # Passaggio di testimone: se questo giro stava aspettando ma i dati di ieri non
+          # sono ancora usciti (attesa finita per il limite dei 320 minuti) e non sono
+          # ancora le 14:00, avvia un nuovo giro che continua ad aspettare. GitHub di norma
+          # non fa partire giri dagli eventi creati con il GITHUB_TOKEN, ma fa eccezione
+          # per gli avvii manuali (workflow_dispatch): è proprio quello che serve qui.
+          ULTIMO=$(jq -r .data_estrazione data/raw/carburanti/ultimo_aggiornamento.json)
+          IERI=$(TZ=Europe/Rome date -d yesterday +%F)
+          RESTANO=$(( ($(TZ=Europe/Rome date -d "today 14:00" +%s) - $(date +%s)) / 60 ))
+          if [ "$ATTESA" -gt 0 ] && [[ "$ULTIMO" < "$IERI" ]] && [ "$RESTANO" -gt 10 ]; then
+            PROSSIMA=$(( RESTANO > 320 ? 320 : RESTANO ))
+            echo "Dati ancora fermi al $ULTIMO: avvio un nuovo giro che aspetta fino a $PROSSIMA minuti."
+            gh workflow run aggiornamento.yml --ref main -f fonte=auto -f attendi_minuti="$PROSSIMA"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: 1b · Serie settimanale MASE (dal 2005)
         # fonte esterna con protezioni anti-bot: se fallisce si usa l'ultimo snapshot
