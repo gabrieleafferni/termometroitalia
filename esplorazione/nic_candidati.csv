@@ -1,0 +1,72 @@
+id,version,nome_it,nome_en,dsd_id,dsd_version,dsd_agency,punteggio
+167_33,1.0,Nic - mensili dal 2011 al 2015 (base 2010),Nic - monthly data from 2011 until 2015 (base 2010),DCSP_NICUNOBB2010,1.0,IT1,15
+167_744,1.0,Nic - mensili dal 2016 (base 2015),Nic - monthly data from 2016 onwards(base 2015),DCSP_NIC1B2015,1.0,IT1,15
+167_744_DF_DCSP_NIC1B2015_1,1.0,Prezzi al consumo per l’intera collettività (Nic) - mensili dal 2016 (base 2015) - Principali dati,Consumer prices for the whole nation (Nic) - monthly data from 2016 onwards (base 2015) - Key data,DCSP_NIC1B2015,1.0,IT1,15
+167_745,1.0,Nic - mensili dal 2026 (base 2025),Nic - monthly data from 2026 onwards (base 2025),DCSP_NIC1B2025,1.0,IT1,15
+167_745_DF_DCSP_NIC1B2025_1,1.0,Prezzi al consumo per l’intera collettività (Nic) - mensili dal 2026 (base 2025) - Principali dati,Consumer prices for the whole nation (Nic) - monthly data from 2026 onwards (base 2025) - Key data,DCSP_NIC1B2025,1.0,IT1,15
+167_745_DF_DCSP_NIC1B2025_5,1.0,"Prezzi al consumo per l’intera collettività (Nic) - mensili dal 1996 al 2025 (basi 1995, 2010, 2015) - Ecoicop 2","Consumer prices for the whole nation (Nic) - monthly data from 1996 to 2025 (bases 1995, 2010, 2015) - Ecoicop 2",DCSP_NIC1B2025,1.0,IT1,15
+167_745_DF_DCSP_NIC1B2025_6,1.0,Prezzi al consumo per l’intera collettività (Nic) - mensili - tutte le basi - Ecoicop 2,Consumer prices for the whole nation (Nic) - monthly data -all bases - Ecoicop 2,DCSP_NIC1B2025,1.0,IT1,15
+DF_BULK_CPO2011_DCSP_NIC1B2015,1.0,NIC - Dati mensili dal 2016,NIC - Monthly data from 2016 onwards,VIRTUALDSD,1.0,MDM,15
+140_180,1.0,Nic - mensili sino al  2010 (base 1995),Nic - monthly data until 2010 (base 1995),DCSP_NICUNOB,1.0,IT1,13
+DF_BULK_CPO2011_DCSP_NICUNOBB2010,1.0,NIC – Dati mensili dal 2011,NIC – Monthly data from 2011 onwards,VIRTUALDSD,1.0,MDM,13
+167_742,1.0,Nic - medie annue dal 2016 (base 2015),Nic – annual average from 2016 onwards(base 2015),DCSP_NIC2B2015,1.0,IT1,12
+167_742_DF_DCSP_NIC2B2015_1,1.0,Prezzi al consumo per l’intera collettività (Nic) - medie annue dal 2016 (base 2015) - Principali dati,Consumer prices for the whole nation (Nic) – annual average from 2016 onwards(base 2015) - Key data,DCSP_NIC2B2015,1.0,IT1,12
+167_742_DF_DCSP_NIC2B2015_2,1.0,Tipologie di prodotto,Product types,DCSP_NIC2B2015,1.0,IT1,12
+167_742_DF_DCSP_NIC2B2015_3,1.0,Classificazione Ecoicop (3 cifre) - prov.,Ecoicop classification (3 digit) - prov.,DCSP_NIC2B2015,1.0,IT1,12
+167_742_DF_DCSP_NIC2B2015_4,1.0,Classificazione Ecoicop (5 cifre),Ecoicop classification (5 digit),DCSP_NIC2B2015,1.0,IT1,12
+167_743_DF_DCSP_NIC3B2015_2,1.0,Tipologie di prodotto,Product types,DCSP_NIC3B2015,1.0,IT1,12
+167_743_DF_DCSP_NIC3B2015_3,1.0,Classificazione Ecoicop (5 cifre),Ecoicop classification (5 digit),DCSP_NIC3B2015,1.0,IT1,12
+167_744_DF_DCSP_NIC1B2015_2,1.0,Tipologie di prodotto,Product types,DCSP_NIC1B2015,1.0,IT1,12
+167_744_DF_DCSP_NIC1B2015_3,1.0,Classificazione Ecoicop (3 cifre) - prov.,Ecoicop classification (3 digit) - prov.,DCSP_NIC1B2015,1.0,IT1,12
+167_744_DF_DCSP_NIC1B2015_4,1.0,Classificazione Ecoicop (5 cifre),Ecoicop classification (5 digit),DCSP_NIC1B2015,1.0,IT1,12
+167_745_DF_DCSP_NIC1B2025_2,1.0,Tipologie di prodotto,Product types,DCSP_NIC1B2025,1.0,IT1,12
+167_745_DF_DCSP_NIC1B2025_3,1.0,Classificazione Ecoicop 2 (3 cifre) - prov.,Ecoicop 2 classification (3 digit) - prov.,DCSP_NIC1B2025,1.0,IT1,12
+167_745_DF_DCSP_NIC1B2025_4,1.0,Classificazione Ecoicop 2 (5 cifre),Ecoicop 2 classification (5 digit),DCSP_NIC1B2025,1.0,IT1,12
+167_747,1.0,Nic - medie annue dal 2026 (base  2025) - Ecoicop 2,Nic - annual data from 2026 (base  2025) - Ecoicop 2,DCSP_NIC2B2025,1.0,IT1,12
+167_747_DCSP_NIC2B2025_1,1.0,"Prezzi al consumo per l’intera collettività (Nic) - medie annue dal 1996 al 2025 (basi 1995, 2010, 2015) - Ecoicop 2","Consumer prices for the whole nation (Nic) - annual data from 1996 to 2025 (bases 1995, 2010, 2015) - Ecoicop 2",DCSP_NIC2B2025,1.0,IT1,12
+DF_BULK_DCSP_NIC1B2015_RECONNIC,1.0,RICOSTRUZIONE STORICA DEGLI INDICI DEI PREZZI AL CONSUMO PER L'INTERA COLLETTIVITA' (NIC) IN BASE 2015 =100 PER GLI ANNI 1996-2015,Reconstruction of Italian Consumer Price Indices for whole nation (NIC) in reference base year 2015 for the period 1996-2015,VIRTUALDSD,1.0,MDM,12
+DF_BULK_DCSP_NIC1B2015_TB3,1.0,Aggregati speciali NIC  - Coefficienti di raccordo da base 1995 a base 2010 e da base 2010 a base 2015,CPI by special aggregates - Splicing coefficients from base 1995 to base 2010 and from base 2010 to 2015,VIRTUALDSD,1.0,MDM,12
+SDDS_PLUS_CPI_DF_167_744_1,1.0,Prezzi al consumo,Consumer prices,DCSP_NIC1B2025,1.0,IT1,12
+144_125_DF_DCSP_NICDUE_1,1.0,Classificazione Coicop (2 cifre) (base dicembre 1998) - prov.,Coicop classification (2 digit) (base December 1998) - prov.,DCSP_NICDUE,1.0,IT1,10
+144_125_DF_DCSP_NICDUE_2,1.0,Tipologie di prodotto (base 1995),Product types (base 1995),DCSP_NICDUE,1.0,IT1,10
+144_125_DF_DCSP_NICDUE_3,1.0,Classificazione Coicop (5 cifre) (base 1995),Coicop classification (5 digit) (base 1995),DCSP_NICDUE,1.0,IT1,10
+144_126_DF_DCSP_NICTRE_1,1.0,Tipologie di prodotto,Product types,DCSP_NICTRE,1.0,IT1,10
+144_126_DF_DCSP_NICTRE_2,1.0,Classificazione Coicop (5 cifre),Coicop classification (5 digit),DCSP_NICTRE,1.0,IT1,10
+144_180_DF_DCSP_NICUNOB_1,1.0,Classificazione Coicop (2 cifre) (base dicembre 1998),Coicop classification (2 digit) (base december 1998),DCSP_NICUNOB,1.0,IT1,10
+144_180_DF_DCSP_NICUNOB_2,1.0,Tipologie di prodotto (base 1995),Product types (base 1995),DCSP_NICUNOB,1.0,IT1,10
+144_180_DF_DCSP_NICUNOB_3,1.0,Classificazione Coicop (5 cifre) (base 1995),Coicop classification (5 digit) (base 1995),DCSP_NICUNOB,1.0,IT1,10
+167_33_DF_DCSP_NICUNOBB2010_1,1.0,Tipologie di prodotto,Product types,DCSP_NICUNOBB2010,1.0,IT1,10
+167_33_DF_DCSP_NICUNOBB2010_2,1.0,Classificazione Coicop (3 cifre) - prov.,Coicop classification (3 digit) - prov.,DCSP_NICUNOBB2010,1.0,IT1,10
+167_33_DF_DCSP_NICUNOBB2010_3,1.0,Classificazione Coicop (5 cifre),Coicop classification (5 digit),DCSP_NICUNOBB2010,1.0,IT1,10
+167_34_DF_DCSP_NICDUEB2010_1,1.0,Tipologie di prodotto,Product types,DCSP_NICDUEB2010,1.0,IT1,10
+167_34_DF_DCSP_NICDUEB2010_2,1.0,Classificazione Ecoicop (3 cifre) - prov.,Ecoicop classification (3 digit) - prov.,DCSP_NICDUEB2010,1.0,IT1,10
+167_34_DF_DCSP_NICDUEB2010_3,1.0,Classificazione Ecoicop (5 cifre),Ecoicop classification (5 digit),DCSP_NICDUEB2010,1.0,IT1,10
+167_35_DF_DCSP_NICTREB2010_1,1.0,Tipologie di prodotto,Product types,DCSP_NICTREB2010,1.0,IT1,10
+167_35_DF_DCSP_NICTREB2010_2,1.0,Classificazione Coicop (3 cifre) - reg.,Coicop classification (3 digit) - reg.,DCSP_NICTREB2010,1.0,IT1,10
+167_35_DF_DCSP_NICTREB2010_3,1.0,Classificazione Coicop (5 cifre),Coicop classification (5 digit),DCSP_NICTREB2010,1.0,IT1,10
+167_743_DF_DCSP_DCSP_NIC3EC2_3,1.0,Classificazione ECOICOP vers.2 (6 cifre),Ecoicop 2 classification (6 digit),DCSP_NIC3EC2,1.0,IT1,10
+167_746_DF_DCSP_NIC3EC2_1,1.0,Prezzi al consumo per l’intera collettività (Nic) - Principali dati,Consumer prices for the whole nation (Nic) - Key data,DCSP_NIC3EC2,1.0,IT1,10
+167_746_DF_DCSP_NIC3EC2_2,1.0,Tipologie di prodotto,Product types,DCSP_NIC3EC2,1.0,IT1,10
+24_1152,1.0,Unioni civili - Cittadinanza,Civil partnerships - Citizenship,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_1,1.0,Unioni civili per sesso e tipologia di coppia,Civil partnerships by sex and type of couple,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_2,1.0,Unioni civili con almeno uno straniero per area di cittadinanza,Civil partnerships with at least a foreign partner by area of citizenship,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_3,1.0,Unioni civili con almeno uno straniero per paese di cittadinanza,Civil partnerships with at least a foreign partner by country of citizenship,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_4,1.0,Unioni civili di entrambi stranieri per paese di cittadinanza,Both foreign partners by country of citizenship,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_5,1.0,Unioni civili di entrambi stranieri per paese e confronto cittadinanza,Both foreign partners by country of citizenship and comparison of citizenship,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_6,1.0,Unioni civili per tipologia di coppia e titolo di studio,Type of couple and education level,DCIS_UNIONICIT,1.0,IT1,10
+24_1152_DF_DCIS_UNIONICIT_7,1.0,Unioni civili per tipologia di coppia e stato civile,Type of couple and marital status,DCIS_UNIONICIT,1.0,IT1,10
+24_446,1.0,Matrimoni - Cittadinanza,Marriages - Citizenship,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_1,1.0,Matrimoni - Cittadinanza - Principali dati,Marriages - Citizenship - Key data,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_2,1.0,Matrimoni per tipologia di coppia,Marriages by type of couple,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_3,1.0,Tipologia di coppia e area di cittadinanza,Type of couple and area of ​​citizenship,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_4,1.0,Tipologia di coppia e paese di cittadinanza,Type of couple and country of citizenship,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_5,1.0,Matrimoni di sposi entrambi stranieri per cittadinanza,Marriages of foreign spouses by citizenship,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_6,1.0,Matrimoni di sposi entrambi stranieri per uguaglianza o meno della cittadinanza,Marriages of spouses both foreigners for equality or otherwise of citizenship,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_7,1.0,Tipologia di coppia e titolo di studio,Type of couple and education level,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_8,1.0,Primi o secondi matrimoni per tipologia di coppia,First or second marriages by type of couple,DCIS_MATRIMONICIT,1.0,IT1,10
+24_446_DF_DCIS_MATRIMONICIT_9,1.0,Rito e tipologia di coppia,Rite and type of couple,DCIS_MATRIMONICIT,1.0,IT1,10
+DF_BULK_DCSP_NICDUEB2010_CPI,1.0,Ricostruzione storica degli indici dei prezzi al consumo per l'intera collettività (NIC) in base 2010=100 per gli anni 1996-2010,Reconstruction of Italian Consumer Price Indices for whole nation (NIC) in reference base year 2010 for the period 1996-2010,VIRTUALDSD,1.0,MDM,10
+DF_BULK_DCSP_NICUNOBB2010_CPI,1.0,Ricostruzione storica degli indici dei prezzi al consumo per l'intera collettività (NIC) in base 2010=100 per gli anni 1996-2010,Reconstruction of Italian Consumer Price Indices for whole nation (NIC) in reference base year 2010 for the period 1996-2010,VIRTUALDSD,1.0,MDM,10
+DF_BULK_DCSP_NICUNOBB2010_NIC,1.0,Dettaglio composizione degli aggregati speciali NIC,NIC Special Aggregates Detail,VIRTUALDSD,1.0,MDM,10
+DF_COMP_FRA_IND_MUNICIPAL_01,1.0,Indice composito di fragilità e sue componenti - livello comunale,Composite fragility index - all municipalities,COMP_FRA_IND_MUNICIPAL,1.0,IT1,10
+DF_COMP_FRA_IND_MUNICIPAL_02,1.0,Indice composito di fragilità e sue componenti - per singolo comune,Composite fragility index - by single municipality,COMP_FRA_IND_MUNICIPAL,1.0,IT1,10

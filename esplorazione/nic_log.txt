@@ -1,0 +1,24 @@
+eurostat HICP: 55912 B
+[1] 200   13661921 B  56.6s https://esploradati.istat.it/SDMXWS/rest/dataflow/IT1
+dataflow totali: 4912
+candidati NIC: 71
+   15 167_33 | Nic - mensili dal 2011 al 2015 (base 2010)
+   15 167_744 | Nic - mensili dal 2016 (base 2015)
+   15 167_744_DF_DCSP_NIC1B2015_1 | Prezzi al consumo per l’intera collettività (Nic) - mensili dal 2016 (base 2015) - Principali dati
+   15 167_745 | Nic - mensili dal 2026 (base 2025)
+   15 167_745_DF_DCSP_NIC1B2025_1 | Prezzi al consumo per l’intera collettività (Nic) - mensili dal 2026 (base 2025) - Principali dati
+   15 167_745_DF_DCSP_NIC1B2025_5 | Prezzi al consumo per l’intera collettività (Nic) - mensili dal 1996 al 2025 (basi 1995, 2010, 2015) - Ecoicop 2
+   15 167_745_DF_DCSP_NIC1B2025_6 | Prezzi al consumo per l’intera collettività (Nic) - mensili - tutte le basi - Ecoicop 2
+   15 DF_BULK_CPO2011_DCSP_NIC1B2015 | NIC - Dati mensili dal 2016
+   13 140_180 | Nic - mensili sino al  2010 (base 1995)
+   13 DF_BULK_CPO2011_DCSP_NICUNOBB2010 | NIC – Dati mensili dal 2011
+   12 167_742 | Nic - medie annue dal 2016 (base 2015)
+   12 167_742_DF_DCSP_NIC2B2015_1 | Prezzi al consumo per l’intera collettività (Nic) - medie annue dal 2016 (base 2015) - Principali dati
+   12 167_742_DF_DCSP_NIC2B2015_2 | Tipologie di prodotto
+   12 167_742_DF_DCSP_NIC2B2015_3 | Classificazione Ecoicop (3 cifre) - prov.
+   12 167_742_DF_DCSP_NIC2B2015_4 | Classificazione Ecoicop (5 cifre)
+[2] 200    9848875 B  28.2s https://esploradati.istat.it/SDMXWS/rest/datastructure/IT1/DCSP_NICUNOBB2010/1.0?references=children
+[3] ERRORE TimeoutError: The read operation timed out https://esploradati.istat.it/SDMXWS/rest/data/167_33/all?lastNObservations=1
+[4] ERRORE TimeoutError: The read operation timed out https://esploradati.istat.it/SDMXWS/rest/data/167_33/all?startPeriod=2026-06
+[5] 200   10264536 B  27.4s https://esploradati.istat.it/SDMXWS/rest/datastructure/IT1/DCSP_NIC1B2015/1.0?references=children
+[6] ERRORE TimeoutError: The read operation timed out https://esploradati.istat.it/SDMXWS/rest/data/167_744/all?lastNObservations=1
