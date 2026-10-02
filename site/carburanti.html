@@ -38,6 +38,10 @@
           <input id="comune" list="comuni" placeholder="Cerca il tuo comune…" autocomplete="off" />
           <datalist id="comuni"></datalist>
         </label>
+        <button class="btn btn-loc" type="button" id="locate" aria-label="Trova i distributori più economici vicino a me">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="1.5" opacity="0.5"/></svg>
+          <span>Vicino a me</span>
+        </button>
       </div>
 
 
@@ -86,8 +90,10 @@
             <div class="station-card" id="station-card" hidden></div>
             <div class="panel-title">Trova il distributore</div>
             <h2 id="finder-title">I più economici nel tuo comune</h2>
-            <p class="sub" id="finder-sub">Scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti, con l'indirizzo. Oppure tocca un punto sulla mappa.</p>
+            <p class="sub" id="finder-sub">Premi "Vicino a me" o scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti. Oppure tocca un punto sulla mappa.</p>
+            <div class="hist-jumps" id="finder-raggi" hidden></div>
             <ul class="result-list" id="finder-list"></ul>
+            <p class="note" id="finder-nota" hidden></p>
           </article>
           <article class="panel reveal">
             <div class="panel-title">Cosa dice il termometro oggi</div>

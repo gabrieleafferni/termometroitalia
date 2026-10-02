@@ -216,7 +216,7 @@ async function main() {
   document.getElementById("map-zoom-in").addEventListener("click", () => map.zoomBy(2));
   document.getElementById("map-zoom-out").addEventListener("click", () => map.zoomBy(0.5));
 
-  // ---------- ricerca comune ----------
+  // ---------- trova il distributore: per comune o vicino a me ----------
   const byComune = d3.group(stations, (s) => `${titleCase(s.comune ?? "")} (${s.sigla})`);
   const dl = document.getElementById("comuni");
   for (const k of [...byComune.keys()].sort((a, b) => a.localeCompare(b, "it"))) {
@@ -225,10 +225,50 @@ async function main() {
     dl.append(o);
   }
   const input = document.getElementById("comune");
+  const raggiEl = document.getElementById("finder-raggi");
+  const notaEl = document.getElementById("finder-nota");
+  const RAGGI = [2, 5, 10, 20]; // km
   let comuneScelto = null;
+  let posizione = null; // { lat, lon }: resta nel browser, non viene inviata né salvata
+  let raggio = 5;
+
+  // distanza in linea d'aria (formula dell'emisenoverso), in km
+  const distanzaKm = (a, b) => {
+    const r = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  };
+  const fmtKm = (d) => (d < 1 ? `${fmt.intero(Math.round(d * 1000 / 50) * 50)} m` : `${d.toLocaleString("it-IT", { maximumFractionDigits: 1 })} km`);
+
+  function voce(s, km) {
+    const li = el("li");
+    const left = el("div");
+    left.append(el("span", "n", nomeImpianto(s)), el("span", "b", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`));
+    if (s.ind) left.append(el("span", "a", titleAddr(s.ind)));
+    const right = el("div");
+    right.append(el("span", "p", `${fmt.prezzo(s[CAMPO[fuel]])} €`));
+    if (km != null) right.append(el("span", "d", fmtKm(km)));
+    li.append(left, right);
+    li.tabIndex = 0;
+    const go = () => {
+      const i = map.indexOf(s);
+      map.highlight([i]);
+      map.select(i);
+      map.focus([i]);
+      showStation(s);
+    };
+    li.addEventListener("click", go);
+    li.addEventListener("keydown", (e) => e.key === "Enter" && go());
+    return li;
+  }
+
   function renderFinder() {
     const list = document.getElementById("finder-list");
     list.replaceChildren();
+    raggiEl.hidden = true;
+    notaEl.hidden = true;
+    if (posizione && !comuneScelto) return renderVicino(list);
     if (!comuneScelto) return;
     const items = byComune.get(comuneScelto).filter((s) => s[CAMPO[fuel]] != null)
       .sort((a, b) => a[CAMPO[fuel]] - b[CAMPO[fuel]]);
@@ -237,25 +277,47 @@ async function main() {
     document.getElementById("finder-sub").textContent = items.length
       ? `${items.length} distributori con ${fuel} self · media del comune ${fmt.prezzo(media)} €/l (${fmt.cent(media - refOggi())} cent rispetto all'Italia)`
       : `Nessun prezzo ${fuel} self comunicato oggi in questo comune.`;
-    for (const s of items.slice(0, 6)) {
-      const li = el("li");
-      const left = el("div");
-      left.append(el("span", "n", nomeImpianto(s)), el("span", "b", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`));
-      if (s.ind) left.append(el("span", "a", titleAddr(s.ind)));
-      li.append(left, el("span", "p", `${fmt.prezzo(s[CAMPO[fuel]])} €`));
-      li.tabIndex = 0;
-      const go = () => {
-        const i = map.indexOf(s);
-        map.highlight([i]);
-        map.select(i);
-        map.focus([i]);
-        showStation(s);
-      };
-      li.addEventListener("click", go);
-      li.addEventListener("keydown", (e) => e.key === "Enter" && go());
-      list.append(li);
-    }
+    for (const s of items.slice(0, 6)) list.append(voce(s));
   }
+
+  function renderVicino(list, { muoviMappa = false } = {}) {
+    const vicini = stations
+      .filter((s) => s[CAMPO[fuel]] != null)
+      .map((s) => ({ s, km: distanzaKm(posizione, s) }))
+      .filter((v) => v.km <= RAGGI.at(-1));
+    const entro = (r) => vicini.filter((v) => v.km <= r);
+    const items = entro(raggio).sort((a, b) => a.s[CAMPO[fuel]] - b.s[CAMPO[fuel]] || a.km - b.km);
+    document.getElementById("finder-title").textContent = "Vicino a te";
+    const sub = document.getElementById("finder-sub");
+    if (!vicini.length) {
+      sub.textContent = `Nessun distributore con ${fuel} self nel raggio di ${RAGGI.at(-1)} km: la mappa copre solo l'Italia.`;
+      return;
+    }
+    const media = d3.mean(items, (v) => v.s[CAMPO[fuel]]);
+    sub.textContent = items.length
+      ? `${items.length} distributori con ${fuel} self entro ${raggio} km in linea d'aria · media ${fmt.prezzo(media)} €/l (${fmt.cent(media - refOggi())} cent rispetto all'Italia). Ecco i più economici.`
+      : `Nessun distributore con ${fuel} self entro ${raggio} km: prova un raggio più ampio.`;
+    raggiEl.replaceChildren();
+    for (const r of RAGGI) {
+      const b = el("button", "chip", `${r} km · ${fmt.intero(entro(r).length)}`);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(r === raggio));
+      b.addEventListener("click", () => {
+        raggio = r;
+        renderVicino(document.getElementById("finder-list"), { muoviMappa: true });
+      });
+      raggiEl.append(b);
+    }
+    raggiEl.hidden = false;
+    list.replaceChildren();
+    for (const v of items.slice(0, 8)) list.append(voce(v.s, v.km));
+    notaEl.textContent = `Prezzi alle 8:00 del ${fmt.giornoAnno(oggi).trim()}, comunicati dai gestori al Ministero: alla pompa potrebbero essere cambiati. La tua posizione resta sul tuo dispositivo: il sito non la riceve e non la salva.`;
+    notaEl.hidden = false;
+    const idx = items.map((v) => map.indexOf(v.s));
+    map.highlight(idx);
+    if (muoviMappa) map.focus(idx, { conUtente: true });
+  }
+
   input.addEventListener("change", () => {
     const k = input.value.trim();
     // se il comune è già quello scelto non ridisegno la lista: altrimenti il "change"
@@ -267,6 +329,44 @@ async function main() {
     map.focus(idx);
     renderFinder();
     document.getElementById("finder").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  });
+
+  // posizione del dispositivo (Geolocation API): la chiede il browser, con il consenso di chi visita
+  const locBtn = document.getElementById("locate");
+  const locLabel = locBtn.querySelector("span");
+  locBtn.addEventListener("click", () => {
+    const sub = document.getElementById("finder-sub");
+    const errore = (msg) => {
+      document.getElementById("finder-title").textContent = "Posizione non disponibile";
+      sub.textContent = msg;
+      document.getElementById("finder").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+    if (!("geolocation" in navigator)) return errore("Questo browser non permette di rilevare la posizione. Puoi cercare il tuo comune nella barra qui sopra.");
+    locBtn.setAttribute("aria-busy", "true");
+    locLabel.textContent = "Cerco la tua posizione…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        locBtn.removeAttribute("aria-busy");
+        locLabel.textContent = "Vicino a me";
+        posizione = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        comuneScelto = null;
+        input.value = "";
+        map.setUser(posizione.lon, posizione.lat);
+        // raggio iniziale: il più piccolo con almeno 5 distributori
+        const conPrezzo = stations.filter((s) => s[CAMPO[fuel]] != null);
+        raggio = RAGGI.find((r) => conPrezzo.filter((s) => distanzaKm(posizione, s) <= r).length >= 5) ?? RAGGI.at(-1);
+        renderVicino(document.getElementById("finder-list"), { muoviMappa: true });
+        document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+      (err) => {
+        locBtn.removeAttribute("aria-busy");
+        locLabel.textContent = "Vicino a me";
+        errore(err.code === err.PERMISSION_DENIED
+          ? "Hai negato l'accesso alla posizione. Puoi riattivarlo dalle impostazioni del browser per questo sito, oppure cercare il tuo comune nella barra qui sopra."
+          : "Non è stato possibile rilevare la posizione in questo momento. Riprova, oppure cerca il tuo comune nella barra qui sopra.");
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 5 * 60 * 1000 }
+    );
   });
 
   // ---------- novità ----------
