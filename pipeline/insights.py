@@ -215,6 +215,54 @@ def novita_storico() -> list[dict]:
     return out
 
 
+def novita_reale() -> list[dict]:
+    """Record anche al netto dell'inflazione? Serie MASE deflazionata con il NIC ISTAT."""
+    path = MARTS / "mart_carburanti__storico_settimanale.parquet"
+    if not path.exists():
+        return []
+    rows = q(f"""select data, carburante, prezzo, prezzo_reale, massimo_precedente,
+                        mese_riferimento_reale, deflatore_stimato
+                 from '{path}' where prezzo_reale is not null order by carburante, data""")
+    serie: dict[str, list[dict]] = {}
+    for r in rows:
+        serie.setdefault(r["carburante"], []).append(r)
+    out = []
+    for carb in ("benzina", "gasolio"):
+        s = serie.get(carb)
+        if not s:
+            continue
+        ult = s[-1]
+        nome = NOMI[carb].split()[0]
+        rif = mese_anno(ult["mese_riferimento_reale"])
+        record_nominale = ult["massimo_precedente"] is None or ult["prezzo"] > ult["massimo_precedente"]
+        picco = max(s[:-1], key=lambda r: r["prezzo_reale"])
+        if ult["prezzo_reale"] > picco["prezzo_reale"]:
+            titolo = "Record anche al netto dell'inflazione"
+            testo = (f"{nome}: {euro(ult['prezzo'])} €/l nella settimana del {data_it(ult['data'])}, il prezzo più alto "
+                     f"dal {s[0]['data'].year} anche tenendo conto dell'inflazione (indice NIC ISTAT).")
+            rilev = 95
+        else:
+            superiori = [r for r in s[:-1] if r["prezzo_reale"] >= ult["prezzo_reale"]]
+            da = superiori[-1]
+            titolo = "Al netto dell'inflazione"
+            testo = (f"{nome}: {euro(ult['prezzo'])} €/l nella settimana del {data_it(ult['data'])}"
+                     f"{', record in euro correnti' if record_nominale else ''}. Al netto dell'inflazione resta sotto "
+                     f"il picco di {mese_anno(picco['data'])}, che ai prezzi di {rif} vale {euro(picco['prezzo_reale'])} €/l"
+                     + (f"; in termini reali è il livello più alto da {mese_anno(da['data'])}."
+                          if mese_anno(da["data"]) != mese_anno(picco["data"]) else "."))
+            # il contrasto tra record nominale e non-record reale è la notizia
+            rilev = 88 if record_nominale else 62
+        voce = {"id": f"reale_{carb}", "tema": "carburanti", "carburante": carb,
+                "titolo": titolo, "testo": testo, "rilevanza": rilev}
+        if record_nominale and ult["prezzo_reale"] <= picco["prezzo_reale"]:
+            # frase da aggiungere alla novità del record nominale, che così si legge intera
+            voce["integra"] = f"storico_{carb}"
+            voce["frase"] = (f"Al netto dell'inflazione, però, resta sotto il picco di {mese_anno(picco['data'])}: "
+                             f"{euro(picco['prezzo_reale'])} €/l in euro di {rif}.")
+        out.append(voce)
+    return out
+
+
 def novita_tetto(ultimo: dt.date) -> list[dict]:
     """Monitoraggio del tetto ai prezzi Eni e delle mosse degli altri marchi."""
     seed = ROOT / "transform" / "seeds" / "misure_prezzo.csv"
@@ -375,6 +423,14 @@ def main() -> int:
 
     novita += novita_territorio(ultimo)
     novita += novita_storico()
+    for r in novita_reale():
+        base = next((n for n in novita if n["id"] == r.get("integra")), None)
+        if base:
+            base["testo"] += " " + r["frase"]
+        else:
+            r.pop("integra", None)
+            r.pop("frase", None)
+            novita.append(r)
     novita += novita_tetto(ultimo)
     novita = accorpa_record(novita, serie)
     # prima gli andamenti generali, poi il contesto; dentro ciascun gruppo, per rilevanza

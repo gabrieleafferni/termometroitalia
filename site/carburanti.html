@@ -125,8 +125,12 @@
             <div>
               <div class="panel-title">Vent'anni di prezzi · serie settimanale MASE</div>
               <h2 id="storico-title">I prezzi dal 2005 a oggi</h2>
-              <p class="sub">Prezzo medio nazionale settimanale pubblicato dal Ministero dell'Ambiente (MASE). Valori nominali, non corretti per l'inflazione.</p>
+              <p class="sub" id="storico-sub">Prezzo medio nazionale settimanale pubblicato dal Ministero dell'Ambiente (MASE). Valori nominali, non corretti per l'inflazione.</p>
             </div>
+          </div>
+          <div class="seg seg-sm storico-modo" id="storico-modo" role="group" aria-label="Valori del grafico storico">
+            <button type="button" data-modo="nominale" aria-pressed="true">In euro correnti</button>
+            <button type="button" data-modo="reale" aria-pressed="false">Al netto dell'inflazione</button>
           </div>
           <div class="legend" id="storico-legend"></div>
           <div class="chart" id="storico"></div>
@@ -182,7 +186,7 @@
       </section>
 
       <p class="panel-foot" style="margin-top: 20px">
-        <span>Fonti: MIMIT – Osservaprezzi Carburanti (IODL 2.0); MASE – prezzi medi settimanali. Elaborazione Termometro Italia.</span>
+        <span>Fonti: MIMIT – Osservaprezzi Carburanti (IODL 2.0); MASE – prezzi medi settimanali; ISTAT – indice dei prezzi al consumo NIC (CC BY 4.0). Elaborazione Termometro Italia.</span>
         <a href="metodo.html">Come sono calcolati questi numeri →</a>
       </p>
     </main>

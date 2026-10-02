@@ -149,7 +149,8 @@ def main() -> int:
     print(f"  {'novita.json':36s} {(OUT / 'novita.json').stat().st_size / 1024:8.1f} KB")
 
     write("carburanti_storico.json", columns(f"""
-        select data as d, carburante as c, prezzo as p, prezzo_netto as n, tasse as t, massimo_precedente as mp
+        select data as d, carburante as c, prezzo as p, prezzo_netto as n, tasse as t, massimo_precedente as mp,
+               prezzo_reale as r
         from {mart('mart_carburanti__storico_settimanale')}
         where carburante in ('benzina', 'gasolio')
         order by carburante, data
@@ -170,6 +171,11 @@ def main() -> int:
         write("misure.json", list(csv.DictReader(f)))
 
     stato = json.loads((ROOT / "data/raw/carburanti/ultimo_aggiornamento.json").read_text())
+    # prezzi reali: mese dei prezzi a cui sono riportati (ultimo indice NIC disponibile)
+    nic = rows(f"""
+        select max(mese_riferimento_reale) as mese, bool_or(riferimento_provvisorio) as provvisorio
+        from {mart('mart_carburanti__storico_settimanale')}
+    """)[0]
     write("meta.json", {
         "carburanti": {
             "aggiornato_al": stato["data_estrazione"],
@@ -177,6 +183,7 @@ def main() -> int:
             "scaricato_il": stato["scaricato_il"],
             "impianti_attivi": stato["impianti_attivi"],
         },
+        "prezzi_reali": {"mese_riferimento": nic["mese"], "provvisorio": nic["provvisorio"], "fonte": "ISTAT, indice NIC"},
         "build": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
     })
     return 0

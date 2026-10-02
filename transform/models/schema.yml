@@ -77,11 +77,26 @@ models:
     description: Ultimo snapshot della serie settimanale MASE.
 
   - name: mart_carburanti__storico_settimanale
-    description: Serie settimanale MASE dal 2005 con tasse e massimo precedente.
+    description: >
+      Serie settimanale MASE dal 2005 con tasse, massimo precedente e prezzo reale
+      (deflazionato con il NIC ISTAT ai prezzi dell'ultimo mese disponibile).
     columns:
       - name: data
         tests: [not_null]
       - name: prezzo
+        tests: [not_null]
+      - name: prezzo_reale
+        tests: [not_null]
+
+  - name: stg_istat__nic
+    description: Ultimo snapshot dell'indice NIC ISTAT, una riga per mese e base.
+
+  - name: int_istat__nic_concatenato
+    description: Indice NIC dal 1996 in un'unica serie in base 2025 = 100.
+    columns:
+      - name: mese
+        tests: [unique, not_null]
+      - name: indice
         tests: [not_null]
 
   - name: mart_carburanti__marchi_giornaliero

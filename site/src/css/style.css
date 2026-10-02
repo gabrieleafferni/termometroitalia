@@ -176,6 +176,9 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; margin: 0; }
 .seg button:hover { color: var(--text); }
 .seg button[aria-pressed="true"] { color: var(--text); background: var(--panel-2); box-shadow: inset 0 0 0 1px var(--panel-border-strong); }
 .seg .key { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.seg-sm button { font-size: 13px; padding: 5px 12px; }
+.storico-modo { margin: 0 0 12px; max-width: 100%; }
+@media (max-width: 420px) { .seg-sm button { padding: 5px 9px; font-size: 12.5px; } }
 .search { position: relative; margin-left: auto; }
 .search input {
   font: inherit; font-size: 14px; color: var(--text); background: var(--panel); border: 1px solid var(--panel-border);

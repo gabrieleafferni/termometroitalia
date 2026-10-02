@@ -30,3 +30,21 @@ sources:
           per ogni pubblicazione. Scritta da pipeline/carburanti/settimanali.py.
         meta:
           external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/carburanti/{name}/*.parquet', filename = true)"
+
+  - name: istat_raw
+    description: >
+      Dati ISTAT scritti da pipeline/istat/. Fonte: esploradati.istat.it (API SDMX),
+      licenza CC BY 4.0.
+    meta:
+      external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/{name}/*.parquet', filename = true)"
+    tables:
+      - name: nic
+        description: >
+          Indice NIC mensile, indice generale, Italia, in tutte le basi pubblicate
+          (1995, 2010, 2015, 2025). Uno snapshot per ogni pubblicazione che cambia la serie.
+        columns:
+          - name: mese
+          - name: base
+          - name: indice
+          - name: provvisorio
+

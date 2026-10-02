@@ -422,51 +422,83 @@ async function main() {
     return [...by].reverse().map(([d, o]) => ({ d, b: o.benzina, g: o.gasolio, l: o.gpl, m: o.metano }));
   });
 
-  // ---------- vent'anni di prezzi (serie settimanale MASE) ----------
+  // ---------- vent'anni di prezzi (serie settimanale MASE), nominali o reali ----------
   const sto = fromColumns(storico).map((r) => ({ ...r, date: parseDay(r.d) }));
   const stoBy = d3.group(sto, (r) => r.c);
   const storicoEl = document.getElementById("storico");
-  const stoSeries = ["benzina", "gasolio"].map((c) => ({
-    key: c,
-    name: NOMI_RIF[c].split(" ")[0],
-    color: COLORE[c],
-    points: stoBy.get(c).map((r) => ({ date: r.date, v: r.p })),
-  }));
+  const reali = meta.prezzi_reali; // { mese_riferimento, provvisorio }: mese degli euro "di oggi"
+  const meseRif = reali ? parseDay(reali.mese_riferimento) : null;
+  const meseAnno = (d) => fmt.giornoAnno(d).trim().split(" ").slice(1).join(" "); // "settembre 2026"
   const slg = document.getElementById("storico-legend");
-  for (const sr of stoSeries) {
+  for (const c of ["benzina", "gasolio"]) {
     const sp = el("span");
     const k = el("span", "key-line");
-    k.style.background = sr.color;
-    sp.append(k, document.createTextNode(sr.name));
+    k.style.background = COLORE[c];
+    sp.append(k, document.createTextNode(NOMI_RIF[c].split(" ")[0]));
     slg.append(sp);
   }
-  trendChart(storicoEl, {
-    series: stoSeries,
-    height: 360,
-    xTicks: "anni",
-    markMax: true,
-    events: [{ date: new Date(2022, 1, 24), label: "Invasione russa dell'Ucraina" }],
-    tooltipTitle: (d) => `Settimana del ${fmt.giornoAnno(d).trim()}`,
-    ariaLabel: "Prezzi settimanali di benzina e gasolio dal 2005",
-  });
-  const contesto = (c) => {
+  // l'ultimo valore è un record? altrimenti, da quando non si vedeva un livello così alto
+  const contesto = (c, campo) => {
     const s = stoBy.get(c), u = s.at(-1);
-    const sopra = s.slice(0, -1).filter((r) => r.p >= u.p);
+    const sopra = s.slice(0, -1).filter((r) => r[campo] >= u[campo]);
     return sopra.length ? { record: false, da: sopra.at(-1) } : { record: true };
   };
-  const cg = contesto("gasolio"), cb = contesto("benzina");
-  const meseIt = (d) => fmt.giornoAnno(d).trim().split(" ").slice(1).join(" ");
-  document.getElementById("storico-title").textContent =
-    `${cg.record ? "Gasolio al record dal 2005" : `Gasolio ai massimi da ${meseIt(cg.da.date)}`}, ` +
-    `${cb.record ? "benzina al record dal 2005" : `benzina ai massimi da ${meseIt(cb.da.date)}`}`;
-  tableView(storicoEl.parentElement, [
-    { key: "d", label: "Settimana" },
-    { key: "b", label: "Benzina (€/l)", num: true, format: fmt.prezzo },
-    { key: "g", label: "Gasolio (€/l)", num: true, format: fmt.prezzo },
-  ], () => {
-    const by = d3.rollup(sto, (v) => Object.fromEntries(v.map((r) => [r.c, r.p])), (r) => r.d);
-    return [...by].reverse().map(([d, o]) => ({ d, b: o.benzina, g: o.gasolio }));
-  });
+  const picco = (c, campo) => d3.greatest(stoBy.get(c).slice(0, -1), (r) => r[campo]);
+  const modoBtns = document.querySelectorAll("#storico-modo button");
+  if (!reali) document.getElementById("storico-modo").hidden = true;
+
+  function renderStorico(modo) {
+    const campo = modo === "reale" ? "r" : "p";
+    modoBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.modo === modo)));
+    storicoEl.replaceChildren();
+    trendChart(storicoEl, {
+      series: ["benzina", "gasolio"].map((c) => ({
+        key: c,
+        name: NOMI_RIF[c].split(" ")[0],
+        color: COLORE[c],
+        points: stoBy.get(c).map((r) => ({ date: r.date, v: r[campo] })),
+      })),
+      height: 360,
+      xTicks: "anni",
+      markMax: true,
+      events: [{ date: new Date(2022, 1, 24), label: "Invasione russa dell'Ucraina" }],
+      tooltipTitle: (d) => `Settimana del ${fmt.giornoAnno(d).trim()}`,
+      tooltipNote: modo === "reale" ? `Euro di ${meseAnno(meseRif)} (indice NIC ISTAT)` : null,
+      ariaLabel: `Prezzi settimanali di benzina e gasolio dal 2005, ${modo === "reale" ? `al netto dell'inflazione, in euro di ${meseAnno(meseRif)}` : "in euro correnti"}`,
+    });
+    const sub = document.getElementById("storico-sub");
+    const titolo = document.getElementById("storico-title");
+    if (modo === "reale") {
+      const pg = picco("gasolio", "r"), pb = picco("benzina", "r");
+      const cg = contesto("gasolio", "r"), cb = contesto("benzina", "r");
+      titolo.textContent = cg.record || cb.record
+        ? `Al netto dell'inflazione: ${cg.record ? "gasolio al record dal 2005" : `gasolio sotto il picco di ${meseAnno(pg.date)}`}, ${cb.record ? "benzina al record dal 2005" : `benzina sotto il picco di ${meseAnno(pb.date)}`}`
+        : `Al netto dell'inflazione, benzina e gasolio restano sotto i picchi del ${pg.date.getFullYear() === pb.date.getFullYear() ? pg.date.getFullYear() : `${pb.date.getFullYear()} e del ${pg.date.getFullYear()}`}`;
+      sub.textContent = `Gli stessi prezzi MASE riportati in euro di ${meseAnno(meseRif)} con l'indice dei prezzi al consumo NIC dell'ISTAT${reali.provvisorio ? " (dato provvisorio)" : ""}: ` +
+        `il picco della benzina (${meseAnno(pb.date)}) varrebbe oggi ${fmt.prezzo(pb.r)} €/l, quello del gasolio ${fmt.prezzo(pg.r)} €/l.`;
+    } else {
+      const cg = contesto("gasolio", "p"), cb = contesto("benzina", "p");
+      titolo.textContent =
+        `${cg.record ? "Gasolio al record dal 2005" : `Gasolio ai massimi da ${meseAnno(cg.da.date)}`}, ` +
+        `${cb.record ? "benzina al record dal 2005" : `benzina ai massimi da ${meseAnno(cb.da.date)}`}`;
+      sub.textContent = "Prezzo medio nazionale settimanale pubblicato dal Ministero dell'Ambiente (MASE). Valori nominali, cioè in euro dell'epoca: per confrontarli tra anni diversi passa a \"Al netto dell'inflazione\".";
+    }
+    storicoEl.parentElement.querySelector("details.table-view")?.remove();
+    tableView(storicoEl.parentElement, [
+      { key: "d", label: "Settimana" },
+      { key: "b", label: "Benzina (€/l)", num: true, format: fmt.prezzo },
+      { key: "g", label: "Gasolio (€/l)", num: true, format: fmt.prezzo },
+      ...(reali ? [
+        { key: "br", label: `Benzina, euro di ${meseAnno(meseRif)}`, num: true, format: fmt.prezzo },
+        { key: "gr", label: `Gasolio, euro di ${meseAnno(meseRif)}`, num: true, format: fmt.prezzo },
+      ] : []),
+    ], () => {
+      const by = d3.rollup(sto, (v) => Object.fromEntries(v.flatMap((r) => [[r.c, r.p], [r.c + "_r", r.r]])), (r) => r.d);
+      return [...by].reverse().map(([d, o]) => ({ d, b: o.benzina, g: o.gasolio, br: o.benzina_r, gr: o.gasolio_r }));
+    });
+  }
+  modoBtns.forEach((b) => b.addEventListener("click", () => renderStorico(b.dataset.modo)));
+  renderStorico("nominale");
 
   const tasseEl = document.getElementById("tasse");
   function renderTasse() {

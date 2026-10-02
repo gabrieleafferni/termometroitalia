@@ -113,17 +113,38 @@ export function trendChart(container, opts) {
       lines.push(p);
     }
 
-    // massimo storico di ogni serie
+    // massimo storico di ogni serie. Se due massimi cadono quasi nello stesso punto
+    // (es. benzina e gasolio nella stessa settimana) un'unica etichetta li elenca
+    // dal più alto al più basso, con il nome della serie: niente scritte sovrapposte.
     if (markMax) {
-      for (const s of series) {
-        const top = d3.greatest(s.points, (p) => p.v);
-        if (!top || +top.date === +s.points.at(-1).date) continue;
-        const cx = x(top.date), cy = y(top.v);
-        g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", 4).attr("fill", s.color)
-          .attr("stroke", "var(--panel)").attr("stroke-width", 2);
-        g.append("text").attr("class", "label-2").style("fill", "var(--text)")
-          .attr("x", cx).attr("y", cy - 10).attr("text-anchor", "middle")
-          .text(`${valueFormat(top.v)} · ${d3.timeFormat("%m/%Y")(top.date)}`);
+      const tops = series.map((s) => ({ s, top: d3.greatest(s.points, (p) => p.v) }))
+        .filter(({ s, top }) => top && +top.date !== +s.points.at(-1).date)
+        .map((t) => ({ ...t, cx: x(t.top.date), cy: y(t.top.v) }))
+        .sort((a, b) => a.cy - b.cy);
+      const gruppi = [];
+      for (const t of tops) {
+        const gr = gruppi.find((gq) => gq.some((u) => Math.abs(u.cx - t.cx) < 70 && Math.abs(u.cy - t.cy) < 30));
+        gr ? gr.push(t) : gruppi.push([t]);
+      }
+      for (const gr of gruppi) {
+        for (const t of gr) {
+          g.append("circle").attr("cx", t.cx).attr("cy", t.cy).attr("r", 4).attr("fill", t.s.color)
+            .attr("stroke", "var(--panel)").attr("stroke-width", 2);
+        }
+        const [primo] = gr;
+        const mese = d3.timeFormat("%m/%Y")(primo.top.date);
+        if (gr.length === 1) {
+          g.append("text").attr("class", "label-2").style("fill", "var(--text)")
+            .attr("x", primo.cx).attr("y", primo.cy - 10).attr("text-anchor", "middle")
+            .text(`${valueFormat(primo.top.v)} · ${mese}`);
+          continue;
+        }
+        const txt = g.append("text").attr("class", "label-2").style("fill", "var(--text)")
+          .attr("x", primo.cx).attr("y", primo.cy - 10 - 14 * gr.length).attr("text-anchor", "middle");
+        txt.append("tspan").attr("x", primo.cx).attr("dy", 0).text(mese);
+        for (const t of gr) {
+          txt.append("tspan").attr("x", primo.cx).attr("dy", 14).text(`${t.s.name} ${valueFormat(t.top.v)}`);
+        }
       }
     }
 

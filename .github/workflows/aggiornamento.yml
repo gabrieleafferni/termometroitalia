@@ -109,6 +109,14 @@ jobs:
         continue-on-error: true
         run: python -m pipeline.carburanti.settimanali
 
+      - name: 1c · Indice dei prezzi al consumo NIC (ISTAT)
+        # una sola richiesta all'API SDMX dell'ISTAT (limite: 5 al minuto per IP).
+        # Se fallisce si usa l'ultimo snapshot salvato: i prezzi reali restano
+        # calcolati e un test dbt avvisa se l'indice è fermo da più di 75 giorni
+        continue-on-error: true
+        timeout-minutes: 6
+        run: python -m pipeline.istat.nic
+
       - name: 2 · Trasformazione e test di qualità (dbt)
         working-directory: transform
         run: dbt build --profiles-dir .
@@ -130,7 +138,7 @@ jobs:
           # si salva solo se cambiano i dati veri (nuova estrazione o mart diversi):
           # i mart sono deterministici, quindi a parità di dati non cambiano di un byte.
           # Le sole date di generazione (novita.json, ultimo_aggiornamento.json) non bastano.
-          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali 'data/marts/*.parquet'; then
+          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali data/raw/istat 'data/marts/*.parquet'; then
             echo "Nessun dato nuovo da salvare."
             git reset -q
             # senza dati nuovi, i run programmati non ripubblicano il sito
