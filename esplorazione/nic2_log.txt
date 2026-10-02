@@ -1,0 +1,7 @@
+[1] 200     14545 B   1.6s https://esploradati.istat.it/SDMXWS/rest/datastructure/IT1/DCSP_NIC1B2025/1.0
+DCSP_NIC1B2025: ['FREQ', 'REF_AREA', 'DATA_TYPE', 'MEASURE', 'ECOICOP_2']
+[2] 200     27545 B  15.2s https://esploradati.istat.it/SDMXWS/rest/data/167_745_DF_DCSP_NIC1B2025_6/M.IT.1+9+39+85.4.00?startPeriod=1996-01
+   tutte_le_basi: 369 righe; prima: IT1:167_745_DF_DCSP_NIC1B2025_6(1.0),M,IT,1,4,00,1996-01,102.5,,,,,,,,,,
+[3] 200       692 B   8.1s https://esploradati.istat.it/SDMXWS/rest/data/167_745/M.IT.85.4.00?startPeriod=2026-01
+   base2025: 9 righe; prima: IT1:167_745(1.0),M,IT,85,4,00,2026-01,100.4,,,,,,,,,,
+richieste ISTAT usate: 3
