@@ -76,6 +76,8 @@ export function glowMap(container, opts) {
   let progress = reducedMotion() ? 1 : 0;
   let hovered = -1;
   let selected = -1;
+  let utente = null; // [lon, lat] di chi consulta, se ha condiviso la posizione
+  let utenteXY = null;
   let highlighted = [];
   let baseImage = null; // per la modalità ambient
 
@@ -116,6 +118,7 @@ export function glowMap(container, opts) {
       ys[i] = y;
     });
     quadtree = d3.quadtree(d3.range(stations.length), (i) => xs[i], (i) => ys[i]);
+    utenteXY = utente ? projection(utente) : null;
     if (zoom) {
       zoom.extent([[0, 0], [W, H]]).translateExtent([[-W * 0.1, -H * 0.1], [W * 1.1, H * 1.1]]);
     }
@@ -223,6 +226,19 @@ export function glowMap(container, opts) {
     octx.setTransform(dpr, 0, 0, dpr, 0, 0);
     octx.clearRect(0, 0, W, H);
     for (const i of highlighted) ring(octx, i, "#e6edf7", 6);
+    if (utenteXY) {
+      // "tu sei qui": punto bianco con alone ciano
+      const t = transform;
+      const x = t.x + utenteXY[0] * t.k, y = t.y + utenteXY[1] * t.k;
+      const g = octx.createRadialGradient(x, y, 0, x, y, 22);
+      g.addColorStop(0, "rgba(62, 224, 245, 0.45)");
+      g.addColorStop(1, "rgba(62, 224, 245, 0)");
+      octx.fillStyle = g;
+      octx.beginPath(); octx.arc(x, y, 22, 0, Math.PI * 2); octx.fill();
+      octx.beginPath(); octx.arc(x, y, 6, 0, Math.PI * 2);
+      octx.fillStyle = "#ffffff"; octx.fill();
+      octx.lineWidth = 3; octx.strokeStyle = "#3ee0f5"; octx.stroke();
+    }
     if (selected >= 0) {
       ring(octx, selected, "#ffffff", 9);
       ring(octx, selected, "#ffffff", 4);
@@ -372,12 +388,19 @@ export function glowMap(container, opts) {
       highlighted = indices;
       drawOverlay();
     },
-    focus(indices, { duration = 900 } = {}) {
+    setUser(lon, lat) {
+      utente = lon == null ? null : [lon, lat];
+      utenteXY = utente ? projection(utente) : null;
+      drawOverlay();
+    },
+    focus(indices, { duration = 900, conUtente = false } = {}) {
       if (!zoom) return;
-      if (!indices.length) return;
+      if (!indices.length && !(conUtente && utenteXY)) return;
       // riquadro robusto: ignora eventuali coordinate sbagliate (5°–95° percentile)
-      const qx = indices.map((i) => xs[i]).sort(d3.ascending), qy = indices.map((i) => ys[i]).sort(d3.ascending);
-      const lo = indices.length >= 8 ? 0.05 : 0, hi = indices.length >= 8 ? 0.95 : 1;
+      const qx = indices.map((i) => xs[i]), qy = indices.map((i) => ys[i]);
+      if (conUtente && utenteXY) { qx.push(utenteXY[0]); qy.push(utenteXY[1]); }
+      qx.sort(d3.ascending); qy.sort(d3.ascending);
+      const lo = qx.length >= 8 && !conUtente ? 0.05 : 0, hi = qx.length >= 8 && !conUtente ? 0.95 : 1;
       const ext = [[d3.quantile(qx, lo), d3.quantile(qx, hi)], [d3.quantile(qy, lo), d3.quantile(qy, hi)]];
       const dx = Math.max(ext[0][1] - ext[0][0], 6), dy = Math.max(ext[1][1] - ext[1][0], 6);
       const cx = (ext[0][0] + ext[0][1]) / 2, cy = (ext[1][0] + ext[1][1]) / 2;

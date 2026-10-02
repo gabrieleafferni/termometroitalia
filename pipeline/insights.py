@@ -4,6 +4,8 @@ newsletter e canale Telegram).
 
 Ogni novità ha un punteggio di rilevanza: le soglie sono statistiche (z-score
 delle variazioni giornaliere, record sulla finestra disponibile), non a occhio.
+Le novità sugli andamenti generali vengono prima; quelle di contesto (le misure
+di un singolo marchio, come il tetto Eni) hanno "contesto": true e vanno in coda.
 
 Uso:  python -m pipeline.insights
 Output: data/marts/novita.json
@@ -240,7 +242,7 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
             "titolo": "Tetto Eni: in arrivo nei dati",
             "testo": f"Il tetto Eni (benzina {euro(tetti['benzina'], 2)}, gasolio {euro(tetti['gasolio'], 2)} €/l, self, fuori autostrada) "
                      f"vale dal {data_it(dal)}: i prezzi di quel giorno arrivano con la pubblicazione MIMIT successiva.{base}",
-            "rilevanza": 91,
+            "rilevanza": 91, "contesto": True,
         })
         return out
     if ultimo > al:
@@ -263,7 +265,7 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
                      + (f" Tra quelli che avevano già comunicato il prezzo del giorno alle 8:00 ({e['n_aggiornati_oggi']}), "
                         f"la quota sale {al_pct(e['quota_entro_tetto_aggiornati'])}."
                         if e.get("quota_entro_tetto_aggiornati") is not None and e["quota_entro_tetto_aggiornati"] > e["quota_entro_tetto_eni"] + 0.1 else ""),
-            "rilevanza": 95 if carb == "benzina" else 94,
+            "rilevanza": 95 if carb == "benzina" else 94, "contesto": True,
         })
         # chi segue? ribassi marcati degli altri marchi rispetto al giorno prima
         if ieri:
@@ -275,7 +277,7 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
                         "titolo": f"{m} abbassa i prezzi",
                         "testo": f"{m}: {'benzina' if carb == 'benzina' else 'gasolio'} self {cent(a['media'] - b['media'])} in un giorno (media {euro(a['media'])} €/l); "
                                  f"entro il tetto Eni {pct(a['quota_entro_tetto_eni'])} dei suoi impianti.",
-                        "rilevanza": 90,
+                        "rilevanza": 90, "contesto": True,
                     })
     return out
 
@@ -375,7 +377,8 @@ def main() -> int:
     novita += novita_storico()
     novita += novita_tetto(ultimo)
     novita = accorpa_record(novita, serie)
-    novita.sort(key=lambda n: -n["rilevanza"])
+    # prima gli andamenti generali, poi il contesto; dentro ciascun gruppo, per rilevanza
+    novita.sort(key=lambda n: (bool(n.get("contesto")), -n["rilevanza"]))
     for n in novita:
         n["rilevanza"] = round(n["rilevanza"], 1)
 

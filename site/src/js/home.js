@@ -7,7 +7,7 @@ import "../css/style.css";
 
 import * as d3 from "d3";
 import { feature } from "topojson-client";
-import { load, loadGeo, fromColumns } from "./lib/data.js";
+import { load, loadGeo, fromColumns, novitaInEvidenza } from "./lib/data.js";
 import { fmt, parseDay, NOMI_RIF, UNITA } from "./lib/format.js";
 import { chrome, el, reveal, deltaSpan, countUp } from "./lib/ui.js";
 import { glowMap } from "./charts/map.js";
@@ -78,7 +78,7 @@ async function main() {
   // ---------- novità ----------
   document.getElementById("novita-data").textContent = `Aggiornato al ${fmt.giornoAnno(parseDay(novita.aggiornato_al)).trim()}`;
   const nov = document.getElementById("novita");
-  for (const n of novita.novita.slice(0, 6)) {
+  for (const n of novitaInEvidenza(novita.novita, 6)) {
     const card = el("article", "panel reveal");
     const t = el("div", "panel-title", n.titolo);
     const p = el("p", null, n.testo);

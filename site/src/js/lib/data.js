@@ -30,3 +30,14 @@ export function fromColumns(cols) {
   }
   return out;
 }
+
+/**
+ * Novità da mettere in evidenza: prima quelle sugli andamenti generali, poi
+ * (al massimo una) quelle di contesto, come le misure di un singolo marchio.
+ * La pipeline le ordina già così; qui si garantisce lo spazio a entrambe.
+ */
+export function novitaInEvidenza(lista, n = 6) {
+  const generali = lista.filter((x) => !x.contesto);
+  const contesto = lista.filter((x) => x.contesto).slice(0, 1);
+  return [...generali.slice(0, n - contesto.length), ...contesto];
+}

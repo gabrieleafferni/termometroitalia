@@ -38,24 +38,45 @@
           <input id="comune" list="comuni" placeholder="Cerca il tuo comune…" autocomplete="off" />
           <datalist id="comuni"></datalist>
         </label>
+        <button class="btn btn-loc" type="button" id="locate" aria-label="Trova i distributori più economici vicino a me">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3.5" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="7.5" stroke="currentColor" stroke-width="1.5" opacity="0.5"/></svg>
+          <span>Vicino a me</span>
+        </button>
       </div>
 
+      <section class="panel section reveal">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Andamento nazionale</div>
+            <h2 id="trend-title">Benzina e gasolio, giorno per giorno</h2>
+            <p class="sub">Prezzo medio self in Italia. La fascia colorata contiene l'80% dei distributori.</p>
+          </div>
+        </div>
+        <div class="legend" id="trend-legend"></div>
+        <div class="chart" id="trend"></div>
+      </section>
 
-      <section class="grid grid-tetto section" id="tetto" aria-labelledby="tetto-title">
-        <article class="panel reveal tetto-panel">
-          <div class="panel-title">Tetto ai prezzi · Eni</div>
-          <h2 id="tetto-title">Eni sta applicando il tetto?</h2>
-          <p class="sub" id="tetto-sub"></p>
-          <div class="tetto-stats" id="tetto-stats"></div>
-          <p class="note" id="tetto-note"></p>
-        </article>
-        <article class="panel reveal">
-          <div class="panel-title">Chi segue Eni</div>
-          <h2 id="marchi-title">Prezzo medio per marchio, rete stradale</h2>
-          <p class="sub">Media self dei distributori fuori autostrada per insegna. La linea bianca è il tetto Eni: se gli altri marchi scendono verso quella linea, stanno reagendo.</p>
-          <div class="legend" id="marchi-legend"></div>
-          <div class="chart" id="marchi-chart"></div>
-        </article>
+      <section class="panel section reveal" id="distribuzione">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Distribuzione · giorno per giorno</div>
+            <h2 id="hist-title">Come si distribuiscono i prezzi</h2>
+            <p class="sub">Numero di distributori per fascia di prezzo di 1 centesimo. Sposta il cursore o premi ▶ per vedere come è cambiata la distribuzione giorno dopo giorno.</p>
+          </div>
+        </div>
+        <div class="hist-controls">
+          <button class="btn hist-play" type="button" id="hist-play" aria-label="Riproduci i giorni in sequenza">▶</button>
+          <div class="hist-slider">
+            <input type="range" id="hist-day" min="0" max="0" step="1" value="0" aria-label="Giorno da visualizzare" />
+            <div class="hist-ticks" id="hist-ticks" aria-hidden="true"></div>
+          </div>
+          <output class="hist-date" id="hist-date" for="hist-day"></output>
+        </div>
+        <div class="hist-jumps" id="hist-jumps"></div>
+        <div class="hist-stats" id="hist-stats"></div>
+        <div class="legend" id="hist-legend"></div>
+        <div class="chart" id="hist"></div>
+        <p class="note" id="hist-note"></p>
       </section>
 
       <section class="grid grid-map section">
@@ -86,8 +107,10 @@
             <div class="station-card" id="station-card" hidden></div>
             <div class="panel-title">Trova il distributore</div>
             <h2 id="finder-title">I più economici nel tuo comune</h2>
-            <p class="sub" id="finder-sub">Scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti, con l'indirizzo. Oppure tocca un punto sulla mappa.</p>
+            <p class="sub" id="finder-sub">Premi "Vicino a me" o scrivi il nome di un comune nella barra qui sopra: la mappa ci vola sopra e qui compaiono i distributori più convenienti. Oppure tocca un punto sulla mappa.</p>
+            <div class="hist-jumps" id="finder-raggi" hidden></div>
             <ul class="result-list" id="finder-list"></ul>
+            <p class="note" id="finder-nota" hidden></p>
           </article>
           <article class="panel reveal">
             <div class="panel-title">Cosa dice il termometro oggi</div>
@@ -95,19 +118,6 @@
           </article>
         </aside>
       </section>
-
-      <section class="panel section reveal">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">Andamento nazionale</div>
-            <h2 id="trend-title">Benzina e gasolio, giorno per giorno</h2>
-            <p class="sub">Prezzo medio self in Italia. La fascia colorata contiene l'80% dei distributori.</p>
-          </div>
-        </div>
-        <div class="legend" id="trend-legend"></div>
-        <div class="chart" id="trend"></div>
-      </section>
-
 
       <section class="grid grid-storico section">
         <article class="panel reveal">
@@ -154,27 +164,21 @@
         </article>
       </section>
 
-      <section class="panel section reveal" id="distribuzione">
+      <section class="panel section reveal" id="marchi">
         <div class="panel-head">
           <div>
-            <div class="panel-title">Distribuzione · giorno per giorno</div>
-            <h2 id="hist-title">Come si distribuiscono i prezzi</h2>
-            <p class="sub">Numero di distributori per fascia di prezzo di 1 centesimo. Sposta il cursore o premi ▶ per vedere come è cambiata la distribuzione giorno dopo giorno.</p>
+            <div class="panel-title">Prezzi per marchio · rete stradale</div>
+            <h2 id="marchi-title">Prezzi per marchio, ultimi 30 giorni</h2>
+            <p class="sub" id="marchi-sub">Prezzo medio self dei distributori fuori autostrada. Ogni linea sottile è un marchio: passa il mouse o tocca il grafico per leggere i valori di tutti.</p>
           </div>
         </div>
-        <div class="hist-controls">
-          <button class="btn hist-play" type="button" id="hist-play" aria-label="Riproduci i giorni in sequenza">▶</button>
-          <div class="hist-slider">
-            <input type="range" id="hist-day" min="0" max="0" step="1" value="0" aria-label="Giorno da visualizzare" />
-            <div class="hist-ticks" id="hist-ticks" aria-hidden="true"></div>
-          </div>
-          <output class="hist-date" id="hist-date" for="hist-day"></output>
+        <div class="legend" id="marchi-legend"></div>
+        <div class="chart" id="marchi-chart"></div>
+        <div class="contesto" id="tetto">
+          <div class="contesto-head"><span class="contesto-tag">Contesto</span><span id="tetto-badge"></span></div>
+          <p class="note" id="tetto-note"></p>
+          <div class="contesto-stats" id="tetto-stats"></div>
         </div>
-        <div class="hist-jumps" id="hist-jumps"></div>
-        <div class="hist-stats" id="hist-stats"></div>
-        <div class="legend" id="hist-legend"></div>
-        <div class="chart" id="hist"></div>
-        <p class="note" id="hist-note"></p>
       </section>
 
       <p class="panel-foot" style="margin-top: 20px">

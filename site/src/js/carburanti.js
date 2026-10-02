@@ -7,7 +7,7 @@ import "../css/style.css";
 
 import * as d3 from "d3";
 import { feature } from "topojson-client";
-import { load, loadGeo, fromColumns } from "./lib/data.js";
+import { load, loadGeo, fromColumns, novitaInEvidenza } from "./lib/data.js";
 import { fmt, parseDay, NOMI_RIF, UNITA } from "./lib/format.js";
 import { chrome, el, tooltip, ttTitle, ttRow, tableView, countUp, reveal, deltaSpan } from "./lib/ui.js";
 import { glowMap, colorScale, DIVERGING } from "./charts/map.js";
@@ -16,8 +16,9 @@ import { sparkline, divergingBars, taxArea } from "./charts/small.js";
 import { histogramByDay } from "./charts/histday.js";
 
 const COLORE = { benzina: "#c98500", gasolio: "#8f6ff0", gpl: "#3ecf8e", metano: "#4c9df5" };
-// grafico dei marchi: forma "enfasi" (Eni e IP in evidenza, gli altri in grigio). Colori validati.
-const COL_ENI = "#199fb5", COL_IP = "#9a7cf0", COL_ALTRI = "#56607a";
+// grafico dei marchi: tutti i marchi con lo stesso peso (linee grigie sottili),
+// in evidenza solo la media della rete. Il racconto è l'andamento generale, non un marchio.
+const COL_MARCHIO = "#56607a";
 const NOME_MARCHIO = { "Agip Eni": "Eni", "Api-Ip": "IP" };
 const FONTE_IP = "https://www.ansa.it/sito/notizie/economia/2026/09/28/parte-da-circa-300-distributori-limite-prezzi-ip-tetto-uguale-ad-eni_954645af-a337-4eab-ba58-a19e874b8bdc.html";
 const CAMPO = { benzina: "b", gasolio: "g" };
@@ -26,6 +27,7 @@ const RANGE = 0.06; // ±6 cent: saturazione della scala colori della mappa
 // Eventi di contesto annotati sul grafico storico (solo fatti verificati, con fonte)
 const EVENTI = [
   { d: "2026-07-29", label: "Taglio delle accise sul gasolio", detail: "(ANSA, 28 luglio 2026)" },
+  { d: "2026-09-28", label: "Prezzo massimo Eni", detail: "(comunicato Eni)" },
 ];
 
 const titleCase = (s) =>
@@ -216,7 +218,7 @@ async function main() {
   document.getElementById("map-zoom-in").addEventListener("click", () => map.zoomBy(2));
   document.getElementById("map-zoom-out").addEventListener("click", () => map.zoomBy(0.5));
 
-  // ---------- ricerca comune ----------
+  // ---------- trova il distributore: per comune o vicino a me ----------
   const byComune = d3.group(stations, (s) => `${titleCase(s.comune ?? "")} (${s.sigla})`);
   const dl = document.getElementById("comuni");
   for (const k of [...byComune.keys()].sort((a, b) => a.localeCompare(b, "it"))) {
@@ -225,10 +227,50 @@ async function main() {
     dl.append(o);
   }
   const input = document.getElementById("comune");
+  const raggiEl = document.getElementById("finder-raggi");
+  const notaEl = document.getElementById("finder-nota");
+  const RAGGI = [2, 5, 10, 20]; // km
   let comuneScelto = null;
+  let posizione = null; // { lat, lon }: resta nel browser, non viene inviata né salvata
+  let raggio = 5;
+
+  // distanza in linea d'aria (formula dell'emisenoverso), in km
+  const distanzaKm = (a, b) => {
+    const r = Math.PI / 180;
+    const dLat = (b.lat - a.lat) * r, dLon = (b.lon - a.lon) * r;
+    const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLon / 2) ** 2;
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  };
+  const fmtKm = (d) => (d < 1 ? `${fmt.intero(Math.round(d * 1000 / 50) * 50)} m` : `${d.toLocaleString("it-IT", { maximumFractionDigits: 1 })} km`);
+
+  function voce(s, km) {
+    const li = el("li");
+    const left = el("div");
+    left.append(el("span", "n", nomeImpianto(s)), el("span", "b", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`));
+    if (s.ind) left.append(el("span", "a", titleAddr(s.ind)));
+    const right = el("div");
+    right.append(el("span", "p", `${fmt.prezzo(s[CAMPO[fuel]])} €`));
+    if (km != null) right.append(el("span", "d", fmtKm(km)));
+    li.append(left, right);
+    li.tabIndex = 0;
+    const go = () => {
+      const i = map.indexOf(s);
+      map.highlight([i]);
+      map.select(i);
+      map.focus([i]);
+      showStation(s);
+    };
+    li.addEventListener("click", go);
+    li.addEventListener("keydown", (e) => e.key === "Enter" && go());
+    return li;
+  }
+
   function renderFinder() {
     const list = document.getElementById("finder-list");
     list.replaceChildren();
+    raggiEl.hidden = true;
+    notaEl.hidden = true;
+    if (posizione && !comuneScelto) return renderVicino(list);
     if (!comuneScelto) return;
     const items = byComune.get(comuneScelto).filter((s) => s[CAMPO[fuel]] != null)
       .sort((a, b) => a[CAMPO[fuel]] - b[CAMPO[fuel]]);
@@ -237,25 +279,47 @@ async function main() {
     document.getElementById("finder-sub").textContent = items.length
       ? `${items.length} distributori con ${fuel} self · media del comune ${fmt.prezzo(media)} €/l (${fmt.cent(media - refOggi())} cent rispetto all'Italia)`
       : `Nessun prezzo ${fuel} self comunicato oggi in questo comune.`;
-    for (const s of items.slice(0, 6)) {
-      const li = el("li");
-      const left = el("div");
-      left.append(el("span", "n", nomeImpianto(s)), el("span", "b", `${s.bandiera ?? ""}${s.auto ? " · autostrada" : ""}`));
-      if (s.ind) left.append(el("span", "a", titleAddr(s.ind)));
-      li.append(left, el("span", "p", `${fmt.prezzo(s[CAMPO[fuel]])} €`));
-      li.tabIndex = 0;
-      const go = () => {
-        const i = map.indexOf(s);
-        map.highlight([i]);
-        map.select(i);
-        map.focus([i]);
-        showStation(s);
-      };
-      li.addEventListener("click", go);
-      li.addEventListener("keydown", (e) => e.key === "Enter" && go());
-      list.append(li);
-    }
+    for (const s of items.slice(0, 6)) list.append(voce(s));
   }
+
+  function renderVicino(list, { muoviMappa = false } = {}) {
+    const vicini = stations
+      .filter((s) => s[CAMPO[fuel]] != null)
+      .map((s) => ({ s, km: distanzaKm(posizione, s) }))
+      .filter((v) => v.km <= RAGGI.at(-1));
+    const entro = (r) => vicini.filter((v) => v.km <= r);
+    const items = entro(raggio).sort((a, b) => a.s[CAMPO[fuel]] - b.s[CAMPO[fuel]] || a.km - b.km);
+    document.getElementById("finder-title").textContent = "Vicino a te";
+    const sub = document.getElementById("finder-sub");
+    if (!vicini.length) {
+      sub.textContent = `Nessun distributore con ${fuel} self nel raggio di ${RAGGI.at(-1)} km: la mappa copre solo l'Italia.`;
+      return;
+    }
+    const media = d3.mean(items, (v) => v.s[CAMPO[fuel]]);
+    sub.textContent = items.length
+      ? `${items.length} distributori con ${fuel} self entro ${raggio} km in linea d'aria · media ${fmt.prezzo(media)} €/l (${fmt.cent(media - refOggi())} cent rispetto all'Italia). Ecco i più economici.`
+      : `Nessun distributore con ${fuel} self entro ${raggio} km: prova un raggio più ampio.`;
+    raggiEl.replaceChildren();
+    for (const r of RAGGI) {
+      const b = el("button", "chip", `${r} km · ${fmt.intero(entro(r).length)}`);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(r === raggio));
+      b.addEventListener("click", () => {
+        raggio = r;
+        renderVicino(document.getElementById("finder-list"), { muoviMappa: true });
+      });
+      raggiEl.append(b);
+    }
+    raggiEl.hidden = false;
+    list.replaceChildren();
+    for (const v of items.slice(0, 8)) list.append(voce(v.s, v.km));
+    notaEl.textContent = `Prezzi alle 8:00 del ${fmt.giornoAnno(oggi).trim()}, comunicati dai gestori al Ministero: alla pompa potrebbero essere cambiati. La tua posizione resta sul tuo dispositivo: il sito non la riceve e non la salva.`;
+    notaEl.hidden = false;
+    const idx = items.map((v) => map.indexOf(v.s));
+    map.highlight(idx);
+    if (muoviMappa) map.focus(idx, { conUtente: true });
+  }
+
   input.addEventListener("change", () => {
     const k = input.value.trim();
     // se il comune è già quello scelto non ridisegno la lista: altrimenti il "change"
@@ -269,9 +333,47 @@ async function main() {
     document.getElementById("finder").scrollIntoView({ behavior: "smooth", block: "nearest" });
   });
 
+  // posizione del dispositivo (Geolocation API): la chiede il browser, con il consenso di chi visita
+  const locBtn = document.getElementById("locate");
+  const locLabel = locBtn.querySelector("span");
+  locBtn.addEventListener("click", () => {
+    const sub = document.getElementById("finder-sub");
+    const errore = (msg) => {
+      document.getElementById("finder-title").textContent = "Posizione non disponibile";
+      sub.textContent = msg;
+      document.getElementById("finder").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+    if (!("geolocation" in navigator)) return errore("Questo browser non permette di rilevare la posizione. Puoi cercare il tuo comune nella barra qui sopra.");
+    locBtn.setAttribute("aria-busy", "true");
+    locLabel.textContent = "Cerco la tua posizione…";
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        locBtn.removeAttribute("aria-busy");
+        locLabel.textContent = "Vicino a me";
+        posizione = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        comuneScelto = null;
+        input.value = "";
+        map.setUser(posizione.lon, posizione.lat);
+        // raggio iniziale: il più piccolo con almeno 5 distributori
+        const conPrezzo = stations.filter((s) => s[CAMPO[fuel]] != null);
+        raggio = RAGGI.find((r) => conPrezzo.filter((s) => distanzaKm(posizione, s) <= r).length >= 5) ?? RAGGI.at(-1);
+        renderVicino(document.getElementById("finder-list"), { muoviMappa: true });
+        document.getElementById("map").scrollIntoView({ behavior: "smooth", block: "start" });
+      },
+      (err) => {
+        locBtn.removeAttribute("aria-busy");
+        locLabel.textContent = "Vicino a me";
+        errore(err.code === err.PERMISSION_DENIED
+          ? "Hai negato l'accesso alla posizione. Puoi riattivarlo dalle impostazioni del browser per questo sito, oppure cercare il tuo comune nella barra qui sopra."
+          : "Non è stato possibile rilevare la posizione in questo momento. Riprova, oppure cerca il tuo comune nella barra qui sopra.");
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 5 * 60 * 1000 }
+    );
+  });
+
   // ---------- novità ----------
   const feed = document.getElementById("feed");
-  for (const n of novita.novita.slice(0, 6)) {
+  for (const n of novitaInEvidenza(novita.novita, 6)) {
     const li = el("li");
     const dot = el("span", "dot");
     if (n.carburante && COLORE[n.carburante]) {
@@ -387,7 +489,7 @@ async function main() {
     }
   }
 
-  // ---------- tetto Eni e reazione degli altri marchi ----------
+  // ---------- prezzi per marchio, con il tetto Eni come contesto ----------
   marchi.forEach((r) => (r.date = parseDay(r.d)));
   const misura = misure.filter((m) => m.misura_id === "tetto_eni_2026");
   const tetto = Object.fromEntries(misura.map((m) => [m.carburante, +m.prezzo_max]));
@@ -395,87 +497,66 @@ async function main() {
   const tAl = parseDay(misura[0].valida_al);
   const ultimoMarchi = d3.max(marchi, (r) => r.date);
   const marchiEl = document.getElementById("marchi-chart");
+  const centNum = (e) => (e * 100).toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  function renderTetto() {
-    const inVigore = ultimoMarchi >= tDal;
-    const badge = el("span", `badge ${inVigore ? "on" : "wait"}`,
-      inVigore ? `in vigore dal ${fmt.giorno(tDal).trim()} al ${fmt.giorno(tAl).trim()}` : `in vigore dal ${fmt.giorno(tDal).trim()} · dati in arrivo`);
-    const sub = document.getElementById("tetto-sub");
-    sub.replaceChildren(badge, el("br"), document.createTextNode(
-      `Eni ha fissato un prezzo massimo self di ${fmt.prezzo2(tetto.benzina)} €/l per la benzina e ${fmt.prezzo2(tetto.gasolio)} €/l per il gasolio. ` +
-      (inVigore
-        ? `Qui misuriamo ogni giorno quanti distributori Eni lo rispettano davvero.`
-        : `Il MIMIT pubblica i prezzi di ogni giorno la mattina successiva: la prima rilevazione con il tetto (${fmt.giorno(tDal).trim()}) comparirà qui con l'aggiornamento del ${fmt.giorno(d3.timeDay.offset(tDal, 1)).trim()}. Per ora vedi la situazione di partenza.`)
-    ));
-
-    const stats = document.getElementById("tetto-stats");
-    stats.replaceChildren();
-    for (const c of ["benzina", "gasolio"]) {
-      const r = marchi.find((q) => +q.date === +ultimoMarchi && q.m === "Agip Eni" && q.c === c);
-      if (!r) continue;
-      const box = el("div", "tetto-stat");
-      const l = el("div", "l");
-      const key = el("span");
-      key.style.cssText = `width:14px;height:3px;border-radius:2px;background:${COLORE[c]}`;
-      l.append(key, document.createTextNode(`${NOMI_RIF[c]} ≤ ${fmt.prezzo2(tetto[c])} €/l`));
-      const v = el("div", "v");
-      const perc = r.q * 100;
-      v.append(document.createTextNode(`${perc < 10 ? perc.toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : fmt.intero(Math.round(perc))}%`), el("small", null, "dei distributori Eni"));
-      const meter = el("div", "meter");
-      const bar = el("span");
-      bar.style.width = `${Math.max(1, r.q * 100)}%`;
-      meter.append(bar);
-      const d = el("div", "d", `${inVigore ? "Prezzi alle 8:00 del" : "Prima del tetto,"} ${fmt.giorno(ultimoMarchi).trim()} · ${fmt.intero(Math.round(r.q * r.n))} su ${fmt.intero(r.n)} impianti · media Eni ${fmt.prezzo(r.media)} €/l`);
-      box.append(l, v, meter, d);
-      // il file MIMIT fotografa le 8:00: chi non ha ancora aggiornato il prezzo quel giorno
-      // conserva il prezzo vecchio. Tra chi ha aggiornato, l'adesione si legge meglio.
-      if (inVigore && r.qa != null && r.qa > r.q + 0.1) {
-        box.append(el("div", "d", `Tra i ${fmt.intero(r.na)} che alle 8:00 avevano già aggiornato il prezzo: ${fmt.intero(Math.round(r.qa * 100))}% entro il tetto`));
-      }
-      stats.append(box);
-    }
-
-    const note = document.getElementById("tetto-note");
-    note.replaceChildren(
-      document.createTextNode("Il tetto vale nei circa 3.000 impianti gestiti direttamente da Enilive (su circa 3.900 a marchio Eni) ed esclude l'autostrada: anche se applicato ovunque, la quota non arriverà al 100%. "),
-      Object.assign(el("a", null, "Comunicato Eni"), { href: misura[0].fonte, target: "_blank", rel: "noopener" }),
-      document.createTextNode(". I dati MIMIT sono i prezzi in vigore alle 8:00: nei primi giorni di una misura molti distributori non hanno ancora aggiornato il prezzo a quell'ora, quindi la quota cresce nei giorni successivi. Anche IP applica gli stessi prezzi massimi, per ora su circa 300 dei suoi impianti con estensione progressiva: lo seguiamo nel grafico a fianco ("),
-      Object.assign(el("a", null, "fonte"), { href: FONTE_IP, target: "_blank", rel: "noopener" }),
-      document.createTextNode(")."),
-    );
-
-    // grafico: prezzo medio per marchio, ultimi 30 giorni
+  function renderMarchi() {
+    const nome = fuel === "benzina" ? "Benzina" : "Gasolio";
     const inizio = d3.timeDay.offset(ultimoMarchi, -30);
     const righe = marchi.filter((r) => r.c === fuel && r.date >= inizio);
     const perMarchio = d3.group(righe, (r) => r.m);
-    const ordine = ["Q8", "Esso", "Tamoil", "Pompe Bianche", "Altri marchi", "Api-Ip", "Agip Eni"];
-    const series = ordine.filter((m) => perMarchio.has(m)).map((m) => ({
+    // i gruppi (marchi, pompe bianche, altri) coprono tutta la rete stradale:
+    // la media pesata sul numero di impianti è la media della rete
+    const perGiorno = d3.rollups(righe, (v) => ({
+      v: d3.sum(v, (r) => r.media * r.n) / d3.sum(v, (r) => r.n),
+      spread: v.length === perMarchio.size ? d3.max(v, (r) => r.media) - d3.min(v, (r) => r.media) : null,
+    }), (r) => +r.date).sort((a, b) => a[0] - b[0]);
+    // la misura è "di contesto" finché cade nella finestra del grafico
+    const tettoNelGrafico = inizio <= tAl && ultimoMarchi >= d3.timeDay.offset(tDal, -7);
+
+    const series = [...perMarchio.keys()].map((m) => ({
       key: m,
       name: NOME_MARCHIO[m] ?? m,
-      color: m === "Agip Eni" ? COL_ENI : m === "Api-Ip" ? COL_IP : COL_ALTRI,
-      width: m === "Agip Eni" || m === "Api-Ip" ? 2 : 1.25,
-      label: m === "Agip Eni" || m === "Api-Ip",
+      color: COL_MARCHIO,
+      width: 1.25,
+      label: false,
       points: perMarchio.get(m).map((r) => ({ date: r.date, v: r.media })),
     }));
+    series.push({
+      key: "tutti",
+      name: "Tutti i marchi",
+      color: COLORE[fuel],
+      width: 2,
+      points: perGiorno.map(([t, o]) => ({ date: new Date(t), v: o.v })),
+    });
     marchiEl.replaceChildren();
     trendChart(marchiEl, {
       series,
       height: 320,
-      refLines: [{ value: tetto[fuel], label: `Tetto Eni ${fmt.prezzo2(tetto[fuel])} €/l` }],
-      events: [{ date: tDal, label: "Tetto Eni in vigore" }],
+      // etichetta corta: il nome della misura è già nella legenda e sulla linea verticale
+      refLines: tettoNelGrafico ? [{ value: tetto[fuel], label: `${fmt.prezzo2(tetto[fuel])} €/l` }] : [],
+      events: tettoNelGrafico ? [{ date: tDal, label: "Prezzo massimo Eni" }] : [],
       tooltipNote: "Media self dei distributori fuori autostrada",
-      ariaLabel: `Prezzo medio del ${fuel} self per marchio negli ultimi 30 giorni, con il tetto Eni`,
+      ariaLabel: `Prezzo medio del ${fuel} self per marchio negli ultimi 30 giorni`,
     });
+
     const ml = document.getElementById("marchi-legend");
     ml.replaceChildren();
-    for (const [c, t] of [[COL_ENI, "Eni"], [COL_IP, "IP"], [COL_ALTRI, "Q8, Esso, Tamoil, pompe bianche, altri"]]) {
+    const voci = [[COLORE[fuel], "Tutti i marchi (media della rete stradale)"], [COL_MARCHIO, "Singoli marchi: Eni, IP, Q8, Esso, Tamoil, pompe bianche, altri"]];
+    if (tettoNelGrafico) voci.push(["var(--text)", "Prezzo massimo applicato da Eni"]);
+    for (const [c, t] of voci) {
       const sp = el("span");
       const k = el("span", "key-line");
       k.style.background = c;
       sp.append(k, document.createTextNode(t));
       ml.append(sp);
     }
-    document.getElementById("marchi-title").textContent = `${fuel === "benzina" ? "Benzina" : "Gasolio"} self per marchio, rete stradale`;
+
+    // titolo: quanto sono distanti i marchi oggi e all'inizio della finestra
+    const p0 = perGiorno.find(([, o]) => o.spread != null), p1 = perGiorno.at(-1);
+    document.getElementById("marchi-title").textContent = p0 && p1[1].spread != null && p0 !== p1
+      ? `${nome} self: tra il marchio più caro e il più economico ${centNum(p1[1].spread)} cent, erano ${centNum(p0[1].spread)} il ${fmt.giorno(new Date(p0[0])).trim()}`
+      : `${nome} self per marchio, ultimi 30 giorni`;
+
     marchiEl.parentElement.querySelector("details.table-view")?.remove();
     tableView(marchiEl.parentElement, [
       { key: "d", label: "Data" },
@@ -484,6 +565,40 @@ async function main() {
       { key: "q", label: `≤ ${fmt.prezzo2(tetto[fuel])} €/l`, num: true, format: (q) => fmt.pct(q) },
       { key: "n", label: "Impianti", num: true, format: fmt.intero },
     ], () => [...righe].sort((a, b) => d3.descending(a.d, b.d) || d3.ascending(a.media, b.media)));
+
+    renderContesto(tettoNelGrafico);
+  }
+
+  // riquadro di contesto: la misura che in queste settimane pesa sui prezzi, con fonti
+  function renderContesto(visibile) {
+    const box = document.getElementById("tetto");
+    box.hidden = !visibile;
+    if (!visibile) return;
+    const inVigore = ultimoMarchi >= tDal;
+    document.getElementById("tetto-badge").replaceChildren(el("span", `badge ${inVigore ? "on" : "wait"}`,
+      inVigore ? `in vigore dal ${fmt.giorno(tDal).trim()} al ${fmt.giorno(tAl).trim()}` : `dal ${fmt.giorno(tDal).trim()} · dati in arrivo`));
+    document.getElementById("tetto-note").replaceChildren(
+      document.createTextNode(`Dal ${fmt.giorno(tDal).trim()} Eni applica un prezzo massimo self di ${fmt.prezzo2(tetto.benzina)} €/l per la benzina e ${fmt.prezzo2(tetto.gasolio)} €/l per il gasolio, fuori autostrada, nei circa 3.000 impianti gestiti da Enilive (su circa 3.900 a marchio Eni). IP applica gli stessi prezzi su parte dei suoi impianti, con estensione progressiva. Fonti: `),
+      Object.assign(el("a", null, "comunicato Eni"), { href: misura[0].fonte, target: "_blank", rel: "noopener" }),
+      document.createTextNode(", "),
+      Object.assign(el("a", null, "ANSA"), { href: FONTE_IP, target: "_blank", rel: "noopener" }),
+      document.createTextNode("."),
+    );
+    const stats = document.getElementById("tetto-stats");
+    stats.replaceChildren();
+    if (!inVigore) return;
+    stats.append(el("span", "l", `Distributori Eni entro il prezzo massimo, alle 8:00 del ${fmt.giorno(ultimoMarchi).trim()}:`));
+    for (const c of ["benzina", "gasolio"]) {
+      const r = marchi.find((q) => +q.date === +ultimoMarchi && q.m === "Agip Eni" && q.c === c);
+      if (!r) continue;
+      const sp = el("span", "s");
+      const key = el("span", "key-line");
+      key.style.background = COLORE[c];
+      sp.append(key, document.createTextNode(`${c} `), el("b", null, `${fmt.intero(Math.round(r.q * 100))}%`));
+      // il file MIMIT fotografa le 8:00: chi non ha ancora aggiornato il prezzo conserva quello vecchio
+      if (r.qa != null && r.qa > r.q + 0.1) sp.append(document.createTextNode(` (${fmt.intero(Math.round(r.qa * 100))}% tra chi aveva già aggiornato il prezzo)`));
+      stats.append(sp);
+    }
   }
 
   // ---------- distribuzione dei prezzi, giorno per giorno ----------
@@ -670,7 +785,7 @@ async function main() {
   const tipoOggi = tipo.filter((r) => r.d === d3.max(tipo, (q) => q.d));
 
   function renderFuelPanels() {
-    renderTetto();
+    renderMarchi();
     renderTasse();
     const regRows = reg.filter((r) => r.d === oggiISO && r.c === fuel)
       .map((r) => ({ label: r.r, value: r.scarto, media: r.media, n: r.n }))
