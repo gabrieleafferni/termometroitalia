@@ -390,6 +390,11 @@ def run_oggi(source: str, force: bool, attendi_minuti: int = 0) -> None:
     """
     scadenza = time.monotonic() + attendi_minuti * 60
     atteso = pubblicazione_attesa()
+    # Il MIMIT pubblica prezzi e anagrafica in momenti un po' diversi: chi arriva
+    # appena escono i prezzi può trovare l'anagrafica ancora del giorno prima
+    # (successo il 3/10/2026: anagrafica del giorno saltata). Se i prezzi sono
+    # nuovi ma l'anagrafica no, si aspetta ancora fino a 30 minuti.
+    limite_anagrafica: float | None = None
     if source in ("auto", "mimit"):
         while True:
             try:
@@ -400,14 +405,22 @@ def run_oggi(source: str, force: bool, attendi_minuti: int = 0) -> None:
                 log.warning("MIMIT non disponibile (%s): uso il mirror", err)
                 break
             nuova = data_estrazione(testi["prezzi"])
-            if nuova >= atteso or time.monotonic() >= scadenza:
+            anagrafica = data_estrazione(testi["impianti"])
+            adesso = time.monotonic()
+            if nuova >= atteso and anagrafica < nuova and attendi_minuti > 0:
+                limite_anagrafica = limite_anagrafica or adesso + 30 * 60
+            in_ritardo = limite_anagrafica is not None and anagrafica < nuova and adesso < min(limite_anagrafica, scadenza)
+            if (nuova >= atteso and not in_ritardo) or adesso >= scadenza:
                 archivia(testi, "MIMIT", force)
                 return
-            log.info(
-                "Il MIMIT pubblica ancora l'estrazione del %s (attesa: %s). Riprovo tra 5 minuti.",
-                nuova,
-                atteso,
-            )
+            if nuova >= atteso:
+                log.info("Prezzi del %s usciti, anagrafica ancora del %s: riprovo tra 5 minuti.", nuova, anagrafica)
+            else:
+                log.info(
+                    "Il MIMIT pubblica ancora l'estrazione del %s (attesa: %s). Riprovo tra 5 minuti.",
+                    nuova,
+                    atteso,
+                )
             time.sleep(300)
     day = mirror_last_date()
     archivia(fetch_mirror(day), "MIMIT via mirror benzina-data", force)

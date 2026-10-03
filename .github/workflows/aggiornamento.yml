@@ -59,6 +59,11 @@ jobs:
       pubblica: ${{ steps.salva.outputs.pubblica }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          # l'ultimo commit di main quando il giro parte davvero: un giro programmato
+          # rimasto in coda dietro a uno in attesa, altrimenti, riparte dal commit di
+          # quando è stato messo in coda e al salvataggio va in conflitto (3/10/2026)
+          ref: main
 
       - uses: actions/setup-python@v6
         with:
