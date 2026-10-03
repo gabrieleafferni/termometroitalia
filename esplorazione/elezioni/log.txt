@@ -1,0 +1,7 @@
+sondaggi_lista.html: ERRORE dopo 40.2s URLError: <urlopen error timed out>
+sondaggi_home.html: ERRORE dopo 40.2s URLError: <urlopen error timed out>
+eligendo_camera_2022.html: 200 47071 B 1.2s
+eligendo_europee_2024.html: 200 31630 B 0.6s
+dait_opendata.html: 200 81610 B 1.4s
+wikipedia_sondaggi.wiki: 200 637783 B 0.4s
+wikipedia_sondaggi_it.wiki: ERRORE dopo 0.8s HTTPError: HTTP Error 404: Not Found
