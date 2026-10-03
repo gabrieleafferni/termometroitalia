@@ -156,6 +156,24 @@ def main() -> int:
         order by carburante, data
     """))
 
+    # dal barile alla pompa: settimane MASE con il Brent in euro al litro, più l'ultima quotazione
+    barile = MARTS / "mart_carburanti__barile_settimanale.parquet"
+    if barile.exists():
+        write("carburanti_barile.json", {
+            "settimane": columns(f"""
+                select data as d, carburante as c, prezzo_netto as n, brent_eur_litro as b,
+                       brent_usd_barile as bu, prezzo_netto_reale as nr, brent_eur_litro_reale as br
+                from {mart('mart_carburanti__barile_settimanale')}
+                order by carburante, data
+            """),
+            "ultimo": rows(f"""
+                select data, brent_usd_barile, usd_per_eur, brent_eur_litro
+                from {mart('mart_mercati__quotazioni_giornaliere')}
+                where brent_usd_barile is not null
+                order by data desc limit 1
+            """)[0],
+        })
+
     write("carburanti_marchi.json", rows(f"""
         select data as d, marchio as m, carburante as c, media, n_impianti as n,
                quota_entro_tetto_eni as q, tetto_eni as tetto,

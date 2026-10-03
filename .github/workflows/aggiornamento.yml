@@ -122,6 +122,13 @@ jobs:
         timeout-minutes: 6
         run: python -m pipeline.istat.nic
 
+      - name: 1d · Quotazioni di mercato (Brent, raffinati, cambio BCE)
+        # FRED (dati EIA) e BCE: poche richieste, nessuna chiave. Se fallisce si usano
+        # i file già salvati e un test dbt avvisa se il Brent è fermo da oltre 14 giorni
+        continue-on-error: true
+        timeout-minutes: 6
+        run: python -m pipeline.mercati.quotazioni
+
       - name: 2 · Trasformazione e test di qualità (dbt)
         working-directory: transform
         run: dbt build --profiles-dir .
@@ -143,7 +150,7 @@ jobs:
           # si salva solo se cambiano i dati veri (nuova estrazione o mart diversi):
           # i mart sono deterministici, quindi a parità di dati non cambiano di un byte.
           # Le sole date di generazione (novita.json, ultimo_aggiornamento.json) non bastano.
-          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali data/raw/istat 'data/marts/*.parquet'; then
+          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali data/raw/istat data/raw/mercati 'data/marts/*.parquet'; then
             echo "Nessun dato nuovo da salvare."
             git reset -q
             # senza dati nuovi, i run programmati non ripubblicano il sito

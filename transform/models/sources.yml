@@ -48,3 +48,18 @@ sources:
           - name: indice
           - name: provvisorio
 
+  - name: mercati_raw
+    description: >
+      Quotazioni di mercato scritte da pipeline/mercati/quotazioni.py: Brent e prodotti
+      raffinati NY Harbor (FRED, dati EIA, pubblico dominio) e cambio di riferimento BCE.
+    meta:
+      external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/mercati/{name}/*/*.parquet')"
+    tables:
+      - name: quotazioni
+        description: Una riga per giorno e serie, file mensili.
+        columns:
+          - name: data
+          - name: serie
+          - name: valore
+          - name: fonte
+

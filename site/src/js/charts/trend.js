@@ -10,10 +10,12 @@ import { tooltip, ttTitle, ttRow, reducedMotion, onResize } from "../lib/ui.js";
  *   width: spessore della linea (2 di default; le serie di contesto possono
  *          essere più sottili e grigie: forma "enfasi")
  *   label: false per non mettere l'etichetta a fine linea
+ *   shortName: nome corto per l'etichetta a fine linea sugli schermi stretti
  * refLines: [{ value, label }]   linee orizzontali di riferimento (es. un tetto)
  * events:   [{ date, label, detail }]  eventi verificati, linee verticali
  * markMax:  evidenzia il massimo storico di ogni serie
  * xTicks:   "giorni" | "anni"
+ * tooltipNote: testo fisso o funzione (data) => testo, sotto le righe del tooltip
  */
 export function trendChart(container, opts) {
   const {
@@ -38,7 +40,8 @@ export function trendChart(container, opts) {
     root.selectAll("svg").remove();
     const W = container.clientWidth;
     const narrow = W < 560;
-    const m = { top: events.length ? 40 : 26, right: narrow ? 74 : 130, bottom: 30, left: 46 };
+    // sul telefono le etichette degli eventi salgono di una riga, per non toccare l'unità di misura
+    const m = { top: events.length ? (narrow ? (events.length > 1 ? 66 : 52) : 40) : 26, right: narrow ? 74 : 130, bottom: 30, left: 46 };
     const w = W - m.left - m.right;
     const h = height - m.top - m.bottom;
 
@@ -47,7 +50,8 @@ export function trendChart(container, opts) {
     const values = all.flatMap((p) => [p.lo ?? p.v, p.hi ?? p.v]).concat(refLines.map((r) => r.value));
     const lo = d3.min(values), hi = d3.max(values);
     const pad = (hi - lo) * 0.08 || 0.01;
-    const y = d3.scaleLinear().domain([lo - pad, hi + pad]).nice(6).range([h, 0]);
+    // prezzi sempre positivi: l'asse non scende sotto lo zero solo per il margine
+    const y = d3.scaleLinear().domain([lo >= 0 ? Math.max(0, lo - pad) : lo - pad, hi + pad]).nice(6).range([h, 0]);
 
     const svg = root.append("svg").attr("viewBox", `0 0 ${W} ${height}`).attr("role", "img")
       .attr("aria-label", ariaLabel || `Andamento: ${series.map((s) => s.name).join(", ")}`);
@@ -78,17 +82,25 @@ export function trendChart(container, opts) {
         .attr("x", w - 4).attr("y", ry + 16).attr("text-anchor", "end").text(r.label);
     }
 
-    // eventi di contesto (fatti verificati che spiegano un movimento)
+    // eventi di contesto (fatti verificati che spiegano un movimento).
+    // Se due etichette si toccherebbero (succede sul telefono), la seconda sale di una riga.
+    const occupate = []; // [x0, x1, riga]
     for (const ev of events) {
       const ex = x(ev.date);
       if (ex < 0 || ex > w) continue;
       g.append("line").attr("x1", ex).attr("x2", ex).attr("y1", -8).attr("y2", h)
         .attr("stroke", "var(--text-2)").attr("stroke-opacity", 0.45).attr("stroke-width", 1);
       const anchorEnd = ex > w * 0.6;
-      const lab = g.append("text").attr("class", "label-2").attr("x", ex + (anchorEnd ? -6 : 6)).attr("y", -12)
+      const lab = g.append("text").attr("class", "label-2").attr("x", ex + (anchorEnd ? -6 : 6))
         .attr("text-anchor", anchorEnd ? "end" : "start").style("font-size", "12px");
       lab.append("tspan").style("fill", "var(--text)").text(ev.label);
       if (ev.detail && !narrow) lab.append("tspan").text(`  ${ev.detail}`);
+      const lw = lab.node().getComputedTextLength?.() || ev.label.length * 6.5;
+      const x0 = anchorEnd ? ex - 6 - lw : ex + 6, x1 = x0 + lw;
+      let riga = 0;
+      while (occupate.some(([a0, a1, r]) => r === riga && x0 < a1 + 8 && x1 > a0 - 8)) riga++;
+      occupate.push([x0, x1, riga]);
+      lab.attr("y", (narrow ? -30 : -12) - riga * 14);
     }
 
     // fasce p10–p90 (lavaggio al 12%)
@@ -161,7 +173,7 @@ export function trendChart(container, opts) {
         .attr("stroke", "var(--panel)").attr("stroke-width", 2);
       const lab = g.append("g").attr("transform", `translate(${cx + 12},${ly[k]})`);
       lab.append("text").attr("class", "label").attr("dy", "-0.1em").text(valueFormat(e.p.v));
-      lab.append("text").attr("class", "label-2").attr("dy", "1.15em").text(e.s.name);
+      lab.append("text").attr("class", "label-2").attr("dy", "1.15em").text(narrow && e.s.shortName ? e.s.shortName : e.s.name);
     });
 
     // mirino + tooltip
@@ -185,7 +197,8 @@ export function trendChart(container, opts) {
             if ((s.width ?? 2) >= 2) dots[i].attr("opacity", 1).attr("cx", x(p.date)).attr("cy", y(p.v));
             ttRow(t, s.color, s.name, `${valueFormat(p.v)} ${unit}`);
           }
-          const note = tooltipNote ?? (series[0].points[0]?.lo != null ? "Fascia: 80% dei distributori (10°–90° percentile)" : null);
+          const note = typeof tooltipNote === "function" ? tooltipNote(d)
+            : tooltipNote ?? (series[0].points[0]?.lo != null ? "Fascia: 80% dei distributori (10°–90° percentile)" : null);
           if (note) {
             const n = document.createElement("div");
             n.className = "tt-note";

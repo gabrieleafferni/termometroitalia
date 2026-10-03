@@ -144,6 +144,24 @@
         </article>
       </section>
 
+      <section class="panel section reveal" id="barile">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Dal barile alla pompa · serie settimanale</div>
+            <h2 id="barile-title">Prezzo industriale e costo del greggio</h2>
+            <p class="sub" id="barile-sub">Prezzo industriale (MASE, al netto di accise e IVA) e prezzo del petrolio Brent convertito in euro al litro.</p>
+          </div>
+        </div>
+        <div class="seg seg-sm storico-modo" id="barile-modo" role="group" aria-label="Valori del grafico dal barile alla pompa">
+          <button type="button" data-modo="nominale" aria-pressed="true">In euro correnti</button>
+          <button type="button" data-modo="reale" aria-pressed="false">Al netto dell'inflazione</button>
+        </div>
+        <div class="hist-stats" id="barile-stats"></div>
+        <div class="legend" id="barile-legend"></div>
+        <div class="chart" id="barile-chart"></div>
+        <p class="note" id="barile-note"></p>
+      </section>
+
       <section class="grid grid-3 section">
         <article class="panel reveal">
           <div class="panel-title">Regioni</div>
@@ -186,7 +204,7 @@
       </section>
 
       <p class="panel-foot" style="margin-top: 20px">
-        <span>Fonti: MIMIT – Osservaprezzi Carburanti (IODL 2.0); MASE – prezzi medi settimanali; ISTAT – indice dei prezzi al consumo NIC (CC BY 4.0). Elaborazione Termometro Italia.</span>
+        <span>Fonti: MIMIT – Osservaprezzi Carburanti (IODL 2.0); MASE – prezzi medi settimanali; ISTAT – indice dei prezzi al consumo NIC (CC BY 4.0); EIA via FRED – petrolio Brent; BCE – cambio euro/dollaro. Elaborazione Termometro Italia.</span>
         <a href="metodo.html">Come sono calcolati questi numeri →</a>
       </p>
     </main>

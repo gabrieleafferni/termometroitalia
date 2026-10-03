@@ -263,6 +263,44 @@ def novita_reale() -> list[dict]:
     return out
 
 
+def novita_barile() -> list[dict]:
+    """Dal barile alla pompa: prezzo industriale contro costo del greggio (Brent in €/l)."""
+    path = MARTS / "mart_carburanti__barile_settimanale.parquet"
+    if not path.exists():
+        return []
+    rows = q(f"""select data, carburante, prezzo_netto, brent_usd_barile, brent_eur_litro, differenza,
+                        differenza_reale, massimo_differenza_reale_precedente, mese_riferimento_reale
+                 from '{path}' order by carburante, data""")
+    serie: dict[str, list[dict]] = {}
+    for r in rows:
+        serie.setdefault(r["carburante"], []).append(r)
+    out = []
+    for carb in ("gasolio", "benzina"):
+        s = serie.get(carb)
+        if not s:
+            continue
+        u = s[-1]
+        storia = [r["differenza_reale"] for r in s if r["data"].year <= u["data"].year - 1]
+        if not storia:
+            continue
+        media = sum(storia) / len(storia)
+        rapporto = u["differenza_reale"] / media
+        record = u["massimo_differenza_reale_precedente"] is not None and u["differenza_reale"] > u["massimo_differenza_reale_precedente"]
+        nome = NOMI[carb].split()[0]
+        confronto = ("il doppio della media" if 1.9 <= rapporto < 2.15 else
+                     f"{euro(rapporto, 1)} volte la media" if rapporto >= 1.25 else
+                     "in linea con la media" if rapporto > 0.85 else "sotto la media")
+        testo = (f"{nome}: nella settimana del {data_it(u['data'])} il prezzo industriale ({euro(u['prezzo_netto'])} €/l, "
+                 f"senza tasse) supera di {euro(u['differenza'] * 100, 0)} centesimi il costo del greggio Brent "
+                 f"({euro(u['brent_eur_litro'])} €/l, {euro(u['brent_usd_barile'], 0)} $ al barile). "
+                 f"È {confronto} {s[0]['data'].year}–{u['data'].year - 1} ({euro(media * 100, 0)} centesimi in euro di oggi)")
+        testo += (", il valore più alto della serie." if record else ".")
+        out.append({"id": f"barile_{carb}", "tema": "carburanti", "carburante": carb,
+                    "titolo": "Dal barile alla pompa", "testo": testo,
+                    "rilevanza": round(60 + min(25, max(0, rapporto - 1) * 25) + (8 if record else 0), 1)})
+    return out
+
+
 def novita_tetto(ultimo: dt.date) -> list[dict]:
     """Monitoraggio del tetto ai prezzi Eni e delle mosse degli altri marchi."""
     seed = ROOT / "transform" / "seeds" / "misure_prezzo.csv"
@@ -422,6 +460,7 @@ def main() -> int:
             })
 
     novita += novita_territorio(ultimo)
+    novita += novita_barile()
     novita += novita_storico()
     for r in novita_reale():
         base = next((n for n in novita if n["id"] == r.get("integra")), None)

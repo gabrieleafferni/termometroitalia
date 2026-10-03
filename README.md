@@ -21,7 +21,7 @@ Termometro Italia è un osservatorio automatico sui temi caldi dell'attualità i
 flowchart LR
     A[MIMIT<br/>open data] -->|ogni mattina| B[Ingestion<br/>Python]
     A2[Mirror pubblico<br/>fallback] -.-> B
-    A3[MASE serie dal 2005<br/>ISTAT indice NIC] --> B
+    A3[MASE serie dal 2005<br/>ISTAT indice NIC<br/>Brent e cambio BCE] --> B
     B --> C[(Data lake<br/>Parquet)]
     C --> D[dbt + DuckDB<br/>staging → mart<br/>+ test]
     D --> E[(Mart<br/>Parquet)]
@@ -35,12 +35,12 @@ Tutto gira su **GitHub Actions** (`.github/workflows/aggiornamento.yml`), senza 
 
 | Livello | Cosa fa | Dove |
 |---|---|---|
-| **Ingestion** | Scarica i CSV del MIMIT, li valida e li archivia in Parquet immutabili (uno per data di estrazione). Idempotente, con retry e fallback su un mirror pubblico. La serie settimanale MASE dal 2005 viene salvata come snapshot a ogni nuova settimana; l'indice dei prezzi NIC dell'ISTAT (API SDMX, una sola richiesta per giro) a ogni nuovo mese. | `pipeline/carburanti/ingest.py`, `settimanali.py`, `pipeline/istat/nic.py` |
+| **Ingestion** | Scarica i CSV del MIMIT, li valida e li archivia in Parquet immutabili (uno per data di estrazione). Idempotente, con retry e fallback su un mirror pubblico. La serie settimanale MASE dal 2005 viene salvata come snapshot a ogni nuova settimana; l'indice dei prezzi NIC dell'ISTAT (API SDMX, una sola richiesta per giro) a ogni nuovo mese; Brent, raffinati NY Harbor (EIA via FRED) e cambio BCE in file mensili, riscritti solo quando cambiano. | `pipeline/carburanti/ingest.py`, `settimanali.py`, `pipeline/istat/nic.py`, `pipeline/mercati/quotazioni.py` |
 | **Data lake** | Prezzi: uno snapshot completo al giorno. Anagrafica impianti: *change log* SCD tipo 2 (solo nuovi, modificati, chiusi), perché cambia di poche righe al giorno. Lo schema evolve senza riscrivere il passato: la colonna `indirizzo` esiste dai file del 2/10/2026 e i file precedenti si leggono con `union_by_name`. | `data/raw/` |
 | **Trasformazione** | Progetto dbt su DuckDB: staging → intermediate → mart, con i mart materializzati come Parquet (`external`). Le quattro basi del NIC (1995, 2010, 2015, 2025) sono raccordate in un'unica serie con il metodo ISTAT, per esprimere i prezzi dal 2005 in euro di oggi. | `transform/` |
-| **Qualità** | 34 test dbt: unicità, valori ammessi, intervalli plausibili, copertura minima del giorno, province mappate, coerenza tra istogramma e medie, serie NIC raccordata senza buchi né salti. 30 sono bloccanti (se uno fallisce, il sito non viene aggiornato), 4 sono solo avvisi (province non mappate, serie settimanale ferma, indice NIC fermo, tipo di impianto sconosciuto). | `transform/models/schema.yml`, `transform/tests/` |
-| **Novità** | Confronta l'ultimo giorno con la storia: variazioni a 7 e 30 giorni, record sulla finestra, strisce di rialzi o ribassi, scatti insoliti (z-score > 2,5), record dal 2005 in euro correnti e al netto dell'inflazione. Prima gli andamenti generali, poi il contesto (come le misure di un singolo marchio). | `pipeline/insights.py` |
-| **Sito** | Vite + D3, senza framework. Mappa canvas di 20.000 punti con zoom, hover e scheda del distributore (indirizzo e indicazioni stradali), ricerca "Vicino a me" calcolata nel browser (la posizione non lascia il dispositivo), istogramma dei prezzi consultabile giorno per giorno, serie dal 2005 in euro correnti o al netto dell'inflazione, grafici SVG, vista tabellare per l'accessibilità. | `site/` |
+| **Qualità** | 42 test dbt: unicità, valori ammessi, intervalli plausibili, copertura minima del giorno, province mappate, coerenza tra istogramma e medie, serie NIC raccordata senza buchi né salti, confronto con il Brent senza errori di unità. 37 sono bloccanti (se uno fallisce, il sito non viene aggiornato), 5 sono solo avvisi (province non mappate, serie settimanale ferma, indice NIC fermo, Brent fermo, tipo di impianto sconosciuto). | `transform/models/schema.yml`, `transform/tests/` |
+| **Novità** | Confronta l'ultimo giorno con la storia: variazioni a 7 e 30 giorni, record sulla finestra, strisce di rialzi o ribassi, scatti insoliti (z-score > 2,5), record dal 2005 in euro correnti e al netto dell'inflazione, distanza tra prezzo industriale e greggio rispetto alla media storica. Prima gli andamenti generali, poi il contesto (come le misure di un singolo marchio). | `pipeline/insights.py` |
+| **Sito** | Vite + D3, senza framework. Mappa canvas di 20.000 punti con zoom, hover e scheda del distributore (indirizzo e indicazioni stradali), ricerca "Vicino a me" calcolata nel browser (la posizione non lascia il dispositivo), istogramma dei prezzi consultabile giorno per giorno, serie dal 2005 in euro correnti o al netto dell'inflazione, confronto tra prezzo industriale e petrolio Brent, grafici SVG, vista tabellare per l'accessibilità. | `site/` |
 
 ## I dati prodotti
 
@@ -57,6 +57,8 @@ I mart in `data/marts/` sono versionati e riutilizzabili:
 | `mart_carburanti__bandiere_oggi` | marchio × carburante |
 | `mart_carburanti__marchi_giornaliero` | giorno × marchio × carburante (rete stradale), con la quota di impianti entro il tetto Eni |
 | `mart_carburanti__storico_settimanale` | settimana × carburante dal 2005 (MASE), con accise e IVA, massimo precedente e prezzo reale (euro dell'ultimo mese NIC) |
+| `mart_carburanti__barile_settimanale` | settimana × carburante dal 2005: prezzo industriale e Brent in euro al litro, differenza, valori reali |
+| `mart_mercati__quotazioni_giornaliere` | giorno di mercato: Brent, benzina e gasolio NY Harbor in dollari e in euro al litro, cambio BCE (base per i modelli) |
 | `novita.json` | le notizie del giorno, ordinate per rilevanza |
 
 La metodologia (prezzi di riferimento self/servito, finestra di validità di 8 giorni, filtro degli errori grossolani) è descritta nella pagina [Metodo](https://gabrieleafferni.github.io/termometroitalia/metodo.html).
@@ -92,6 +94,8 @@ site/              sito statico (Vite + D3)
 - Prezzi e anagrafica carburanti: **MIMIT – Osservaprezzi Carburanti**, licenza IODL 2.0. Storico dal 28/07/2026 ricostruito dall'archivio pubblico [LucaDDDD/benzina-data](https://github.com/LucaDDDD/benzina-data).
 - Prezzi medi settimanali dal 2005: **MASE – Ministero dell'Ambiente e della Sicurezza Energetica**.
 - Indice dei prezzi al consumo per l'intera collettività (NIC): **ISTAT**, [esploradati.istat.it](https://esploradati.istat.it/), licenza CC BY 4.0.
+- Petrolio Brent e prodotti raffinati NY Harbor: **U.S. Energy Information Administration**, via [FRED](https://fred.stlouisfed.org/series/DCOILBRENTEU) (pubblico dominio).
+- Cambio euro/dollaro: **Banca Centrale Europea**, tassi di riferimento ([data.ecb.europa.eu](https://data.ecb.europa.eu/)).
 - Confini amministrativi: **ISTAT**, via [openpolis/geojson-italy](https://github.com/openpolis/geojson-italy) (CC-BY).
 
 ---

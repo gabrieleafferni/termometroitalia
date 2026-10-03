@@ -19,6 +19,8 @@ const COLORE = { benzina: "#c98500", gasolio: "#8f6ff0", gpl: "#3ecf8e", metano:
 // grafico dei marchi: tutti i marchi con lo stesso peso (linee grigie sottili),
 // in evidenza solo la media della rete. Il racconto è l'andamento generale, non un marchio.
 const COL_MARCHIO = "#56607a";
+// petrolio Brent nel pannello "dal barile alla pompa": validato contro benzina e gasolio sul pannello scuro
+const COL_BRENT = "#199fb5";
 const NOME_MARCHIO = { "Agip Eni": "Eni", "Api-Ip": "IP" };
 const FONTE_IP = "https://www.ansa.it/sito/notizie/economia/2026/09/28/parte-da-circa-300-distributori-limite-prezzi-ip-tetto-uguale-ad-eni_954645af-a337-4eab-ba58-a19e874b8bdc.html";
 const CAMPO = { benzina: "b", gasolio: "g" };
@@ -41,7 +43,7 @@ const fmtComunicazione = new Intl.DateTimeFormat("it-IT", { timeZone: "UTC", day
 const indicazioni = (s) => `https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lon}`;
 
 async function main() {
-  const [meta, naz, reg, prov, tipo, bandiere, imp, novita, topo, marchi, storico, misure, distrib] = await Promise.all([
+  const [meta, naz, reg, prov, tipo, bandiere, imp, novita, topo, marchi, storico, misure, distrib, barile] = await Promise.all([
     load("meta.json"),
     load("carburanti_nazionale.json"),
     load("carburanti_regionale.json"),
@@ -55,6 +57,7 @@ async function main() {
     load("carburanti_storico.json"),
     load("misure.json"),
     load("carburanti_distribuzione.json"),
+    load("carburanti_barile.json").catch(() => null), // pannello facoltativo
   ]);
   chrome("carburanti", meta);
 
@@ -390,6 +393,7 @@ async function main() {
   const trendSeries = ["benzina", "gasolio"].map((c) => ({
     key: c,
     name: NOMI_RIF[c],
+    shortName: NOMI_RIF[c].split(" ")[0],
     color: COLORE[c],
     points: byFuel.get(c).map((r) => ({ date: r.date, v: r.media, lo: r.p10, hi: r.p90 })),
   }));
@@ -499,6 +503,106 @@ async function main() {
   }
   modoBtns.forEach((b) => b.addEventListener("click", () => renderStorico(b.dataset.modo)));
   renderStorico("nominale");
+
+  // ---------- dal barile alla pompa: prezzo industriale contro Brent in euro al litro ----------
+  const barileEl = document.getElementById("barile-chart");
+  const bar = barile ? fromColumns(barile.settimane).map((r) => ({ ...r, date: parseDay(r.d) })) : [];
+  const barBy = d3.group(bar, (r) => r.c);
+  const barileBtns = document.querySelectorAll("#barile-modo button");
+  let modoBarile = "nominale";
+  barileBtns.forEach((b) => b.addEventListener("click", () => {
+    modoBarile = b.dataset.modo;
+    renderBarile();
+  }));
+  if (!reali) document.getElementById("barile-modo").hidden = true;
+
+  function renderBarile() {
+    const sezione = document.getElementById("barile");
+    const s = barBy.get(fuel);
+    sezione.hidden = !s?.length;
+    if (!s?.length) return;
+    const reale = modoBarile === "reale" && reali;
+    barileBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.modo === modoBarile)));
+    const netto = (r) => (reale ? r.nr : r.n);
+    const brent = (r) => (reale ? r.br : r.b);
+    const perData = new Map(s.map((r) => [+r.date, r]));
+    const euroDi = reale ? ` in euro di ${meseAnno(meseRif)}` : "";
+
+    barileEl.replaceChildren();
+    trendChart(barileEl, {
+      series: [
+        // la fascia tra le due linee è la differenza (lavaggio del colore del carburante)
+        { key: "netto", name: "Prezzo industriale", shortName: "Industriale", color: COLORE[fuel], points: s.map((r) => ({ date: r.date, v: netto(r), lo: brent(r), hi: netto(r) })) },
+        { key: "brent", name: "Brent", color: COL_BRENT, points: s.map((r) => ({ date: r.date, v: brent(r) })) },
+      ],
+      height: 360,
+      xTicks: "anni",
+      events: [{ date: new Date(2022, 1, 24), label: "Invasione russa dell'Ucraina" }],
+      tooltipTitle: (d) => `Settimana del ${fmt.giornoAnno(d).trim()}`,
+      tooltipNote: (d) => {
+        const r = perData.get(+d);
+        return r ? `Differenza: ${fmt.prezzo(netto(r) - brent(r))} €/l${euroDi} · Brent ${fmt.intero(Math.round(r.bu))} $ al barile` : null;
+      },
+      ariaLabel: `Prezzo industriale del ${fuel} e petrolio Brent in euro al litro, settimana per settimana dal 2005${euroDi}`,
+    });
+
+    // numeri dell'ultima settimana e confronto con la media degli anni precedenti (in euro di oggi)
+    const u = s.at(-1);
+    const anno = u.date.getFullYear();
+    const storia = s.filter((r) => r.date.getFullYear() < anno);
+    const media = d3.mean(storia, (r) => r.nr - r.br);
+    const periodo = `${s[0].date.getFullYear()}–${anno - 1}`;
+    const diff = u.nr - u.br;
+    const rapporto = diff / media;
+    const confronto = rapporto >= 1.9 && rapporto < 2.15 ? "il doppio della media"
+      : rapporto >= 1.25 ? `${rapporto.toLocaleString("it-IT", { maximumFractionDigits: 1 })} volte la media`
+      : rapporto > 0.85 ? "in linea con la media" : "sotto la media";
+    const nome = fuel === "benzina" ? "Benzina" : "Gasolio";
+    document.getElementById("barile-title").textContent =
+      `${nome}: tra prezzo industriale e greggio ${fmt.intero(Math.round(diff * 100))} centesimi al litro, ${confronto} ${periodo}`;
+    document.getElementById("barile-sub").textContent =
+      `Prezzo industriale (MASE, senza accise e IVA) e petrolio Brent convertito in euro al litro, media della settimana prima di ogni rilevazione. ` +
+      (reale ? `Valori in euro di ${meseAnno(meseRif)}, con l'indice NIC dell'ISTAT.` : "Valori in euro correnti.") +
+      ` La fascia colorata è la differenza tra i due.`;
+
+    const stats = document.getElementById("barile-stats");
+    stats.replaceChildren();
+    const stat = (l, v, small, extra) => {
+      const d = el("div", "hist-stat");
+      const vv = el("div", "v", v);
+      if (small) vv.append(el("small", null, small));
+      d.append(el("div", "l", l), vv);
+      if (extra) d.append(el("div", "hist-prima", extra));
+      stats.append(d);
+    };
+    stat(`Brent, settimana prima del ${fmt.giorno(u.date).trim()}`, fmt.intero(Math.round(u.bu)), "$ al barile", `${fmt.prezzo(u.b)} € al litro`);
+    stat("Prezzo industriale", fmt.prezzo(u.n), "€/l", `${NOMI_RIF[fuel].split(" ")[0]}, senza accise e IVA`);
+    stat("Differenza", fmt.prezzo(u.n - u.b), "€/l", `media ${periodo}: ${fmt.prezzo(media)} in euro di oggi`);
+
+    const lg = document.getElementById("barile-legend");
+    lg.replaceChildren();
+    for (const [cls, c, t] of [["key-line", COLORE[fuel], "Prezzo industriale, senza accise e IVA"], ["key-line", COL_BRENT, "Petrolio Brent in euro al litro"], ["key-band", COLORE[fuel], "Differenza"]]) {
+      const sp = el("span");
+      const k = el("span", cls);
+      k.style.background = c;
+      sp.append(k, document.createTextNode(t));
+      lg.append(sp);
+    }
+    const ul = barile.ultimo;
+    document.getElementById("barile-note").textContent =
+      "La differenza non è un guadagno: comprende la raffinazione, il trasporto, le scorte obbligatorie, la distribuzione e i margini della filiera. " +
+      `Ultima quotazione del Brent: ${fmt.intero(Math.round(ul.brent_usd_barile))} $ al barile il ${fmt.giorno(parseDay(ul.data)).trim()} ` +
+      `(${fmt.prezzo(ul.brent_eur_litro)} €/l al cambio BCE di ${ul.usd_per_eur.toLocaleString("it-IT", { minimumFractionDigits: 4 })} dollari per euro). Fonti: EIA via FRED, BCE, MASE.`;
+
+    barileEl.parentElement.querySelector("details.table-view")?.remove();
+    tableView(barileEl.parentElement, [
+      { key: "d", label: "Settimana" },
+      { key: "n", label: `Prezzo industriale (€/l${euroDi})`, num: true, format: fmt.prezzo },
+      { key: "b", label: `Brent (€/l${euroDi})`, num: true, format: fmt.prezzo },
+      { key: "diff", label: "Differenza (€/l)", num: true, format: fmt.prezzo },
+      { key: "bu", label: "Brent ($ al barile)", num: true, format: (v) => v.toLocaleString("it-IT", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+    ], () => [...s].reverse().map((r) => ({ d: r.d, n: netto(r), b: brent(r), diff: netto(r) - brent(r), bu: r.bu })));
+  }
 
   const tasseEl = document.getElementById("tasse");
   function renderTasse() {
@@ -819,6 +923,7 @@ async function main() {
   function renderFuelPanels() {
     renderMarchi();
     renderTasse();
+    renderBarile();
     const regRows = reg.filter((r) => r.d === oggiISO && r.c === fuel)
       .map((r) => ({ label: r.r, value: r.scarto, media: r.media, n: r.n }))
       .sort((a, b) => b.value - a.value);

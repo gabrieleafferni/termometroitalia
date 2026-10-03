@@ -106,3 +106,27 @@ models:
         tests: [not_null]
       - name: quota_entro_tetto_eni
         tests: [not_null]
+
+  - name: stg_mercati__quotazioni
+    description: Quotazioni giornaliere (Brent, raffinati NY Harbor, cambio BCE) in formato lungo.
+
+  - name: mart_mercati__quotazioni_giornaliere
+    description: >
+      Quotazioni giornaliere in dollari e in euro al litro (Brent, gasolio e benzina
+      NY Harbor) con il cambio BCE. Base dati per i modelli di previsione.
+    columns:
+      - name: data
+        tests: [unique, not_null]
+      - name: usd_per_eur
+        tests: [not_null]
+
+  - name: mart_carburanti__barile_settimanale
+    description: >
+      Settimana × carburante dal 2005: prezzo industriale MASE e costo del Brent in
+      euro al litro (media della settimana precedente), differenza, valori reali.
+    columns:
+      - name: brent_eur_litro
+        tests: [not_null]
+      - name: differenza
+        tests: [not_null]
+
