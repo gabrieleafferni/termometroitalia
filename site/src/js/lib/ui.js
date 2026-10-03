@@ -50,9 +50,10 @@ export function chrome(pagina, meta) {
         <p>Un progetto di Gabriele Afferni · <a href="${REPO}">codice su GitHub</a></p>
       </div>
       <div>
-        <h4>Fonti</h4>
-        <p>Prezzi carburanti: MIMIT – Osservaprezzi Carburanti (IODL 2.0)</p>
-        <p>Confini amministrativi: ISTAT via openpolis/geojson-italy (CC-BY)</p>
+        <h4>Fonti e licenze</h4>
+        <p>MIMIT – Osservaprezzi Carburanti (IODL 2.0) · MASE · ISTAT (CC BY 4.0) · EIA via FRED · BCE · confini ISTAT via openpolis</p>
+        <p>Codice <a href="${REPO}/blob/main/LICENSE">MIT</a> · elaborazioni <a href="https://creativecommons.org/licenses/by/4.0/deed.it">CC BY 4.0</a> · <a href="${REPO}/blob/main/data/LICENSE.md">dettagli</a></p>
+        <p>Progetto indipendente: non è una fonte ufficiale.</p>
       </div>
       <div>
         <h4>Come è fatto</h4>

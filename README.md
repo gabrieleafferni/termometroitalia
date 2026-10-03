@@ -89,7 +89,13 @@ site/              sito statico (Vite + D3)
 .github/workflows/ automazione quotidiana e deploy su GitHub Pages
 ```
 
-## Fonti e licenze dei dati
+## Licenze
+
+- **Codice** (pipeline, modelli dbt, sito): licenza [MIT](LICENSE).
+- **Dati**: licenze per cartella in [`data/LICENSE.md`](data/LICENSE.md). In breve: i dati delle fonti restano con le loro licenze; le elaborazioni sui carburanti e sui mercati sono [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.it); la sezione elezioni, in costruzione, sarà [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.it) perché usa dati di Wikipedia.
+- Termometro Italia è un progetto personale e indipendente: non è una fonte ufficiale e non è collegato a enti pubblici, partiti, istituti di sondaggio o testate giornalistiche.
+
+## Fonti dei dati
 
 - Prezzi e anagrafica carburanti: **MIMIT – Osservaprezzi Carburanti**, licenza IODL 2.0. Storico dal 28/07/2026 ricostruito dall'archivio pubblico [LucaDDDD/benzina-data](https://github.com/LucaDDDD/benzina-data).
 - Prezzi medi settimanali dal 2005: **MASE – Ministero dell'Ambiente e della Sicurezza Energetica**.
