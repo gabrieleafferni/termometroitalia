@@ -1,17 +1,9 @@
 {
-  "aggiornato_al": "2026-10-03",
-  "generato_il": "2026-10-04T06:53:20+00:00",
+  "aggiornato_al": "2026-10-04",
+  "generato_il": "2026-10-05T06:55:41+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
-    {
-      "id": "gpl_scatto",
-      "tema": "carburanti",
-      "carburante": "gpl",
-      "titolo": "Variazione insolita",
-      "testo": "GPL: salita di +0,5 cent in un giorno, fuori dal normale (z = 10,8).",
-      "rilevanza": 95
-    },
     {
       "id": "storico_gasolio",
       "tema": "carburanti",
@@ -37,11 +29,11 @@
       "tema": "carburanti",
       "carburante": "metano",
       "titolo": "Metano",
-      "valore": 1.898,
+      "valore": 1.899,
       "unita": "€/kg",
-      "delta_7g": 0.0176,
-      "delta_30g": 0.1863,
-      "testo": "Metano a 1,898 €/kg: +1,8 cent in una settimana, +18,6 cent in un mese.",
+      "delta_7g": 0.0193,
+      "delta_30g": 0.1871,
+      "testo": "Metano a 1,899 €/kg: +1,9 cent in una settimana, +18,7 cent in un mese.",
       "rilevanza": 90
     },
     {
@@ -57,12 +49,12 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Gasolio self",
-      "valore": 2.248,
+      "valore": 2.245,
       "unita": "€/l",
-      "delta_7g": -0.1109,
-      "delta_30g": 0.0996,
-      "testo": "Gasolio self a 2,248 €/l: −11,1 cent in una settimana, +10,0 cent in un mese.",
-      "rilevanza": 89.8
+      "delta_7g": -0.1346,
+      "delta_30g": 0.0963,
+      "testo": "Gasolio self a 2,245 €/l: −13,5 cent in una settimana, +9,6 cent in un mese.",
+      "rilevanza": 88.5
     },
     {
       "id": "barile_gasolio",
@@ -84,27 +76,35 @@
       "id": "benzina_striscia",
       "tema": "carburanti",
       "carburante": "benzina",
-      "titolo": "6 giorni di ribasso",
-      "testo": "Benzina self: 6 rilevazioni consecutive in ribasso.",
-      "rilevanza": 72
+      "titolo": "7 giorni di ribasso",
+      "testo": "Benzina self: 7 rilevazioni consecutive in ribasso.",
+      "rilevanza": 74
     },
     {
       "id": "gasolio_striscia",
       "tema": "carburanti",
       "carburante": "gasolio",
-      "titolo": "6 giorni di ribasso",
-      "testo": "Gasolio self: 6 rilevazioni consecutive in ribasso.",
-      "rilevanza": 72
+      "titolo": "7 giorni di ribasso",
+      "testo": "Gasolio self: 7 rilevazioni consecutive in ribasso.",
+      "rilevanza": 74
     },
     {
       "id": "pieno_benzina",
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il costo di un pieno",
-      "testo": "Un pieno da 50 litri di benzina self costa 102,63 €: 0,60 € in più di un mese fa.",
-      "valore": 102.63,
+      "testo": "Un pieno da 50 litri di benzina self costa 102,49 €: 0,46 € in più di un mese fa.",
+      "valore": 102.49,
       "unita": "€",
       "rilevanza": 70
+    },
+    {
+      "id": "metano_striscia",
+      "tema": "carburanti",
+      "carburante": "metano",
+      "titolo": "4 giorni di rialzo",
+      "testo": "Metano: 4 rilevazioni consecutive in rialzo.",
+      "rilevanza": 68
     },
     {
       "id": "gap_gasolio_benzina",
@@ -135,40 +135,40 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Divario tra regioni",
-      "testo": "Benzina self: Trentino-Alto Adige è la regione più cara (2,081 €/l), Lazio la più economica (2,031). Differenza: 4,9 cent.",
+      "testo": "Benzina self: Trentino-Alto Adige è la regione più cara (2,078 €/l), Lazio la più economica (2,029). Differenza: 5,0 cent.",
       "rilevanza": 55
-    },
-    {
-      "id": "benzina_quadro",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Benzina self",
-      "valore": 2.053,
-      "unita": "€/l",
-      "delta_7g": -0.1072,
-      "delta_30g": 0.012,
-      "testo": "Benzina self a 2,053 €/l: −10,7 cent in una settimana, +1,2 cent in un mese.",
-      "rilevanza": 54.8
     },
     {
       "id": "gpl_quadro",
       "tema": "carburanti",
       "carburante": "gpl",
       "titolo": "GPL",
-      "valore": 0.764,
+      "valore": 0.766,
       "unita": "€/l",
-      "delta_7g": 0.0083,
-      "delta_30g": 0.0097,
-      "testo": "GPL a 0,764 €/l: +0,8 cent in una settimana, +1,0 cent in un mese.",
-      "rilevanza": 53.9
+      "delta_7g": 0.0096,
+      "delta_30g": 0.011,
+      "testo": "GPL a 0,766 €/l: +1,0 cent in una settimana, +1,1 cent in un mese.",
+      "rilevanza": 54.4
+    },
+    {
+      "id": "benzina_quadro",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Benzina self",
+      "valore": 2.05,
+      "unita": "€/l",
+      "delta_7g": -0.1116,
+      "delta_30g": 0.0092,
+      "testo": "Benzina self a 2,050 €/l: −11,2 cent in una settimana, +0,9 cent in un mese.",
+      "rilevanza": 53.7
     },
     {
       "id": "autostrada_pieno",
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il pieno in autostrada",
-      "testo": "Un pieno di benzina da 50 litri costa in media 0,67 € in più in autostrada.",
-      "valore": 0.67,
+      "testo": "Un pieno di benzina da 50 litri costa in media 0,71 € in più in autostrada.",
+      "valore": 0.71,
       "unita": "€",
       "rilevanza": 50
     },
@@ -177,7 +177,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Tetto Eni · benzina",
-      "testo": "L'86% dei distributori Eni fuori autostrada vende la benzina self a 1,99 €/l o meno (il giorno prima: 87%). Prezzo medio Eni: 1,991 €/l.",
+      "testo": "L'86% dei distributori Eni fuori autostrada vende la benzina self a 1,99 €/l o meno (il giorno prima: 86%). Prezzo medio Eni: 1,991 €/l.",
       "rilevanza": 95,
       "contesto": true
     },
@@ -186,26 +186,8 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Tetto Eni · gasolio",
-      "testo": "L'86% dei distributori Eni fuori autostrada vende il gasolio self a 2,19 €/l o meno (il giorno prima: 87%). Prezzo medio Eni: 2,190 €/l.",
+      "testo": "L'87% dei distributori Eni fuori autostrada vende il gasolio self a 2,19 €/l o meno (il giorno prima: 86%). Prezzo medio Eni: 2,190 €/l.",
       "rilevanza": 94,
-      "contesto": true
-    },
-    {
-      "id": "ribasso_Api-Ip_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Api-Ip abbassa i prezzi",
-      "testo": "Api-Ip: benzina self −2,2 cent in un giorno (media 2,051 €/l); entro il tetto Eni il 33% dei suoi impianti.",
-      "rilevanza": 90,
-      "contesto": true
-    },
-    {
-      "id": "ribasso_Api-Ip_gasolio",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Api-Ip abbassa i prezzi",
-      "testo": "Api-Ip: gasolio self −2,5 cent in un giorno (media 2,253 €/l); entro il tetto Eni il 33% dei suoi impianti.",
-      "rilevanza": 90,
       "contesto": true
     }
   ]
