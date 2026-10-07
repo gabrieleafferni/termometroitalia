@@ -11,8 +11,10 @@ import { tooltip, ttTitle, ttRow, reducedMotion, onResize } from "../lib/ui.js";
  *          essere più sottili e grigie: forma "enfasi")
  *   label: false per non mettere l'etichetta a fine linea
  *   shortName: nome corto per l'etichetta a fine linea sugli schermi stretti
- * refLines: [{ value, label }]   linee orizzontali di riferimento (es. un tetto)
- * events:   [{ date, label, detail }]  eventi verificati, linee verticali
+ * refLines: [{ value, label }]   linee orizzontali di riferimento (es. un tetto);
+ *           con steps: [{ date, value, label? }] la linea cambia livello a quelle date (a gradino)
+ * events:   [{ date, label, short?, detail }]  eventi verificati, linee verticali
+ *           (short: etichetta corta per gli schermi stretti)
  * markMax:  evidenzia il massimo storico di ogni serie
  * xTicks:   "giorni" | "anni"
  * tooltipNote: testo fisso o funzione (data) => testo, sotto le righe del tooltip
@@ -40,14 +42,39 @@ export function trendChart(container, opts) {
     root.selectAll("svg").remove();
     const W = container.clientWidth;
     const narrow = W < 560;
-    // sul telefono le etichette degli eventi salgono di una riga, per non toccare l'unità di misura
-    const m = { top: events.length ? (narrow ? (events.length > 1 ? 66 : 52) : 40) : 26, right: narrow ? 74 : 130, bottom: 30, left: 46 };
+    const m = { top: 26, right: narrow ? 74 : 130, bottom: 30, left: 46 };
     const w = W - m.left - m.right;
-    const h = height - m.top - m.bottom;
 
     const all = series.flatMap((s) => s.points);
     const x = d3.scaleTime().domain(d3.extent(all, (p) => p.date)).range([0, w]);
-    const values = all.flatMap((p) => [p.lo ?? p.v, p.hi ?? p.v]).concat(refLines.map((r) => r.value));
+
+    // etichette degli eventi: se due si toccherebbero, la seconda sale di una riga.
+    // Prima si stimano le righe (larghezza per eccesso) per fare spazio in alto;
+    // sul telefono le etichette partono una riga più su, per non toccare l'unità di misura.
+    const nomeEvento = (ev) => (narrow && ev.short) || ev.label;
+    const testoEvento = (ev) => nomeEvento(ev) + (ev.detail && !narrow ? `  ${ev.detail}` : "");
+    const posaEventi = (larghezza) => {
+      const occupate = []; // [x0, x1, riga]
+      return events.map((ev, i) => {
+        const ex = x(ev.date);
+        if (ex < 0 || ex > w) return null;
+        const lw = larghezza(ev, i);
+        // a destra della linea, o a sinistra se è nell'ultimo tratto; mai fuori dal riquadro
+        let x0 = ex > w * 0.6 ? ex - 6 - lw : ex + 6;
+        x0 = Math.max(-m.left + 2, Math.min(x0, w + m.right - 2 - lw));
+        const x1 = x0 + lw;
+        let riga = 0;
+        while (occupate.some(([a0, a1, r]) => r === riga && x0 < a1 + 8 && x1 > a0 - 8)) riga++;
+        occupate.push([x0, x1, riga]);
+        return { x0, riga };
+      });
+    };
+    const righeStimate = d3.max(posaEventi((ev) => testoEvento(ev).length * 7), (p) => p?.riga) ?? -1;
+    if (righeStimate >= 0) m.top = (narrow ? 52 : 40) + righeStimate * 14;
+    const h = height - m.top - m.bottom;
+
+    const livelliRif = refLines.flatMap((r) => (r.steps ? r.steps.map((st) => st.value) : [r.value]));
+    const values = all.flatMap((p) => [p.lo ?? p.v, p.hi ?? p.v]).concat(livelliRif);
     const lo = d3.min(values), hi = d3.max(values);
     const pad = (hi - lo) * 0.08 || 0.01;
     // prezzi sempre positivi: l'asse non scende sotto lo zero solo per il margine
@@ -73,35 +100,45 @@ export function trendChart(container, opts) {
       .attr("x", (d) => x(d)).attr("y", h + 20).attr("text-anchor", "middle").text(xf);
     g.append("line").attr("x1", 0).attr("x2", w).attr("y1", h).attr("y2", h).attr("stroke", "var(--axis)");
 
-    // linee di riferimento orizzontali (es. il tetto al prezzo)
+    // linee di riferimento orizzontali (es. il tetto al prezzo), anche a gradino
     for (const r of refLines) {
-      const ry = y(r.value);
-      g.append("line").attr("x1", 0).attr("x2", w).attr("y1", ry).attr("y2", ry)
-        .attr("stroke", "var(--text)").attr("stroke-opacity", 0.7).attr("stroke-width", 1);
-      g.append("text").attr("class", "label-2").style("fill", "var(--text)")
-        .attr("x", w - 4).attr("y", ry + 16).attr("text-anchor", "end").text(r.label);
+      const passi = (r.steps ?? [{ date: x.domain()[0], value: r.value }])
+        .map((st) => ({ px: Math.max(0, Math.min(w, x(st.date))), value: st.value, label: st.label }))
+        .sort((a, b) => a.px - b.px);
+      passi[0].px = 0; // il primo livello vale anche prima della sua data, come riferimento
+      const punti = [...passi, { px: w, value: passi.at(-1).value }];
+      g.append("path").datum(punti).attr("fill", "none")
+        .attr("stroke", "var(--text)").attr("stroke-opacity", 0.7).attr("stroke-width", 1)
+        .attr("d", d3.line().x((p) => p.px).y((p) => y(p.value)).curve(d3.curveStepAfter));
+      // un'etichetta per livello, alla fine del suo tratto (l'ultimo sempre, gli altri se c'è spazio)
+      const ultimo = passi.length - 1;
+      passi.forEach((ps, i) => {
+        const fine = i < ultimo ? passi[i + 1].px : w;
+        const testo = i === ultimo ? r.label : ps.label;
+        if (!testo) return;
+        if (i < ultimo && (fine - ps.px < 40 || Math.abs(y(ps.value) - y(passi[ultimo].value)) < 16)) return;
+        g.append("text").attr("class", "label-2").style("fill", "var(--text)")
+          .attr("x", fine - 4).attr("y", y(ps.value) + 16).attr("text-anchor", "end").text(testo);
+      });
     }
 
-    // eventi di contesto (fatti verificati che spiegano un movimento).
-    // Se due etichette si toccherebbero (succede sul telefono), la seconda sale di una riga.
-    const occupate = []; // [x0, x1, riga]
-    for (const ev of events) {
+    // eventi di contesto (fatti verificati che spiegano un movimento)
+    const etichette = events.map((ev) => {
       const ex = x(ev.date);
-      if (ex < 0 || ex > w) continue;
+      if (ex < 0 || ex > w) return null;
       g.append("line").attr("x1", ex).attr("x2", ex).attr("y1", -8).attr("y2", h)
         .attr("stroke", "var(--text-2)").attr("stroke-opacity", 0.45).attr("stroke-width", 1);
-      const anchorEnd = ex > w * 0.6;
-      const lab = g.append("text").attr("class", "label-2").attr("x", ex + (anchorEnd ? -6 : 6))
-        .attr("text-anchor", anchorEnd ? "end" : "start").style("font-size", "12px");
-      lab.append("tspan").style("fill", "var(--text)").text(ev.label);
+      const lab = g.append("text").attr("class", "label-2").style("font-size", "12px");
+      lab.append("tspan").style("fill", "var(--text)").text(nomeEvento(ev));
       if (ev.detail && !narrow) lab.append("tspan").text(`  ${ev.detail}`);
-      const lw = lab.node().getComputedTextLength?.() || ev.label.length * 6.5;
-      const x0 = anchorEnd ? ex - 6 - lw : ex + 6, x1 = x0 + lw;
-      let riga = 0;
-      while (occupate.some(([a0, a1, r]) => r === riga && x0 < a1 + 8 && x1 > a0 - 8)) riga++;
-      occupate.push([x0, x1, riga]);
-      lab.attr("y", (narrow ? -30 : -12) - riga * 14);
-    }
+      return lab;
+    });
+    const pose = posaEventi((ev, i) => etichette[i].node().getComputedTextLength?.() || testoEvento(ev).length * 6.5);
+    pose.forEach((p, i) => {
+      if (!p) return;
+      etichette[i].attr("x", p.x0).attr("text-anchor", "start")
+        .attr("y", (narrow ? -30 : -12) - Math.min(p.riga, Math.max(0, righeStimate)) * 14);
+    });
 
     // fasce p10–p90 (lavaggio al 12%)
     for (const s of series) {

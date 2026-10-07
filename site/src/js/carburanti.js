@@ -28,8 +28,9 @@ const RANGE = 0.06; // ±6 cent: saturazione della scala colori della mappa
 
 // Eventi di contesto annotati sul grafico storico (solo fatti verificati, con fonte)
 const EVENTI = [
-  { d: "2026-07-29", label: "Taglio delle accise sul gasolio", detail: "(ANSA, 28 luglio 2026)" },
-  { d: "2026-09-28", label: "Prezzo massimo Eni", detail: "(comunicato Eni)" },
+  { d: "2026-07-29", label: "Taglio delle accise sul gasolio", short: "Taglio accise", detail: "(ANSA, 28 luglio 2026)" },
+  { d: "2026-09-28", label: "Prezzo massimo Eni", short: "Tetto Eni", detail: "(comunicato Eni)" },
+  { d: "2026-10-06", label: "Fine dello sconto sulle accise del gasolio", short: "Fine sconto accise", detail: "(+6,1 cent · ANSA)" },
 ];
 
 const titleCase = (s) =>
@@ -627,11 +628,20 @@ async function main() {
 
   // ---------- prezzi per marchio, con il tetto Eni come contesto ----------
   marchi.forEach((r) => (r.date = parseDay(r.d)));
-  const misura = misure.filter((m) => m.misura_id === "tetto_eni_2026");
-  const tetto = Object.fromEntries(misura.map((m) => [m.carburante, +m.prezzo_max]));
-  const tDal = parseDay(misura[0].valida_dal);
-  const tAl = parseDay(misura[0].valida_al);
+  const misura = misure.filter((m) => m.misura_id === "tetto_eni_2026")
+    .map((m) => ({ ...m, dal: parseDay(m.valida_dal), al: parseDay(m.valida_al), max: +m.prezzo_max }))
+    .sort((a, b) => a.dal - b.dal);
+  const tDal = d3.min(misura, (m) => m.dal);
+  const tAl = d3.max(misura, (m) => m.al);
   const ultimoMarchi = d3.max(marchi, (r) => r.date);
+  // il prezzo massimo può cambiare durante la misura (gasolio: 2,19 → 2,25 €/l dal 6 ottobre,
+  // a fine sconto sulle accise): periodi per carburante e livello in vigore all'ultima rilevazione
+  const periodi = d3.group(misura, (m) => m.carburante);
+  const periodoAl = (c, d) => {
+    const ps = periodi.get(c) ?? [];
+    return ps.find((m) => d >= m.dal && d <= m.al) ?? (d < ps[0]?.dal ? ps[0] : ps.at(-1));
+  };
+  const tetto = Object.fromEntries([...periodi.keys()].map((c) => [c, periodoAl(c, ultimoMarchi).max]));
   const marchiEl = document.getElementById("marchi-chart");
   const centNum = (e) => (e * 100).toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -669,8 +679,13 @@ async function main() {
       series,
       height: 320,
       // etichetta corta: il nome della misura è già nella legenda e sulla linea verticale
-      refLines: tettoNelGrafico ? [{ value: tetto[fuel], label: `${fmt.prezzo2(tetto[fuel])} €/l` }] : [],
-      events: tettoNelGrafico ? [{ date: tDal, label: "Prezzo massimo Eni" }] : [],
+      refLines: tettoNelGrafico
+        ? [{ steps: periodi.get(fuel).map((m) => ({ date: m.dal, value: m.max, label: `${fmt.prezzo2(m.max)} €/l` })), label: `${fmt.prezzo2(tetto[fuel])} €/l` }]
+        : [],
+      events: tettoNelGrafico
+        ? [{ date: tDal, label: "Prezzo massimo Eni", short: "Tetto Eni" },
+           ...periodi.get(fuel).slice(1).map((m) => ({ date: m.dal, label: `Sale a ${fmt.prezzo2(m.max)} €/l` }))]
+        : [],
       tooltipNote: "Media self dei distributori fuori autostrada",
       ariaLabel: `Prezzo medio del ${fuel} self per marchio negli ultimi 30 giorni`,
     });
@@ -698,11 +713,24 @@ async function main() {
       { key: "d", label: "Data" },
       { key: "m", label: "Marchio", format: (m) => NOME_MARCHIO[m] ?? m },
       { key: "media", label: "Media (€/l)", num: true, format: fmt.prezzo },
-      { key: "q", label: `≤ ${fmt.prezzo2(tetto[fuel])} €/l`, num: true, format: (q) => fmt.pct(q) },
+      { key: "q", label: periodi.get(fuel).length > 1 ? "Entro il prezzo massimo" : `≤ ${fmt.prezzo2(tetto[fuel])} €/l`, num: true, format: (q) => fmt.pct(q) },
       { key: "n", label: "Impianti", num: true, format: fmt.intero },
     ], () => [...righe].sort((a, b) => d3.descending(a.d, b.d) || d3.ascending(a.media, b.media)));
 
     renderContesto(tettoNelGrafico);
+  }
+
+  // cambi del prezzo massimo durante la misura, con la loro fonte
+  function cambiTetto() {
+    const out = [];
+    for (const [c, ps] of periodi) {
+      ps.slice(1).filter((m) => m.dal <= ultimoMarchi).forEach((m, i) => {
+        out.push(document.createTextNode(` Dal ${fmt.giorno(m.dal).trim()} quello ${c === "benzina" ? "della benzina" : "del gasolio"} è ${m.max > ps[i].max ? "salito" : "sceso"} a ${fmt.prezzo2(m.max)} €/l${m.nota ? `: ${m.nota}` : ""} (`),
+          Object.assign(el("a", null, "fonte"), { href: m.fonte, target: "_blank", rel: "noopener" }),
+          document.createTextNode(")."));
+      });
+    }
+    return out;
   }
 
   // riquadro di contesto: la misura che in queste settimane pesa sui prezzi, con fonti
@@ -714,7 +742,9 @@ async function main() {
     document.getElementById("tetto-badge").replaceChildren(el("span", `badge ${inVigore ? "on" : "wait"}`,
       inVigore ? `in vigore dal ${fmt.giorno(tDal).trim()} al ${fmt.giorno(tAl).trim()}` : `dal ${fmt.giorno(tDal).trim()} · dati in arrivo`));
     document.getElementById("tetto-note").replaceChildren(
-      document.createTextNode(`Dal ${fmt.giorno(tDal).trim()} Eni applica un prezzo massimo self di ${fmt.prezzo2(tetto.benzina)} €/l per la benzina e ${fmt.prezzo2(tetto.gasolio)} €/l per il gasolio, fuori autostrada, nei circa 3.000 impianti gestiti da Enilive (su circa 3.900 a marchio Eni). IP applica gli stessi prezzi su parte dei suoi impianti, con estensione progressiva. Fonti: `),
+      document.createTextNode(`Dal ${fmt.giorno(tDal).trim()} Eni applica un prezzo massimo self di ${fmt.prezzo2(periodi.get("benzina")[0].max)} €/l per la benzina e ${fmt.prezzo2(periodi.get("gasolio")[0].max)} €/l per il gasolio, fuori autostrada, nei circa 3.000 impianti gestiti da Enilive (su circa 3.900 a marchio Eni).`),
+      ...cambiTetto(),
+      document.createTextNode(" IP aveva annunciato gli stessi prezzi su parte dei suoi impianti, con estensione progressiva. Fonti: "),
       Object.assign(el("a", null, "comunicato Eni"), { href: misura[0].fonte, target: "_blank", rel: "noopener" }),
       document.createTextNode(", "),
       Object.assign(el("a", null, "ANSA"), { href: FONTE_IP, target: "_blank", rel: "noopener" }),

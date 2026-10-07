@@ -312,9 +312,15 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
     misure = [r for r in csv.DictReader(seed.open(encoding="utf-8")) if r["misura_id"] == "tetto_eni_2026"]
     if not misure:
         return []
-    dal = dt.date.fromisoformat(misure[0]["valida_dal"])
-    al = dt.date.fromisoformat(misure[0]["valida_al"])
-    tetti = {m["carburante"]: float(m["prezzo_max"]) for m in misure}
+    for m in misure:
+        m["dal"], m["al"] = dt.date.fromisoformat(m["valida_dal"]), dt.date.fromisoformat(m["valida_al"])
+    misure.sort(key=lambda m: m["dal"])
+    dal, al = misure[0]["dal"], max(m["al"] for m in misure)
+    # il prezzo massimo può cambiare durante la misura (gasolio dal 6 ottobre):
+    # prima dell'inizio si annunciano i livelli di partenza
+    tetti = {}
+    for m in misure:
+        tetti.setdefault(m["carburante"], float(m["prezzo_max"]))
     rows = q(f"select * from '{path}' order by data")
     per = {(r["data"], r["marchio"], r["carburante"]): r for r in rows}
     date = sorted({r["data"] for r in rows})
@@ -341,13 +347,25 @@ def novita_tetto(ultimo: dt.date) -> list[dict]:
         if not e:
             continue
         e0 = per.get((ieri, "Agip Eni", carb)) if ieri else None
-        confronto = f" (il giorno prima: {euro(e0['quota_entro_tetto_eni'] * 100, 0)}%)" if e0 else ""
+        tetto = float(e["tetto_eni"])
+        tetto0 = float(e0["tetto_eni"]) if e0 else None
+        if e0 and tetto0 != tetto:
+            confronto = f" (il giorno prima, con il prezzo massimo a {euro(tetto0, 2)} €/l: {euro(e0['quota_entro_tetto_eni'] * 100, 0)}%)"
+        else:
+            confronto = f" (il giorno prima: {euro(e0['quota_entro_tetto_eni'] * 100, 0)}%)" if e0 else ""
+        # cambio del prezzo massimo durante la misura: si dice quando e perché
+        periodi = [m for m in misure if m["carburante"] == carb and m["dal"] <= ultimo]
+        cambio = ""
+        if len(periodi) > 1:
+            ora, prima = periodi[-1], periodi[-2]
+            cambio = (f" Dal {data_it(ora['dal'])} il prezzo massimo è {euro(float(ora['prezzo_max']), 2)} €/l "
+                      f"(prima {euro(float(prima['prezzo_max']), 2)})" + (f": {ora['nota']}." if ora.get("nota") else "."))
         frase = pct(e["quota_entro_tetto_eni"])
         out.append({
             "id": f"tetto_eni_{carb}", "tema": "carburanti", "carburante": carb,
             "titolo": f"Tetto Eni · {NOMI[carb].split()[0].lower()}",
             "testo": f"{frase[0].upper() + frase[1:]} dei distributori Eni fuori autostrada vende {'la benzina' if carb == 'benzina' else 'il gasolio'} self "
-                     f"a {euro(tetti[carb], 2)} €/l o meno{confronto}. Prezzo medio Eni: {euro(e['media'])} €/l."
+                     f"a {euro(tetto, 2)} €/l o meno{confronto}. Prezzo medio Eni: {euro(e['media'])} €/l.{cambio}"
                      + (f" Tra quelli che avevano già comunicato il prezzo del giorno alle 8:00 ({e['n_aggiornati_oggi']}), "
                         f"la quota sale {al_pct(e['quota_entro_tetto_aggiornati'])}."
                         if e.get("quota_entro_tetto_aggiornati") is not None and e["quota_entro_tetto_aggiornati"] > e["quota_entro_tetto_eni"] + 0.1 else ""),
