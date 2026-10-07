@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-06",
-  "generato_il": "2026-10-07T14:32:30+00:00",
+  "generato_il": "2026-10-07T17:28:19+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -37,14 +37,6 @@
       "rilevanza": 85.5
     },
     {
-      "id": "barile_gasolio",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 28 settembre il prezzo industriale (1,304 €/l, senza tasse) supera di 66 centesimi il costo del greggio Brent (0,644 €/l, 117 $ al barile). È il doppio della media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 85
-    },
-    {
       "id": "gasolio_quadro",
       "tema": "carburanti",
       "carburante": "gasolio",
@@ -57,20 +49,20 @@
       "rilevanza": 81.2
     },
     {
+      "id": "barile_gasolio",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Gasolio: nella settimana del 5 ottobre il prezzo industriale (1,241 €/l, senza tasse) supera di 57 centesimi il costo del greggio Brent (0,667 €/l, 120 $ al barile). È 1,8 volte la media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 79.1
+    },
+    {
       "id": "benzina_striscia",
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "9 giorni di ribasso",
       "testo": "Benzina self: 9 rilevazioni consecutive in ribasso.",
       "rilevanza": 78
-    },
-    {
-      "id": "barile_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 28 settembre il prezzo industriale (1,095 €/l, senza tasse) supera di 45 centesimi il costo del greggio Brent (0,644 €/l, 117 $ al barile). È 1,6 volte la media 2005–2025 (28 centesimi in euro di oggi).",
-      "rilevanza": 74.7
     },
     {
       "id": "storico_benzina",
@@ -105,6 +97,14 @@
       "valore": 102.16,
       "unita": "€",
       "rilevanza": 70
+    },
+    {
+      "id": "barile_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Benzina: nella settimana del 5 ottobre il prezzo industriale (1,026 €/l, senza tasse) supera di 36 centesimi il costo del greggio Brent (0,667 €/l, 120 $ al barile). È 1,3 volte la media 2005–2025 (28 centesimi in euro di oggi).",
+      "rilevanza": 66.7
     },
     {
       "id": "gap_gasolio_benzina",
