@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-06",
-  "generato_il": "2026-10-07T06:55:03+00:00",
+  "generato_il": "2026-10-07T10:06:21+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -194,7 +194,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Tetto Eni · gasolio",
-      "testo": "Il 32% dei distributori Eni fuori autostrada vende il gasolio self a 2,19 €/l o meno (il giorno prima: 86%). Prezzo medio Eni: 2,228 €/l.",
+      "testo": "L'88% dei distributori Eni fuori autostrada vende il gasolio self a 2,25 €/l o meno (il giorno prima, con il prezzo massimo a 2,19 €/l: 86%). Prezzo medio Eni: 2,228 €/l. Dal 6 ottobre il prezzo massimo è 2,25 €/l (prima 2,19): è finito lo sconto di 6,1 cent sulle accise del gasolio.",
       "rilevanza": 94,
       "contesto": true
     }
