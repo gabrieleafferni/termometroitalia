@@ -151,7 +151,9 @@ export function tableView(container, columns, rows, label = "Mostra i dati in ta
 export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function countUp(node, to, format, duration = 1200) {
-  if (reducedMotion()) {
+  // niente animazione per chi la disattiva e per i browser automatici (anteprime,
+  // crawler): leggerebbero un valore intermedio
+  if (reducedMotion() || navigator.webdriver || document.visibilityState !== "visible") {
     node.textContent = format(to);
     return;
   }
