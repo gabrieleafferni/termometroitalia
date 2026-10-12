@@ -2,7 +2,7 @@ name: Esplorazione fonti (temporaneo)
 on:
   push:
     branches: [esplorazione]
-    paths: [".github/workflows/esplora.yml", "esplorazione/*.py"]
+    paths: [".github/workflows/esplora.yml", "esplorazione/*.py", "pipeline/**"]
 permissions:
   contents: write
 jobs:
@@ -14,8 +14,10 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - name: Esplora fonti per i salari
-        run: python esplorazione/esplora_salari.py
+      - name: Esplora fonti per i salari (prova dei moduli)
+        run: |
+          pip install pyarrow
+          python esplorazione/esplora_salari2.py
       - name: Salva sul ramo di esplorazione
         if: always()
         run: |
