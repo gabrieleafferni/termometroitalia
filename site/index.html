@@ -16,11 +16,13 @@
         <span class="eyebrow">Osservatorio quotidiano · dati aperti</span>
         <h1>Il polso dell'Italia,<br /><span class="glow">misurato ogni giorno.</span></h1>
         <p class="lede">
-          Termometro Italia raccoglie ogni mattina i dati pubblici sui temi di cui tutti parlano,
-          li verifica e li trasforma in cruscotti interattivi. Si parte dal pieno di benzina.
+          Termometro Italia raccoglie i dati pubblici sui temi di cui tutti parlano,
+          li verifica e li trasforma in cruscotti interattivi e in notizie. Oggi: il prezzo del pieno,
+          distributore per distributore, e gli stipendi contro il costo della vita.
         </p>
         <div class="hero-cta">
           <a class="cta" href="carburanti.html">Esplora i carburanti <span aria-hidden="true">→</span></a>
+          <a class="cta" href="salari.html">Esplora i salari <span aria-hidden="true">→</span></a>
           <a class="cta ghost" href="metodo.html">Come funziona</a>
         </div>
         <div class="ticker" id="ticker" aria-label="Indicatori di oggi"></div>
@@ -32,7 +34,7 @@
 
     <main class="page" style="padding-top: 0">
       <div class="section-head">
-        <h2>Cosa è cambiato oggi</h2>
+        <h2>Le notizie dai dati</h2>
         <span class="eyebrow" id="novita-data"></span>
       </div>
       <section class="grid grid-3" id="novita"></section>
@@ -48,10 +50,10 @@
         <a href="https://github.com/gabrieleafferni/termometroitalia" class="eyebrow">codice aperto su GitHub</a>
       </div>
       <section class="pipeline-strip reveal">
-        <div class="step"><div class="k">01 · FONTE</div><div class="h">Open data pubblici</div><div class="d">MIMIT, ISTAT, Viminale, Camera e Senato</div></div>
-        <div class="step"><div class="k">02 · RACCOLTA</div><div class="h">Python, ogni mattina</div><div class="d">GitHub Actions aspetta la pubblicazione del MIMIT e archivia in Parquet</div></div>
-        <div class="step"><div class="k">03 · QUALITÀ</div><div class="h">dbt + DuckDB</div><div class="d">Pulizia, modelli e 28 test automatici</div></div>
-        <div class="step"><div class="k">04 · NOVITÀ</div><div class="h">Cosa è cambiato</div><div class="d">Record, strisce e variazioni insolite</div></div>
+        <div class="step"><div class="k">01 · FONTE</div><div class="h">Open data pubblici</div><div class="d">MIMIT, MASE, ISTAT, Eurostat, OCSE, BCE</div></div>
+        <div class="step"><div class="k">02 · RACCOLTA</div><div class="h">Python, ogni giorno</div><div class="d">GitHub Actions aspetta i prezzi del MIMIT, controlla i nuovi dati ISTAT e archivia in Parquet</div></div>
+        <div class="step"><div class="k">03 · QUALITÀ</div><div class="h">dbt + DuckDB</div><div class="d">Pulizia, modelli e 60 test automatici</div></div>
+        <div class="step"><div class="k">04 · NOTIZIE</div><div class="h">Cosa dicono i dati</div><div class="d">Record, variazioni insolite, salari contro costo della vita</div></div>
         <div class="step"><div class="k">05 · PUBBLICAZIONE</div><div class="h">Questo sito</div><div class="d">Ricostruito e pubblicato a ogni aggiornamento</div></div>
       </section>
     </main>

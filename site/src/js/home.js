@@ -76,8 +76,29 @@ async function main() {
   pieno.append(pv, el("div", "l", "Un pieno da 50 litri di benzina"));
   ticker.append(pieno);
 
+  // salari reali: media degli ultimi 12 mesi contro la media del 2021 (NIC), come nella pagina salari
+  let reali = null;
+  if (salari) {
+    const w = salari.serie["0010|totale"], p = salari.nic;
+    const i21 = salari.mesi.indexOf("2021-01-01");
+    const media = (a, i0, i1) => d3.mean(d3.range(i0, i1 + 1), (i) => a[i]);
+    const w21 = media(w, i21, i21 + 11), p21 = media(p, i21, i21 + 11);
+    reali = d3.range(i21 + 11, w.length).map((i) => (media(w, i - 11, i) / w21) / (media(p, i - 11, i) / p21) - 1);
+  }
+  const pctReali = (x) => (x < 0 ? "−" : "+") + Math.abs(x * 100).toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+  if (reali) {
+    const it = el("div", "item");
+    const l = el("div", "l");
+    const key = el("span");
+    key.style.cssText = "width:12px;height:3px;border-radius:2px;background:#3987e5";
+    l.append(key, document.createTextNode("Salari reali rispetto al 2021"));
+    it.append(el("div", "v", pctReali(reali.at(-1))), l);
+    it.title = "Retribuzioni contrattuali orarie al netto dell'inflazione NIC: media degli ultimi 12 mesi contro la media 2021";
+    ticker.append(it);
+  }
+
   // ---------- novità ----------
-  document.getElementById("novita-data").textContent = `Aggiornato al ${fmt.giornoAnno(parseDay(novita.aggiornato_al)).trim()}`;
+  document.getElementById("novita-data").textContent = `Carburanti aggiornati al ${fmt.giornoAnno(parseDay(novita.aggiornato_al)).trim()}`;
   const nov = document.getElementById("novita");
   // equilibrio tra i temi: fino a 4 notizie sui carburanti e le 2 più rilevanti sui salari
   const perTema = (t) => novita.novita.filter((x) => (x.tema ?? "carburanti") === t);
@@ -116,15 +137,7 @@ async function main() {
     sal.href = "salari.html";
     sal.append(el("span", "num", "02"), el("h3", null, "Salari reali"),
       el("p", null, "Retribuzioni contro inflazione, settore per settore; contratti scaduti; confronto con gli altri paesi."));
-    // salari reali: media degli ultimi 12 mesi contro la media del 2021 (NIC), come nella pagina
-    const w = salari.serie["0010|totale"], p = salari.nic;
-    const i21 = salari.mesi.indexOf("2021-01-01");
-    const media = (a, i0, i1) => d3.mean(d3.range(i0, i1 + 1), (i) => a[i]);
-    const w21 = media(w, i21, i21 + 11), p21 = media(p, i21, i21 + 11);
-    const reali = d3.range(i21 + 11, w.length).map((i) => (media(w, i - 11, i) / w21) / (media(p, i - 11, i) / p21) - 1);
-    const ultimoReale = reali.at(-1);
-    const testo = (ultimoReale < 0 ? "−" : "+") + Math.abs(ultimoReale * 100).toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
-    const v = el("div", "val", testo);
+    const v = el("div", "val", pctReali(reali.at(-1)));
     v.title = "Retribuzioni contrattuali al netto dell'inflazione NIC: media degli ultimi 12 mesi contro la media 2021";
     const sps = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     sps.classList.add("spark");
