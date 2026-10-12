@@ -131,7 +131,7 @@ def salari() -> None:
     """)
     tensione = rows(f"""
         select mese as m, comparto as c, quota_in_attesa as q, mesi_attesa_in_attesa as ma, mesi_attesa_tutti as mt
-        from {mart('mart_salari__tensione')} where comparto in ('totale', 'privato', 'pa') order by comparto, mese
+        from {mart('mart_salari__tensione')} where comparto in ('totale', 'privato', 'industria', 'servizi_privati', 'pa') order by comparto, mese
     """)
     write("salari.json", {
         "aggiornato": {"contrattuali": ultimo["mese"], "provvisorio": bool(ultimo["provvisorio"]),

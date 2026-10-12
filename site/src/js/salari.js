@@ -338,18 +338,21 @@ async function main() {
   legenda("reale-legend", [[COL.salari, "Retribuzioni contrattuali (mensili)"], [COL.fatto, "Retribuzioni di fatto (trimestrali)"]]);
 
   // ---------- contratti scaduti ----------
+  // Nella PA i contratti si firmano dopo la fine del triennio a cui si riferiscono: la quota
+  // in attesa resta al 100% per anni e come linea non dice nulla. Per questo il grafico della
+  // quota mostra il settore privato (industria e servizi), e la PA entra in quello dei mesi di attesa.
   const rinnoviEl = document.getElementById("rinnovi-chart");
-  const COMPARTI = [
-    { c: "totale", n: "Totale", color: COL_TESTO },
-    { c: "privato", n: "Privato", color: COL.fatto },
-    { c: "pa", n: "PA", legenda: "Pubblica amministrazione (PA)", color: COL.giallo },
-  ];
+  const PRIVATI = [
+    { c: "privato", n: "Settore privato", sn: "Privato", color: COL_TESTO },
+    { c: "industria", n: "Industria", color: COL.salari },
+    { c: "servizi_privati", n: "Servizi privati", sn: "Servizi", color: COL.fatto },
+  ].filter(({ c }) => tens.has(c));
   trendChart(rinnoviEl, {
-    series: COMPARTI.map(({ c, n, color }) => ({
-      key: c, name: n, color,
+    series: PRIVATI.map(({ c, n, sn, color }) => ({
+      key: c, name: n, shortName: sn, color,
       points: tens.get(c).map((r) => ({ date: parseDay(r.m), v: r.q * 100 })),
     })),
-    height: 320,
+    height: 300,
     unit: "%",
     yDomain: [0, 100],
     xTicks: "anno",
@@ -357,9 +360,32 @@ async function main() {
     valueFormat: (v) => fmt.intero(Math.round(v)),
     tooltipTitle: (d) => meseAnno(d),
     tooltipNote: "Quota di dipendenti con il contratto nazionale scaduto",
-    ariaLabel: "Quota di dipendenti in attesa di rinnovo del contratto, totale, privato e pubblica amministrazione",
+    ariaLabel: "Quota di dipendenti del settore privato in attesa di rinnovo del contratto: totale, industria e servizi privati",
   });
-  legenda("rinnovi-legend", COMPARTI.map(({ n, legenda: l, color }) => [color, l ?? n]));
+  legenda("rinnovi-legend", PRIVATI.map(({ n, color }) => [color, n]));
+
+  // mesi di attesa di chi ha il contratto scaduto: PA in evidenza, privato come confronto
+  const attesaEl = document.getElementById("attesa-chart");
+  const ATTESA = [
+    { c: "pa", n: "Pubblica amministrazione", sn: "PA", color: COL.giallo, width: 2 },
+    { c: "privato", n: "Settore privato", sn: "Privato", color: COL_TESTO, width: 1.5 },
+  ];
+  trendChart(attesaEl, {
+    series: ATTESA.map(({ c, n, sn, color, width }) => ({
+      key: c, name: n, shortName: sn, color, width,
+      points: tens.get(c).filter((r) => r.q > 0 && r.ma != null).map((r) => ({ date: parseDay(r.m), v: r.ma })),
+    })),
+    height: 300,
+    unit: "mesi",
+    xTicks: "anno",
+    yFormat: (v) => fmt.intero(v),
+    valueFormat: (v) => fmt.intero(Math.round(v)),
+    tooltipTitle: (d) => meseAnno(d),
+    tooltipNote: "Mesi passati dalla scadenza del contratto, in media tra i dipendenti che aspettano il rinnovo",
+    ariaLabel: "Mesi di attesa del rinnovo per i dipendenti con il contratto scaduto, pubblica amministrazione e settore privato",
+  });
+  legenda("attesa-legend", ATTESA.map(({ n, color }) => [color, n]));
+
   const stats = document.getElementById("rinnovi-stats");
   const stat = (parent, l, v, small, extra) => {
     const d = el("div", "hist-stat");
@@ -369,28 +395,51 @@ async function main() {
     if (extra) d.append(el("div", "hist-prima", extra));
     parent.append(d);
   };
+  const tInd = tens.get("industria")?.at(-1), tServ = tens.get("servizi_privati")?.at(-1);
   stat(stats, `Totale · ${meseAnno(parseDay(tTot.m))}`, pctNoSign(tTot.q), "dei dipendenti", `attesa media ${fmt.intero(Math.round(tTot.ma))} mesi`);
-  stat(stats, "Settore privato", pctNoSign(tPriv.q), "", `attesa media ${fmt.intero(Math.round(tPriv.ma))} mesi`);
+  stat(stats, "Settore privato", pctNoSign(tPriv.q), "",
+    tInd && tServ ? `industria ${pctNoSign(tInd.q)}, servizi ${pctNoSign(tServ.q)}` : `attesa media ${fmt.intero(Math.round(tPriv.ma))} mesi`);
   stat(stats, "Pubblica amministrazione", pctNoSign(tPa.q), "", tPa.q > 0 ? `attesa media ${fmt.intero(Math.round(tPa.ma))} mesi` : "");
-  // PA: per quanti mesi di fila tutti i dipendenti pubblici hanno avuto il contratto scaduto
+
+  // PA: per quanti mesi tutti i dipendenti pubblici hanno avuto il contratto scaduto,
+  // il picco dell'attesa e, se c'è, il primo mese con una parte dei contratti in vigore
   const pa = tens.get("pa");
   const pieni = pa.filter((r) => r.q >= 0.999);
+  const picco = d3.greatest(pa.filter((r) => r.ma != null), (r) => r.ma);
+  const note = document.getElementById("rinnovi-note");
   if (pieni.length >= 12) {
-    document.getElementById("rinnovi-chart").insertAdjacentElement("afterend", el("p", "note",
-      `Nella pubblica amministrazione la quota è stata del 100% in ${pieni.length} mesi su ${pa.length}, ` +
-      `da ${meseAnno(parseDay(pieni[0].m))} ${aMese(parseDay(pieni.at(-1).m))}: in tutti quei mesi ogni dipendente pubblico aveva il contratto nazionale scaduto.`));
+    const dopo = pa.slice(pa.indexOf(pieni.at(-1)) + 1);
+    note.textContent =
+      "Nella pubblica amministrazione i contratti si firmano dopo la fine del triennio a cui si riferiscono, così i dipendenti pubblici " +
+      `restano in attesa del rinnovo successivo: la quota è stata del 100% in ${pieni.length} mesi su ${pa.length}, ` +
+      `da ${meseAnno(parseDay(pieni[0].m))} ${aMese(parseDay(pieni.at(-1).m))}` +
+      (dopo.length ? ` (poi ${dopo.map((r) => `${pctNoSign(r.q)} ${aMese(parseDay(r.m))}`).slice(-2).join(" e ")})` : "") +
+      ". Per questo conta soprattutto da quanto si aspetta" +
+      (picco ? `: fino a ${fmt.intero(Math.round(picco.ma))} mesi ${aMese(parseDay(picco.m))}` : "") +
+      ". Le discese della linea gialla sono le firme dei contratti 2019-2021 (nel 2022) e 2022-2024 (tra il 2025 e il 2026).";
+  } else {
+    note.hidden = true;
   }
+
   const serieTot = tens.get("totale");
   const tAnnoPrima = serieTot.at(-13);
   const art = (q) => (/^(8|11)/.test(String(Math.round(q * 100))) ? "l'" : "il ");
   document.getElementById("rinnovi-title").textContent =
     `${aMese(parseDay(tTot.m)).replace(/^a/, "A")} aspetta il rinnovo ${art(tTot.q)}${pctNoSign(tTot.q)} dei dipendenti` +
     (tAnnoPrima ? `: un anno prima ${tAnnoPrima.q > tTot.q ? "erano" : "erano solo"} ${art(tAnnoPrima.q)}${pctNoSign(tAnnoPrima.q)}` : "");
-  tableView(rinnoviEl.parentElement, [
+  const COLONNE = [
+    { c: "totale", n: "Totale" }, { c: "privato", n: "Privato" }, { c: "industria", n: "Industria" },
+    { c: "servizi_privati", n: "Servizi privati" }, { c: "pa", n: "PA" },
+  ].filter(({ c }) => tens.has(c));
+  const quota = (v) => (v == null ? "" : pctNoSign(v));
+  const mesiFmt = (v) => (v == null ? "" : fmt.intero(Math.round(v)));
+  tableView(document.getElementById("rinnovi"), [
     { key: "m", label: "Mese" },
-    ...COMPARTI.map(({ c, n }) => ({ key: c, label: n, num: true, format: (v) => (v == null ? "" : pctNoSign(v)) })),
+    ...COLONNE.map(({ c, n }) => ({ key: c, label: `${n} in attesa`, num: true, format: quota })),
+    { key: "ma_privato", label: "Mesi di attesa privato", num: true, format: mesiFmt },
+    { key: "ma_pa", label: "Mesi di attesa PA", num: true, format: mesiFmt },
   ], () => {
-    const by = d3.rollup(S.tensione, (v) => Object.fromEntries(v.map((r) => [r.c, r.q])), (r) => r.m);
+    const by = d3.rollup(S.tensione, (v) => Object.fromEntries(v.flatMap((r) => [[r.c, r.q], [`ma_${r.c}`, r.q > 0 ? r.ma : null]])), (r) => r.m);
     return [...by].map(([m, o]) => ({ m: meseAnno(parseDay(m)), ...o })).reverse();
   });
 

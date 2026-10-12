@@ -219,6 +219,14 @@ export function trendChart(container, opts) {
     for (let k = 1; k < idx.length; k++) {
       if (ly[idx[k]] - ly[idx[k - 1]] < 34) ly[idx[k]] = ly[idx[k - 1]] + 34;
     }
+    // se l'ultima etichetta esce dal fondo, si risale: le linee vicine allo zero restano leggibili
+    const fondo = h + m.bottom - 22;
+    if (idx.length && ly[idx.at(-1)] > fondo) {
+      ly[idx.at(-1)] = fondo;
+      for (let k = idx.length - 2; k >= 0; k--) {
+        if (ly[idx[k + 1]] - ly[idx[k]] < 34) ly[idx[k]] = ly[idx[k + 1]] - 34;
+      }
+    }
     ends.forEach((e, k) => {
       const cx = x(e.p.date), cy = y(e.p.v);
       g.append("circle").attr("cx", cx).attr("cy", cy).attr("r", 4).attr("fill", e.s.color)
