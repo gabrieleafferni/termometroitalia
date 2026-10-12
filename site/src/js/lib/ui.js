@@ -157,8 +157,12 @@ export function countUp(node, to, format, duration = 1200) {
   }
   const from = to * 0.92;
   const t0 = performance.now();
+  // il valore finale arriva comunque, anche se il browser rallenta le animazioni
+  // (scheda in secondo piano, anteprime e crawler che leggono la pagina a metà)
+  setTimeout(() => (node.textContent = format(to)), duration + 50);
   const step = (t) => {
-    const k = Math.min(1, (t - t0) / duration);
+    // il primo fotogramma può avere un orario di poco precedente a t0: mai fuori da [0, 1]
+    const k = Math.min(1, Math.max(0, (t - t0) / duration));
     const e = 1 - Math.pow(1 - k, 3);
     node.textContent = format(from + (to - from) * e);
     if (k < 1) requestAnimationFrame(step);

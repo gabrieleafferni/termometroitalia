@@ -71,7 +71,7 @@ async function main() {
   // ---------- intestazione ----------
   const stamp = document.getElementById("stamp");
   stamp.append(
-    el("strong", null, `Retribuzioni contrattuali fino a ${meseAnno(mesi[ultimo])}`),
+    el("strong", null, `Retribuzioni contrattuali fino ${aMese(mesi[ultimo])}`),
     el("span", null, `ISTAT · prezzi NIC e IPCA · i dati si aggiornano da soli quando vengono pubblicati`)
   );
 
@@ -291,8 +291,8 @@ async function main() {
     document.getElementById("reale-title").textContent =
       `Al netto dell'inflazione, salari ${uc.v < 100 && uf.v < 100 ? "ancora sotto" : "di nuovo sopra"} il 2021`;
     document.getElementById("reale-sub").textContent =
-      `Media 2021 = 100. Contrattuali: ${uno(uc.v)} a ${meseAnno(uc.date)}. Di fatto (retribuzioni lorde per unità di lavoro a tempo pieno, ` +
-      `con straordinari, premi e arretrati; industria e servizi esclusa la PA, dati destagionalizzati): ${uno(uf.v)} nel trimestre di ${meseAnno(uf.date)}. ` +
+      `Media 2021 = 100. Contrattuali: ${uno(uc.v)} ${aMese(uc.date)}. Di fatto (retribuzioni lorde per unità di lavoro a tempo pieno, ` +
+      `con straordinari, premi e arretrati; industria e servizi esclusa la PA, dati destagionalizzati): ${uno(uf.v)} nel ${["primo", "secondo", "terzo", "quarto"][Math.floor(parseDay(df.t.at(-1)).getMonth() / 3)]} trimestre ${parseDay(df.t.at(-1)).getFullYear()}. ` +
       "Il picco del 2020 coincide con la pandemia e la cassa integrazione: in quei trimestri la media per unità di lavoro va letta con cautela.";
   }
   legenda("reale-legend", [[COL.salari, "Retribuzioni contrattuali (mensili)"], [COL.fatto, "Retribuzioni di fatto (trimestrali)"]]);
@@ -338,7 +338,7 @@ async function main() {
   if (pieni.length >= 12) {
     document.getElementById("rinnovi-chart").insertAdjacentElement("afterend", el("p", "note",
       `Nella pubblica amministrazione la quota è stata del 100% in ${pieni.length} mesi su ${pa.length}, ` +
-      `da ${meseAnno(parseDay(pieni[0].m))} a ${meseAnno(parseDay(pieni.at(-1).m))}: in tutti quei mesi ogni dipendente pubblico aveva il contratto nazionale scaduto.`));
+      `da ${meseAnno(parseDay(pieni[0].m))} ${aMese(parseDay(pieni.at(-1).m))}: in tutti quei mesi ogni dipendente pubblico aveva il contratto nazionale scaduto.`));
   }
   const serieTot = tens.get("totale");
   const tAnnoPrima = serieTot.at(-13);
