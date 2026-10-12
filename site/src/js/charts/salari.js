@@ -159,15 +159,20 @@ export function rangeDots(container, { rows, color, describe, tooltip: tt, rowH 
 }
 
 /**
- * Mappa coropletica delle province: colore sequenziale a una tinta (più chiaro = valore
- * più alto, sullo sfondo scuro), province senza dato in grigio.
- * features: GeoJSON Feature[]; value(f) => numero o null; tooltip(f, t)
+ * Mappa coropletica delle province a classi: ogni provincia prende il colore della
+ * classe in cui cade il suo valore (es. lo scarto dalla mediana italiana); le
+ * province senza dato restano in grigio scuro. La legenda elenca le classi con il
+ * numero di province in ciascuna.
+ * features: GeoJSON Feature[]; value(f) => numero o null
+ * classi: [{ max, color, label }] in ordine crescente; l'ultima ha max = Infinity
+ * tickFormat: etichetta dei confini tra le classi (legenda a barra, schermi stretti)
+ * tooltip(f, t, classe)
  */
-export function choropleth(container, { features, value, ramp, describe, tooltip: tt, legendEl, legendFormat, height = 520 }) {
+export function choropleth(container, { features, value, classi, describe, tooltip: tt, legendEl, legendTitle, tickFormat = String, height = 520 }) {
   const tip = tooltip();
-  const valori = features.map(value).filter((v) => v != null);
-  const dom = d3.extent(valori);
-  const color = d3.scaleSequential(d3.piecewise(d3.interpolateRgb.gamma(1.2), ramp)).domain(dom);
+  const classe = (v) => (v == null ? null : classi.find((c) => v < c.max) ?? classi.at(-1));
+  const colore = (f) => classe(value(f))?.color ?? "#1b2440";
+  let fissata = null; // classe scelta con un clic nella legenda
 
   function render() {
     d3.select(container).selectAll("svg").remove();
@@ -178,33 +183,83 @@ export function choropleth(container, { features, value, ramp, describe, tooltip
     const path = d3.geoPath(proj);
     const svg = d3.select(container).append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img")
       .attr("aria-label", describe || "Mappa delle province");
-    svg.append("g").selectAll("path").data(features).join("path")
+    const prov = svg.append("g").selectAll("path").data(features).join("path")
       .attr("d", path)
-      .attr("fill", (f) => (value(f) == null ? "#1b2440" : color(value(f))))
+      .attr("fill", colore)
       .attr("stroke", "var(--panel)").attr("stroke-width", 0.6)
       .on("pointermove", function (e, f) {
         d3.select(this).attr("stroke", "#fff").attr("stroke-width", 1.4).raise();
-        if (tt) tip.show((t) => tt(f, t), e.clientX, e.clientY);
+        if (tt) tip.show((t) => tt(f, t, classe(value(f))), e.clientX, e.clientY);
       })
       .on("pointerleave", function () {
         d3.select(this).attr("stroke", "var(--panel)").attr("stroke-width", 0.6);
         tip.hide();
       });
+    // passando sopra una voce della legenda si accendono solo le sue province;
+    // con un clic (o un tocco sul telefono) la scelta resta finché non si clicca di nuovo
+    const accendi = (k) => prov.attr("fill-opacity", (f) => (k == null || classe(value(f)) === classi[k] ? 1 : 0.18));
+    accendi(fissata);
+    if (legendEl) {
+      legendEl.querySelectorAll("[data-classe]").forEach((voce) => {
+        const k = +voce.dataset.classe;
+        voce.onpointerenter = (e) => { if (e.pointerType === "mouse") accendi(k); };
+        voce.onpointerleave = (e) => { if (e.pointerType === "mouse") accendi(fissata); };
+        const scegli = () => {
+          fissata = fissata === k ? null : k;
+          legendEl.querySelectorAll("[data-classe]").forEach((v) => v.setAttribute("aria-pressed", String(+v.dataset.classe === fissata)));
+          accendi(fissata);
+        };
+        voce.onclick = scegli;
+        voce.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); scegli(); } };
+      });
+    }
   }
 
   if (legendEl) {
     legendEl.replaceChildren();
-    const bar = document.createElement("div");
-    bar.className = "map-legend-bar";
-    bar.style.background = `linear-gradient(90deg, ${ramp.join(", ")})`;
-    const lo = document.createElement("span");
-    const hi = document.createElement("span");
-    lo.textContent = legendFormat(dom[0]);
-    hi.textContent = legendFormat(dom[1]);
-    legendEl.append(lo, bar, hi);
+    if (legendTitle) {
+      const t = document.createElement("div");
+      t.className = "map-classi-t";
+      t.textContent = legendTitle;
+      legendEl.append(t);
+    }
+    const conta = d3.rollup(features, (v) => v.length, (f) => classe(value(f)));
+    const lista = document.createElement("div");
+    lista.className = "map-classi-lista";
+    // dalla classe più alta alla più bassa, come la lettura dall'alto in basso
+    [...classi].reverse().forEach((c) => {
+      const voce = document.createElement("div");
+      voce.className = "map-classe";
+      voce.dataset.classe = String(classi.indexOf(c));
+      voce.setAttribute("role", "button");
+      voce.setAttribute("aria-pressed", "false");
+      voce.tabIndex = 0;
+      const sw = document.createElement("span");
+      sw.className = "sw";
+      sw.style.background = c.color;
+      const lab = document.createElement("span");
+      lab.className = "lab";
+      lab.textContent = c.label;
+      const n = document.createElement("span");
+      n.className = "n";
+      n.textContent = String(conta.get(c) ?? 0);
+      voce.title = `${c.label}: ${n.textContent} province`;
+      voce.append(sw, lab, n);
+      lista.append(voce);
+    });
+    // sotto la barra (schermi stretti) i confini tra le classi
+    const ticks = document.createElement("div");
+    ticks.className = "map-classi-ticks";
+    ticks.setAttribute("aria-hidden", "true");
+    classi.slice(0, -1).forEach((c, k) => {
+      const t = document.createElement("span");
+      t.style.left = `${((k + 1) / classi.length) * 100}%`;
+      t.textContent = tickFormat(c.max);
+      ticks.append(t);
+    });
+    legendEl.append(lista, ticks);
   }
 
   render();
   onResize(container, render);
-  return { color, domain: dom };
 }

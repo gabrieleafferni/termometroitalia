@@ -18,7 +18,17 @@ import { refBars, rangeDots, choropleth } from "./charts/salari.js";
 // salari = blu, prezzi = arancio, retribuzioni di fatto = acqua, quarto colore = giallo
 const COL = { salari: "#3987e5", prezzi: "#d95926", fatto: "#199e70", giallo: "#c98500", grigio: "#56607a" };
 const COL_TESTO = "#e6edf7";
-const RAMPA = ["#184f95", "#2a78d6", "#5598e7", "#9ec5f4"]; // sequenziale blu, scuro = basso
+// mappa delle province: classi divergenti intorno alla mediana italiana, con la luminosità che cresce
+// sempre con la paga (verificata: passi di 8-12 punti di luminosità CIELAB, leggibili anche per i daltonici)
+const CLASSI_MAPPA = [
+  { max: -0.1, color: "#7b3120", label: "10% o più sotto" },
+  { max: -0.05, color: "#a54323", label: "dal 5 al 10% sotto" },
+  { max: -0.02, color: "#b27046", label: "dal 2 al 5% sotto" },
+  { max: 0.02, color: "#93969b", label: "in linea (±2%)" },
+  { max: 0.05, color: "#7bb0eb", label: "dal 2 al 5% sopra" },
+  { max: 0.1, color: "#a2cffb", label: "dal 5 al 10% sopra" },
+  { max: Infinity, color: "#d7ebfd", label: "10% o più sopra" },
+];
 const NOME_DEFL = { nic: "NIC", ipca: "IPCA" };
 const PAESI_EVIDENZA = [
   { p: "ITA", c: COL.salari },
@@ -558,36 +568,47 @@ async function main() {
       { key: "d9", label: "9° decile", num: true, format: euro2 },
     ], () => rows);
 
+    // mappa: scarto di ogni provincia dalla mediana italiana dello stesso gruppo (tutti, donne, uomini).
+    // Classi divergenti: arancio sotto la mediana (più scuro = più lontano), grigio in linea, blu sopra (più chiaro = più lontano)
     const prov = new Map(orari.province.filter((r) => r.s === sesso).map((r) => [r.sigla, r]));
+    const scarto = (r) => r.me / tot.me - 1;
     const mapEl = document.getElementById("orari-mappa");
     mapEl.replaceChildren();
     choropleth(mapEl, {
       features: provFeat,
-      value: (f) => prov.get(sigla(f))?.me ?? null,
-      ramp: RAMPA,
+      value: (f) => (prov.has(sigla(f)) ? scarto(prov.get(sigla(f))) : null),
+      classi: CLASSI_MAPPA,
       legendEl: document.getElementById("orari-mappa-legend"),
-      legendFormat: euro2,
-      describe: `Paga oraria lorda mediana per provincia nel ${annoRacli}`,
-      tooltip: (f, t) => {
+      legendTitle: `Province per classe · mediana italiana ${euro2(tot.me).replace(" ", "\u00a0")}`,
+      tickFormat: (v) => pct(v, 0),
+      describe: `Paga oraria lorda mediana per provincia nel ${annoRacli}, rispetto alla mediana italiana`,
+      tooltip: (f, t, cl) => {
         const r = prov.get(sigla(f));
         ttTitle(t, f.properties.prov_name, f.properties.reg_name);
         if (!r) return ttRow(t, null, "Dato non disponibile", "");
-        ttRow(t, COL.salari, "Mediana", euro2(r.me));
-        ttRow(t, COL_TESTO, "Media", euro2(r.mm));
+        ttRow(t, cl.color, "Mediana", euro2(r.me));
+        ttRow(t, null, "Rispetto all'Italia", pct(scarto(r)));
+        ttRow(t, null, "Media", euro2(r.mm));
         ttRow(t, null, "1° e 9° decile", `${euro2(r.d1)} – ${euro2(r.d9)}`);
       },
     });
     const ordinate = [...prov.values()].sort((a, b) => b.me - a.me);
+    const sopra = ordinate.filter((r) => r.me > tot.me).length;
     document.getElementById("mappa-title").textContent =
-      `Per provincia: paga oraria mediana, da ${euro2(ordinate.at(-1).me)} (${ordinate.at(-1).n}) a ${euro2(ordinate[0].me)} (${ordinate[0].n})`;
-    mapEl.parentElement.querySelector("details.table-view")?.remove();
-    tableView(mapEl.parentElement, [
+      `Per provincia: la paga oraria mediana è sopra quella italiana in ${sopra} province su ${ordinate.length}`;
+    document.getElementById("mappa-nota").textContent =
+      `La più bassa è ${ordinate.at(-1).n} con ${euro2(ordinate.at(-1).me)} (${pct(scarto(ordinate.at(-1)))}), la più alta ${ordinate[0].n} con ${euro2(ordinate[0].me)} (${pct(scarto(ordinate[0]))}). ` +
+      "In linea vuol dire entro il 2% dalla mediana italiana. Tocca o clicca una voce della legenda per vedere solo le sue province.";
+    const colMappa = document.getElementById("mappa-nota").parentElement;
+    colMappa.querySelector("details.table-view")?.remove();
+    tableView(colMappa, [
       { key: "n", label: "Provincia" },
       { key: "me", label: "Mediana", num: true, format: euro2 },
+      { key: "sc", label: "Rispetto all'Italia", num: true, format: (v) => pct(v) },
       { key: "mm", label: "Media", num: true, format: euro2 },
       { key: "d1", label: "1° decile", num: true, format: euro2 },
       { key: "d9", label: "9° decile", num: true, format: euro2 },
-    ], () => ordinate);
+    ], () => ordinate.map((r) => ({ ...r, sc: scarto(r) })));
   }
   legenda("orari-legend", [[COL.salari, "Dal 10% meno pagato al 10% più pagato · il punto è la mediana"], [COL_TESTO, "Media (tacca)"]]);
   document.getElementById("orari-title").textContent = `Quanto si guadagna all'ora nel settore privato (${annoRacli})`;

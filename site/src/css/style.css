@@ -489,6 +489,36 @@ a.theme-card:hover { text-decoration: none; transform: translateY(-3px); border-
 .h3 { font-size: 15px; font-weight: 500; color: var(--text); margin: 6px 0 10px; letter-spacing: 0; }
 .map-legend { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--text-2); margin-top: 6px; }
 .map-legend-bar { flex: 1; max-width: 220px; height: 8px; border-radius: 4px; }
+.mappa-wrap { position: relative; }
+.map-classi { font-size: 12.5px; color: var(--text-2); margin-top: 10px; }
+.map-classi-t { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 6px; }
+/* schermi stretti e medi: barra a segmenti, dal più basso (sinistra) al più alto, con il numero di province sopra */
+.map-classi-lista { display: flex; flex-direction: row-reverse; gap: 2px; max-width: 420px; }
+.map-classe { flex: 1; display: flex; flex-direction: column; gap: 4px; cursor: pointer; }
+.map-classe[aria-pressed="true"] .sw { box-shadow: 0 0 0 1.5px #fff; }
+.map-classe[aria-pressed="true"] .n { color: var(--text); }
+.map-classe .n { order: -1; text-align: center; font-family: var(--mono); font-size: 11.5px; color: var(--text-2); }
+.map-classe .sw { height: 12px; }
+.map-classe:first-child .sw { border-radius: 0 4px 4px 0; }
+.map-classe:last-child .sw { border-radius: 4px 0 0 4px; }
+.map-classe:hover .sw { box-shadow: 0 0 0 1.5px #fff; }
+.map-classe .lab { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.map-classi-ticks { position: relative; height: 16px; max-width: 420px; margin-top: 4px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.map-classi-ticks span { position: absolute; top: 0; transform: translateX(-50%); }
+/* schermi larghi: elenco sopra il mare, in alto a destra della mappa */
+@media (min-width: 1200px) {
+  .map-classi { position: absolute; top: 0; right: 0; width: 210px; margin-top: 0; }
+  .map-classi-lista { display: grid; grid-template-columns: 1fr; gap: 3px; }
+  .map-classe { flex-direction: row; align-items: center; gap: 8px; padding: 2px 4px; border-radius: 6px; }
+  .map-classe:hover { background: rgba(255, 255, 255, 0.05); }
+  .map-classe .n { order: 0; font-size: 11.5px; color: var(--muted); }
+  .map-classe .sw, .map-classe:first-child .sw, .map-classe:last-child .sw { width: 14px; height: 14px; border-radius: 4px; flex: none; }
+  .map-classe:hover .sw { box-shadow: none; }
+  .map-classe[aria-pressed="true"] { background: rgba(255, 255, 255, 0.08); }
+  .map-classe[aria-pressed="true"] .sw { box-shadow: none; }
+  .map-classe .lab { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; flex: 1; min-width: 0; }
+  .map-classi-ticks { display: none; }
+}
 @media (max-width: 900px) { .grid-orari { grid-template-columns: 1fr; } }
 
 /* comparsa dei numeri principali: solo grafica, il valore è già quello finale */
