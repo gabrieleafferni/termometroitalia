@@ -150,26 +150,15 @@ export function tableView(container, columns, rows, label = "Mostra i dati in ta
 /* ---------- animazioni ---------------------------------------------------- */
 export const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-export function countUp(node, to, format, duration = 1200) {
-  // niente animazione per chi la disattiva e per i browser automatici (anteprime,
-  // crawler): leggerebbero un valore intermedio
-  if (reducedMotion() || navigator.webdriver || document.visibilityState !== "visible") {
-    node.textContent = format(to);
-    return;
-  }
-  const from = to * 0.92;
-  const t0 = performance.now();
-  // il valore finale arriva comunque, anche se il browser rallenta le animazioni
-  // (scheda in secondo piano, anteprime e crawler che leggono la pagina a metà)
-  setTimeout(() => (node.textContent = format(to)), duration + 50);
-  const step = (t) => {
-    // il primo fotogramma può avere un orario di poco precedente a t0: mai fuori da [0, 1]
-    const k = Math.min(1, Math.max(0, (t - t0) / duration));
-    const e = 1 - Math.pow(1 - k, 3);
-    node.textContent = format(from + (to - from) * e);
-    if (k < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
+export function countUp(node, to, format) {
+  // Il numero è sempre quello finale, fin dal primo istante: un contatore che scorre
+  // lascerebbe valori intermedi a chi legge la pagina "a metà" (anteprime, crawler,
+  // schede in secondo piano). L'effetto di comparsa è solo grafico (CSS).
+  node.textContent = format(to);
+  if (reducedMotion()) return;
+  node.classList.remove("count-in");
+  void node.offsetWidth; // riavvia l'animazione se il valore cambia (es. interruttore NIC/IPCA)
+  node.classList.add("count-in");
 }
 
 export function reveal() {
