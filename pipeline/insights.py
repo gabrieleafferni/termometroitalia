@@ -170,6 +170,12 @@ def mese_anno(d: dt.date) -> str:
     return f"{MESI[d.month - 1]} {d.year}"
 
 
+def a_mese(d: dt.date) -> str:
+    """'ad agosto 2026', 'a settembre 2026'."""
+    m = mese_anno(d)
+    return ("ad " if m.startswith("a") else "a ") + m
+
+
 def novita_storico() -> list[dict]:
     """Contesto lungo dalla serie settimanale MASE (dal 2005)."""
     path = MARTS / "mart_carburanti__storico_settimanale.parquet"
@@ -446,48 +452,155 @@ def accorpa_record(novita: list[dict], serie: dict) -> list[dict]:
 
 
 def novita_salari() -> list[dict]:
-    """Salari: l'ultimo mese delle retribuzioni contrattuali contro l'inflazione,
-    e i contratti in attesa di rinnovo. Una novità al mese, non al giorno."""
-    path = MARTS / "mart_salari__reali_mensile.parquet"
-    tens = MARTS / "mart_salari__tensione.parquet"
-    if not path.exists():
+    """Le notizie dei salari: frasi brevi, ognuna con un titolo da notizia, il periodo
+    dei dati e il grafico della pagina salari che la mostra (campo "ancora").
+
+    Si aggiornano quando escono i dati (mensili, trimestrali o annuali), non ogni giorno.
+    I confronti con il 2021 usano medie di 12 mesi, come la pagina: niente effetto
+    delle una tantum di dicembre né dei saldi."""
+    reali = MARTS / "mart_salari__reali_mensile.parquet"
+    if not reali.exists():
         return []
+    out = []
+    pct1 = lambda x: euro(abs(x) * 100, 1) + "%"  # noqa: E731
+
     righe = q(f"""
-        select mese, reale_nic_12m, var_salari_tend, var_nic_tend
-        from '{path}' where tipo = 'orario' and qualifica = 'totale' and settore = '0010' order by mese
+        select mese, reale_nic_12m, reale_ipca_12m, var_salari_tend, var_nic_tend
+        from '{reali}' where tipo = 'orario' and qualifica = 'totale' and settore = '0010' order by mese
     """)
-    if not righe:
-        return []
-    u = righe[-1]
-    # media dei 12 mesi fino a dicembre 2021 = media 2021: confronto senza una tantum né saldi
-    rif = next((r for r in righe if r["mese"] == dt.date(2021, 12, 1)), None)
-    mese = f"{MESI[u['mese'].month - 1]} {u['mese'].year}"
-    sal, inf = u["var_salari_tend"], u["var_nic_tend"]
-    verso = "più" if sal > inf else "meno"
-    prep = "Ad" if mese.startswith("a") else "A"
-    testo = (f"{prep} {mese} le retribuzioni contrattuali orarie crescono del {euro(sal * 100, 1)}% in un anno, "
-             f"{verso} dei prezzi (inflazione NIC {euro(inf * 100, 1)}%).")
-    if rif and u["reale_nic_12m"] and rif["reale_nic_12m"]:
-        dist = u["reale_nic_12m"] / rif["reale_nic_12m"] - 1
-        testo += (f" Al netto dell'inflazione, negli ultimi 12 mesi valgono {'il ' + euro(abs(dist) * 100, 1) + '% in meno' if dist < 0 else 'il ' + euro(dist * 100, 1) + '% in più'}"
-                  f" che nel 2021.")
-    out = [{"id": "salari_inflazione", "tema": "salari", "titolo": "Salari contro inflazione",
-            "testo": testo, "rilevanza": 76}]
-    if tens.exists():
-        t = {r["comparto"]: r for r in q(f"""
-            select comparto, quota_in_attesa, mesi_attesa_in_attesa from '{tens}'
-            where mese = (select max(mese) from '{tens}')
-        """)}
-        if {"totale", "privato", "pa"} <= set(t):
+    if righe:
+        u = righe[-1]
+        mese = mese_anno(u["mese"])
+        prep = "Ad" if mese.startswith("a") else "A"
+        sal, inf = u["var_salari_tend"], u["var_nic_tend"]
+        out.append({
+            "id": "salari_inflazione", "tema": "salari", "ancora": "forbice", "periodo": mese,
+            "titolo": "Il costo della vita cresce più dei salari" if inf > sal else "I salari crescono più del costo della vita",
+            "testo": f"{prep} {mese} le retribuzioni contrattuali orarie sono cresciute del {pct1(sal)} in un anno, "
+                     f"i prezzi al consumo (NIC) del {pct1(inf)}.",
+            "rilevanza": 78,
+        })
+        # media 2021 = media dei 12 mesi fino a dicembre 2021
+        rif = next((r for r in righe if r["mese"] == dt.date(2021, 12, 1)), None)
+        if rif and u["reale_nic_12m"]:
+            d_nic = u["reale_nic_12m"] / rif["reale_nic_12m"] - 1
+            d_ipca = u["reale_ipca_12m"] / rif["reale_ipca_12m"] - 1
+            dopo = [r for r in righe if r["mese"] >= rif["mese"] and r["reale_nic_12m"]]
+            minimo = min(dopo, key=lambda r: r["reale_nic_12m"])
+            d_min = minimo["reale_nic_12m"] / rif["reale_nic_12m"] - 1
+            sotto = d_nic < 0
             out.append({
-                "id": "salari_rinnovi", "tema": "salari", "titolo": "Contratti da rinnovare",
-                "testo": f"Aspetta il rinnovo del contratto {pct(t['totale']['quota_in_attesa'])} dei dipendenti "
+                "id": "salari_reali_2021", "tema": "salari", "ancora": "forbice", "periodo": f"12 mesi fino {a_mese(u['mese'])}",
+                "titolo": "Salari reali ancora sotto il 2021" if sotto else "Salari reali tornati sopra il 2021",
+                "testo": f"Al netto dell'inflazione, negli ultimi 12 mesi i salari contrattuali valgono il {pct1(d_nic)} "
+                         f"{'in meno' if sotto else 'in più'} che nel 2021 ({pct1(d_ipca)} con l'IPCA). "
+                         + (f"Il punto più basso: −{pct1(d_min)} nei 12 mesi fino {a_mese(minimo['mese'])}." if d_min < d_nic else ""),
+                "rilevanza": 76,
+            })
+
+    settori = MARTS / "mart_salari__settori.parquet"
+    if settori.exists():
+        sez = q(f"""
+            select nome, nome_breve, var_nominale, var_prezzi_nic, var_reale_nic, ultimo_mese from '{settori}'
+            where anno_riferimento = 2021 and qualifica = 'totale' and livello = 'sezione' order by var_reale_nic
+        """)
+        if sez:
+            sopra = [r for r in sez if r["var_reale_nic"] >= 0]
+            peggio, meglio = sez[0], sez[-1]
+            out.append({
+                "id": "salari_settori", "tema": "salari", "ancora": "settori",
+                "periodo": f"12 mesi fino {a_mese(sez[0]['ultimo_mese'])}",
+                "titolo": "Nessun settore ha recuperato l'inflazione" if not sopra
+                          else f"{len(sopra)} settori su {len(sez)} hanno recuperato l'inflazione",
+                "testo": f"Dal 2021 i prezzi sono saliti del {pct1(sez[0]['var_prezzi_nic'])}. Al netto dell'inflazione il calo più forte è in "
+                         f"{peggio['nome'].lower()} (−{pct1(peggio['var_reale_nic'])}), "
+                         + (f"il più leggero in {meglio['nome'].lower()} (−{pct1(meglio['var_reale_nic'])})." if meglio["var_reale_nic"] < 0
+                            else f"il risultato migliore in {meglio['nome'].lower()} (+{pct1(meglio['var_reale_nic'])})."),
+                "rilevanza": 72,
+            })
+
+    tens = MARTS / "mart_salari__tensione.parquet"
+    if tens.exists():
+        mesi_t = q(f"select distinct mese from '{tens}' order by mese")
+        ult = mesi_t[-1]["mese"]
+        prima = next((r["mese"] for r in mesi_t if r["mese"] == dt.date(ult.year - 1, ult.month, 1)), None)
+        t = {r["comparto"]: r for r in q(f"""
+            select comparto, quota_in_attesa, mesi_attesa_in_attesa from '{tens}' where mese = '{ult}'
+        """)}
+        t0 = {r["comparto"]: r for r in q(f"select comparto, quota_in_attesa from '{tens}' where mese = '{prima}'")} if prima else {}
+        if {"totale", "privato", "pa"} <= set(t):
+            quota = t["totale"]["quota_in_attesa"]
+            frazione = next((f for soglia, f in [(0.12, "un dipendente su dieci"), (0.17, "un dipendente su sette"),
+                                                 (0.22, "un dipendente su cinque"), (0.29, "un dipendente su quattro"),
+                                                 (0.37, "un dipendente su tre"), (0.6, "metà dei dipendenti")]
+                             if quota < soglia), "la maggior parte dei dipendenti")
+            confronto = (f" Un anno prima erano {pct(t0['totale']['quota_in_attesa'])}." if "totale" in t0 else "")
+            out.append({
+                "id": "salari_rinnovi", "tema": "salari", "ancora": "rinnovi", "periodo": mese_anno(ult),
+                "titolo": f"Contratto scaduto per {frazione}",
+                "testo": f"Aspetta il rinnovo del contratto nazionale {pct(quota)} dei dipendenti "
                          f"({pct(t['privato']['quota_in_attesa'])} nel privato, {pct(t['pa']['quota_in_attesa'])} nella PA), "
-                         f"in media da {euro(t['totale']['mesi_attesa_in_attesa'], 0)} mesi.",
+                         f"in media da {euro(t['totale']['mesi_attesa_in_attesa'], 0)} mesi.{confronto}",
+                "rilevanza": 70,
+            })
+
+    mondo = MARTS / "mart_salari__internazionale.parquet"
+    if mondo.exists():
+        anno = q(f"select max(anno) as a from '{mondo}' where paese = 'ITA' and indice_1991 is not null")[0]["a"]
+        if anno:
+            paesi = q(f"""
+                select paese, nome, indice_1991 from '{mondo}'
+                where anno = {anno} and indice_1991 is not null and paese != 'OECD' order by indice_1991
+            """)
+            per = {r["paese"]: r for r in paesi}
+            media = q(f"select indice_1991 from '{mondo}' where anno = {anno} and paese = 'OECD'")
+            if "ITA" in per:
+                posto = [r["paese"] for r in paesi].index("ITA") + 1
+                titolo = (f"Salari reali dal 1991: Italia ultima tra {len(paesi)} paesi OCSE" if posto == 1
+                          else f"Salari reali dal 1991: Italia {posto}ª dal fondo tra {len(paesi)} paesi OCSE")
+                altri = ", ".join(f"{per[p]['nome']} {euro(per[p]['indice_1991'], 0)}" for p in ("DEU", "FRA", "ESP") if p in per)
+                out.append({
+                    "id": "salari_ocse", "tema": "salari", "ancora": "mondo", "periodo": f"{anno}, OCSE",
+                    "titolo": titolo,
+                    "testo": f"Fatto 100 il salario medio reale del 1991, nel {anno} l'Italia è a {euro(per['ITA']['indice_1991'], 0)}"
+                             + (f", la media OCSE a {euro(media[0]['indice_1991'], 0)}" if media else "")
+                             + (f" ({altri})" if altri else "") + ".",
+                    "rilevanza": 68,
+                })
+
+    racli = MARTS / "mart_salari__racli.parquet"
+    if racli.exists():
+        r = {x["sesso"]: x for x in q(f"""
+            select sesso, mediana, media, anno from '{racli}'
+            where settore = '0010' and anno = (select max(anno) from '{racli}')
+        """)}
+        if {"donne", "uomini"} <= set(r):
+            gap_me = 1 - r["donne"]["mediana"] / r["uomini"]["mediana"]
+            gap_mm = 1 - r["donne"]["media"] / r["uomini"]["media"]
+            out.append({
+                "id": "salari_divario", "tema": "salari", "ancora": "orari", "periodo": f"{r['donne']['anno']}, settore privato",
+                "titolo": f"Donne pagate {pct(gap_me)} in meno all'ora",
+                "testo": f"Paga oraria lorda mediana nel settore privato: {euro(r['donne']['mediana'], 2)} € per le donne, "
+                         f"{euro(r['uomini']['mediana'], 2)} € per gli uomini. Sulla media la distanza sale al {pct1(gap_mm)}.",
+                "rilevanza": 64,
+            })
+
+    fatto = MARTS / "mart_salari__di_fatto_trimestrale.parquet"
+    if fatto.exists():
+        f = q(f"select trimestre, reale_nic from '{fatto}' where settore = '0037' order by trimestre")
+        if f:
+            u = f[-1]
+            d = u["reale_nic"] / 100 - 1
+            trim = ["primo", "secondo", "terzo", "quarto"][(u["trimestre"].month - 1) // 3]
+            out.append({
+                "id": "salari_di_fatto", "tema": "salari", "ancora": "reale", "periodo": f"{trim} trimestre {u['trimestre'].year}",
+                "titolo": "Anche le buste paga effettive sotto il 2021" if d < 0 else "Buste paga effettive sopra il 2021",
+                "testo": f"Contando straordinari, premi e arretrati (industria e servizi esclusa la PA), nel {trim} trimestre "
+                         f"{u['trimestre'].year} la retribuzione per unità di lavoro vale, al netto dell'inflazione, il {pct1(d)} "
+                         f"{'in meno' if d < 0 else 'in più'} della media 2021.",
                 "rilevanza": 62,
             })
     return out
-
 
 def main() -> int:
     serie = serie_nazionale()

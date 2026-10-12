@@ -79,7 +79,11 @@ async function main() {
   // ---------- novità ----------
   document.getElementById("novita-data").textContent = `Aggiornato al ${fmt.giornoAnno(parseDay(novita.aggiornato_al)).trim()}`;
   const nov = document.getElementById("novita");
-  for (const n of novitaInEvidenza(novita.novita, 6)) {
+  // equilibrio tra i temi: fino a 4 notizie sui carburanti e le 2 più rilevanti sui salari
+  const perTema = (t) => novita.novita.filter((x) => (x.tema ?? "carburanti") === t);
+  const salNovita = perTema("salari").sort((a, b) => b.rilevanza - a.rilevanza).slice(0, 2);
+  const inHome = [...novitaInEvidenza(perTema("carburanti"), 6 - salNovita.length), ...salNovita];
+  for (const n of inHome) {
     const card = el("article", "panel reveal");
     const t = el("div", "panel-title", n.titolo);
     const p = el("p", null, n.testo);
@@ -87,7 +91,7 @@ async function main() {
     card.append(t, p);
     const salari = n.tema === "salari";
     const a = el("a", null, salari ? "Vai ai salari →" : "Vai ai carburanti →");
-    a.href = salari ? "salari.html" : "carburanti.html";
+    a.href = salari ? `salari.html${n.ancora ? "#" + n.ancora : ""}` : "carburanti.html";
     a.style.cssText = "display:inline-block;margin-top:12px;font-size:13px";
     card.append(a);
     nov.append(card);
@@ -130,6 +134,8 @@ async function main() {
     nota.style.cssText = "font-size:12.5px;color:var(--text-2);margin-top:-6px";
     sal.append(v, nota, sps, el("span", "status", "Attivo · dati ISTAT, OCSE ed Eurostat"));
     temi.append(sal);
+    const contaTemi = document.getElementById("temi-conta");
+    if (contaTemi) contaTemi.textContent = "4 temi · 2 attivi";
   }
   const prossimi = [
     ...(salari ? [] : [["02", "Salari reali", "Retribuzioni contrattuali contro inflazione: il potere d'acquisto, mese per mese (ISTAT)."]]),

@@ -27,13 +27,49 @@
 
       <section class="grid grid-4" id="kpis" aria-label="I numeri principali sui salari"></section>
 
+      <div class="section-head section-head-notizie" id="notizie-head" hidden>
+        <h2>Le notizie dai dati</h2>
+        <span class="eyebrow" id="notizie-data">si aggiornano da sole quando escono i dati</span>
+      </div>
+      <section class="grid grid-3 notizie" id="notizie" aria-label="Le notizie dai dati sui salari"></section>
+
       <div class="filters" role="toolbar" aria-label="Filtri della pagina">
         <span class="label">Prezzi misurati con</span>
         <div class="seg" id="deflatore" role="group" aria-label="Indice dei prezzi">
-          <button type="button" data-d="nic" aria-pressed="true" title="Indice nazionale dei prezzi al consumo per l'intera collettività (ISTAT)">NIC · tutte le famiglie</button>
-          <button type="button" data-d="ipca" aria-pressed="false" title="Indice armonizzato dei prezzi al consumo, uguale in tutta l'Unione europea">IPCA · armonizzato UE</button>
+          <button type="button" data-d="nic" aria-pressed="true">NIC · tutte le famiglie</button>
+          <button type="button" data-d="ipca" aria-pressed="false">IPCA · armonizzato UE</button>
         </div>
+        <button type="button" class="btn-info" id="spiega-btn" aria-expanded="false" aria-controls="spiega">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="7.6" r="1.2" fill="currentColor"/></svg>
+          <span>Che differenza c'è tra NIC e IPCA?</span>
+        </button>
       </div>
+
+      <section class="panel spiega" id="spiega" hidden aria-labelledby="spiega-title">
+        <div class="spiega-head">
+          <h2 id="spiega-title">NIC e IPCA: stessi prezzi, regole un po' diverse</h2>
+          <button type="button" class="spiega-chiudi" id="spiega-chiudi" aria-label="Chiudi la spiegazione">×</button>
+        </div>
+        <p class="sub">Tutti e due misurano l'inflazione in Italia, nascono dalla stessa rilevazione dei prezzi dell'ISTAT e riguardano tutta la popolazione. Cambia come si conta il prezzo di alcuni beni.</p>
+        <div class="grid grid-3 spiega-grid">
+          <div>
+            <h3>NIC · indice nazionale</h3>
+            <p>L'indice dei prezzi al consumo per l'intera collettività è il riferimento dell'inflazione italiana per le politiche economiche. Usa il <strong>prezzo pieno di vendita</strong>: non tiene conto di saldi e promozioni, e per i medicinali conta il prezzo intero.</p>
+            <p class="spiega-num" id="spiega-nic"></p>
+          </div>
+          <div>
+            <h3>IPCA · indice armonizzato</h3>
+            <p>Si calcola con le stesse regole in tutta l'Unione europea, per confrontare i paesi. Usa il <strong>prezzo effettivamente pagato</strong>: include saldi e promozioni (per questo scende a gennaio e luglio) e per i medicinali solo la parte a carico delle famiglie, il ticket. Esclude lotterie, lotto e scommesse.</p>
+            <p class="spiega-num" id="spiega-ipca"></p>
+          </div>
+          <div>
+            <h3>Perché conta per i salari</h3>
+            <p>I rinnovi dei contratti nazionali prendono come riferimento una terza misura, l'<strong>IPCA al netto dei beni energetici importati</strong>, di cui l'ISTAT pubblica le previsioni ogni giugno. Quando i prezzi salgono soprattutto per l'energia importata, come nel 2022, quel riferimento cresce meno dell'inflazione e i salari restano indietro.</p>
+            <p class="spiega-num">Qui puoi scegliere l'indice: tutti i grafici e i numeri della pagina si ricalcolano.</p>
+          </div>
+        </div>
+        <p class="note">Fonte: ISTAT, <a href="https://www.istat.it/notizia/il-sistema-dei-prezzi-al-consumo/" target="_blank" rel="noopener">Il sistema dei prezzi al consumo</a> e <a href="https://www.istat.it/tag/comunicazione-ipca/" target="_blank" rel="noopener">comunicazioni sull'IPCA al netto degli energetici importati</a>.</p>
+      </section>
 
       <section class="panel section reveal" id="forbice">
         <div class="panel-head">

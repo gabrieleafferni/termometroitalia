@@ -9,7 +9,7 @@ import * as d3 from "d3";
 import { feature } from "topojson-client";
 import { load, loadGeo } from "./lib/data.js";
 import { fmt, parseDay } from "./lib/format.js";
-import { chrome, el, ttTitle, ttRow, tableView, countUp, reveal } from "./lib/ui.js";
+import { chrome, el, ttTitle, ttRow, tableView, countUp, reveal, reducedMotion } from "./lib/ui.js";
 import { trendChart } from "./charts/trend.js";
 import { sparkline } from "./charts/small.js";
 import { refBars, rangeDots, choropleth } from "./charts/salari.js";
@@ -39,12 +39,13 @@ const meseAnno = (d) => fmt.giornoAnno(d).trim().split(" ").slice(1).join(" ");
 const aMese = (d) => (meseAnno(d).startsWith("a") ? "ad " : "a ") + meseAnno(d);
 
 async function main() {
-  const [meta, S, mondo, orari, topo] = await Promise.all([
+  const [meta, S, mondo, orari, topo, novita] = await Promise.all([
     load("meta.json"),
     load("salari.json"),
     load("salari_mondo.json"),
     load("salari_orari.json"),
     loadGeo("province_2023.topo.json"),
+    load("novita.json").catch(() => null), // le notizie sono facoltative: la pagina regge senza
   ]);
   chrome("salari", meta);
 
@@ -135,6 +136,45 @@ async function main() {
       el("div", null, `prezzi ${pct(ps)} (${NOME_DEFL[defl]}) da ${meseAnno(mesi[iAnnoPrima])}`),
       el("div", null, ws >= ps ? "i salari crescono più dei prezzi" : "i prezzi crescono più dei salari")
     );
+  }
+
+  // ---------- le notizie dai dati ----------
+  // frasi prodotte ogni giorno dalla pipeline (pipeline/insights.py, tema "salari"):
+  // cambiano quando escono dati nuovi; ognuna rimanda al grafico che la mostra
+  const notizie = (novita?.novita ?? []).filter((n) => n.tema === "salari")
+    .sort((a, b) => b.rilevanza - a.rilevanza).slice(0, 6);
+  if (notizie.length) {
+    document.getElementById("notizie-head").hidden = false;
+    const box = document.getElementById("notizie");
+    notizie.forEach((n, i) => {
+      const card = el("article", `panel notizia reveal${i === 0 ? " in-evidenza" : ""}`);
+      if (n.periodo) card.append(el("span", "tag", n.periodo));
+      card.append(el("h3", null, n.titolo), el("p", null, n.testo));
+      if (n.ancora && document.getElementById(n.ancora)) {
+        const a = el("a", null, "Vedi il grafico →");
+        a.href = `#${n.ancora}`;
+        card.append(a);
+      }
+      box.append(card);
+    });
+  }
+
+  // ---------- spiegazione NIC / IPCA ----------
+  const spiega = document.getElementById("spiega");
+  const spiegaBtn = document.getElementById("spiega-btn");
+  const apriSpiega = (aperta) => {
+    spiega.hidden = !aperta;
+    spiegaBtn.setAttribute("aria-expanded", String(aperta));
+    if (aperta) spiega.scrollIntoView({ behavior: reducedMotion() ? "auto" : "smooth", block: "nearest" });
+  };
+  spiegaBtn.addEventListener("click", () => apriSpiega(spiega.hidden));
+  document.getElementById("spiega-chiudi").addEventListener("click", () => { apriSpiega(false); spiegaBtn.focus(); });
+  for (const d of ["nic", "ipca"]) {
+    const arr = S[d];
+    const dal21 = media12(arr, ultimo) / mediaAnno(arr, 2021) - 1;
+    const anno = arr[ultimo] / arr[iAnnoPrima] - 1;
+    document.getElementById(`spiega-${d}`).textContent =
+      `Dal 2021: ${pct(dal21)} · nell'ultimo anno: ${pct(anno)} (fino ${aMese(mesi[ultimo])})`;
   }
 
   // ---------- salari contro prezzi ----------

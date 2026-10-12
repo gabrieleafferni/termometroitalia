@@ -494,3 +494,28 @@ a.theme-card:hover { text-decoration: none; transform: translateY(-3px); border-
 /* comparsa dei numeri principali: solo grafica, il valore è già quello finale */
 @keyframes count-in { from { opacity: 0.25; filter: blur(3px); transform: translateY(4px); } to { opacity: 1; filter: none; transform: none; } }
 .count-in { display: inline-block; animation: count-in 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+
+/* notizie dai dati (pagina salari) */
+.section-head-notizie { margin-top: 40px; }
+.section-head[hidden], .spiega[hidden] { display: none; }
+.notizia { display: flex; flex-direction: column; gap: 8px; }
+.notizia .tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.notizia h3 { font-size: 19px; line-height: 1.25; margin: 0; letter-spacing: -0.01em; }
+.notizia p { margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--text-2); }
+.notizia a { margin-top: auto; padding-top: 6px; font-size: 13px; }
+.notizia.in-evidenza { border-color: rgba(57, 135, 229, 0.45); box-shadow: 0 0 0 1px rgba(57, 135, 229, 0.18), 0 0 28px rgba(57, 135, 229, 0.12); }
+.notizia.in-evidenza h3 { font-size: 22px; }
+
+/* spiegazione NIC / IPCA */
+.btn-info { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 13.5px; color: var(--accent); background: none; border: 1px dashed rgba(62, 224, 245, 0.45); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.btn-info:hover, .btn-info[aria-expanded="true"] { background: rgba(62, 224, 245, 0.08); border-style: solid; }
+.spiega { margin: 6px 0 22px; }
+.spiega-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.spiega-head h2 { font-size: 20px; }
+.spiega-chiudi { font: inherit; font-size: 22px; line-height: 1; color: var(--text-2); background: none; border: 0; cursor: pointer; padding: 2px 6px; }
+.spiega-chiudi:hover { color: var(--text); }
+.spiega-grid { margin-top: 14px; gap: 22px; }
+.spiega-grid h3 { font-size: 15px; margin: 0 0 6px; color: var(--text); }
+.spiega-grid p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: var(--text-2); }
+.spiega-grid strong { color: var(--text); font-weight: 500; }
+.spiega-num { font-family: var(--mono); font-size: 12.5px !important; color: var(--text) !important; }
