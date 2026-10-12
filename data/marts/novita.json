@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-11",
-  "generato_il": "2026-10-12T06:52:09+00:00",
+  "generato_il": "2026-10-12T15:11:19+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -43,6 +43,13 @@
       "titolo": "Dal barile alla pompa",
       "testo": "Gasolio: nella settimana del 5 ottobre il prezzo industriale (1,241 €/l, senza tasse) supera di 57 centesimi il costo del greggio Brent (0,667 €/l, 120 $ al barile). È 1,8 volte la media 2005–2025 (33 centesimi in euro di oggi).",
       "rilevanza": 79.1
+    },
+    {
+      "id": "salari_inflazione",
+      "tema": "salari",
+      "titolo": "Salari contro inflazione",
+      "testo": "Ad agosto 2026 le retribuzioni contrattuali orarie crescono del 2,5% in un anno, meno dei prezzi (inflazione NIC 3,3%). Al netto dell'inflazione, negli ultimi 12 mesi valgono il 5,7% in meno che nel 2021.",
+      "rilevanza": 76
     },
     {
       "id": "gasolio_quadro",
@@ -124,6 +131,13 @@
       "carburante": "gasolio",
       "titolo": "Al netto dell'inflazione",
       "testo": "Gasolio: 2,273 €/l nella settimana del 5 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,503 €/l; in termini reali è il livello più alto da settembre 2026.",
+      "rilevanza": 62
+    },
+    {
+      "id": "salari_rinnovi",
+      "tema": "salari",
+      "titolo": "Contratti da rinnovare",
+      "testo": "Aspetta il rinnovo del contratto il 19% dei dipendenti (l'11% nel privato, il 49% nella PA), in media da 20 mesi.",
       "rilevanza": 62
     },
     {
