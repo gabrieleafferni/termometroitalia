@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         index: resolve(import.meta.dirname, "index.html"),
         carburanti: resolve(import.meta.dirname, "carburanti.html"),
+        salari: resolve(import.meta.dirname, "salari.html"),
         metodo: resolve(import.meta.dirname, "metodo.html"),
       },
     },

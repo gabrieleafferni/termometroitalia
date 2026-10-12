@@ -63,3 +63,45 @@ sources:
           - name: valore
           - name: fonte
 
+  - name: salari_raw
+    description: >
+      Dati sui salari scritti da pipeline/istat/retribuzioni.py (ISTAT, CC BY 4.0),
+      pipeline/eurostat/ipca.py e pipeline/internazionale/salari.py (OCSE ed Eurostat).
+      Uno snapshot per ogni pubblicazione che cambia i dati; si usa l'ultimo.
+    tables:
+      - name: contrattuali
+        description: Indici delle retribuzioni contrattuali, base dicembre 2021, mensili, per settore e qualifica.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/retribuzioni/contrattuali_2*.parquet', filename = true)"
+      - name: contrattuali_storico
+        description: Le stesse serie nelle basi 2005, 2010 e 2015 (scaricate una volta sola).
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/retribuzioni/contrattuali_storico.parquet')"
+      - name: tensione
+        description: Contratti in attesa di rinnovo (quota di dipendenti, mesi di attesa) per comparto.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/retribuzioni/tensione_2*.parquet', filename = true)"
+      - name: oros
+        description: Retribuzioni lorde di fatto per Ula (OROS), base 2021, trimestrali.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/retribuzioni/oros_2*.parquet', filename = true)"
+      - name: racli
+        description: Retribuzione lorda oraria del settore privato (RACLI) per sesso e settore.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/retribuzioni/racli_2*.parquet', filename = true)"
+      - name: racli_province
+        description: Retribuzione lorda oraria del settore privato (RACLI) per sesso e provincia.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/istat/retribuzioni/racli_province_2*.parquet', filename = true)"
+      - name: ipca
+        description: IPCA Italia (Eurostat prc_hicp_minr), base 2025, mensile dal 1996.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/eurostat/ipca/ipca_*.parquet', filename = true)"
+      - name: salari_medi_ocse
+        description: OCSE, Average annual wages (dollari PPA a prezzi costanti; euro).
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/ocse/salari_medi_*.parquet', filename = true)"
+      - name: salario_tempo_pieno
+        description: Eurostat nama_10_fte, salario medio annuo per dipendente a tempo pieno, euro correnti.
+        meta:
+          external_location: "read_parquet('{{ env_var('TERMOMETRO_DATA_DIR', '../data') }}/raw/eurostat/salari/salario_tempo_pieno_*.parquet', filename = true)"

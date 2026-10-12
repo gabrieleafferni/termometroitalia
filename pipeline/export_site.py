@@ -94,6 +94,87 @@ def distribuzione() -> dict:
     return out
 
 
+def salari() -> None:
+    """Sezione salari: tre file.
+
+    salari.json         serie mensili (indici nominali per settore e qualifica, NIC e IPCA
+                        sullo stesso asse dei mesi: i salari reali si calcolano nel browser),
+                        confronto per settore, retribuzioni di fatto, contratti scaduti
+    salari_mondo.json   salari medi annui per paese (OCSE, Eurostat)
+    salari_orari.json   retribuzione oraria RACLI: totali per sesso, settori, province
+    """
+    mensile = mart("mart_salari__reali_mensile")
+    mesi = [r["mese"] for r in rows(f"select distinct mese from {mensile} order by mese")]
+    defl = columns(f"""
+        select mese, any_value(nic) as nic, any_value(ipca) as ipca,
+               bool_or(nic_stimato) as nic_stimato, bool_or(ipca_stimato) as ipca_stimato
+        from {mensile} group by mese order by mese
+    """)
+    pos = {m: i for i, m in enumerate(mesi)}
+    serie: dict[str, list] = {}
+    for r in rows(f"""
+        select settore, qualifica, mese, indice from {mensile}
+        where tipo = 'orario' and (qualifica = 'totale' or settore = '0010')
+        order by settore, qualifica, mese
+    """):
+        chiave = f"{r['settore']}|{r['qualifica']}"
+        serie.setdefault(chiave, [None] * len(mesi))[pos[r["mese"]]] = r["indice"]
+    ultimo = rows(f"""
+        select max(mese) as mese, bool_or(provvisorio) filter (where mese = (select max(mese) from {mensile})) as provvisorio
+        from {mensile} where settore = '0010'
+    """)[0]
+    ultimo_nic = rows(f"select max(mese) as mese from {mensile} where not nic_stimato")[0]["mese"]
+    ultimo_ipca = rows(f"select max(mese) as mese from {mensile} where not ipca_stimato")[0]["mese"]
+    di_fatto = columns(f"""
+        select trimestre as t, indice as i, nic, ipca
+        from {mart('mart_salari__di_fatto_trimestrale')} where settore = '0037' order by trimestre
+    """)
+    tensione = rows(f"""
+        select mese as m, comparto as c, quota_in_attesa as q, mesi_attesa_in_attesa as ma, mesi_attesa_tutti as mt
+        from {mart('mart_salari__tensione')} where comparto in ('totale', 'privato', 'pa') order by comparto, mese
+    """)
+    write("salari.json", {
+        "aggiornato": {"contrattuali": ultimo["mese"], "provvisorio": bool(ultimo["provvisorio"]),
+                       "nic": ultimo_nic, "ipca": ultimo_ipca,
+                       "di_fatto": max(di_fatto["t"]), "tensione": max(r["m"] for r in tensione)},
+        "mesi": mesi,
+        "nic": defl["nic"],
+        "ipca": defl["ipca"],
+        "serie": serie,
+        "settori": rows(f"""
+            select anno_riferimento as rif, qualifica as q, settore as s, nome, nome_breve as nb, livello as l,
+                   padre as p, ordine as o, var_nominale as nom, var_prezzi_nic as pn, var_prezzi_ipca as pi,
+                   var_reale_nic as rn, var_reale_ipca as ri, var_salari_tend as st
+            from {mart('mart_salari__settori')} order by rif, q, o
+        """),
+        "di_fatto": di_fatto,
+        "tensione": tensione,
+    })
+    write("salari_mondo.json", rows(f"""
+        select anno as a, paese as p, nome as n, reale_ppa as ppa, indice_1991 as i, euro_correnti as e
+        from {mart('mart_salari__internazionale')} order by paese, anno
+    """))
+    write("salari_orari.json", {
+        "totale": rows(f"""
+            select anno as a, sesso as s, decile_1 as d1, mediana as me, media as mm, decile_9 as d9
+            from {mart('mart_salari__racli')} where settore = '0010' order by anno, sesso
+        """),
+        "settori": rows(f"""
+            select anno as a, settore as c, nome_breve as n, sesso as s, decile_1 as d1, mediana as me, media as mm, decile_9 as d9
+            from {mart('mart_salari__racli')}
+            where length(settore) = 1 and anno = (select max(anno) from {mart('mart_salari__racli')})
+            order by settore, sesso
+        """),
+        "province": rows(f"""
+            select anno as a, sigla, provincia as n, regione as r, sesso as s,
+                   decile_1 as d1, mediana as me, media as mm, decile_9 as d9
+            from {mart('mart_salari__racli_province')}
+            where anno = (select max(anno) from {mart('mart_salari__racli_province')})
+            order by sigla, sesso
+        """),
+    })
+
+
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     print(f"Esporto in {OUT.relative_to(ROOT)}")
@@ -187,6 +268,9 @@ def main() -> int:
     seed = ROOT / "transform" / "seeds" / "misure_prezzo.csv"
     with seed.open(encoding="utf-8") as f:
         write("misure.json", list(csv.DictReader(f)))
+
+    if (MARTS / "mart_salari__reali_mensile.parquet").exists():
+        salari()
 
     stato = json.loads((ROOT / "data/raw/carburanti/ultimo_aggiornamento.json").read_text())
     # prezzi reali: mese dei prezzi a cui sono riportati (ultimo indice NIC disponibile)

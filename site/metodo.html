@@ -65,6 +65,22 @@
         <h2>"Vicino a me" e la tua posizione</h2>
         <p>Il pulsante "Vicino a me" chiede al browser la posizione del dispositivo, che il browser condivide solo con il tuo consenso. La ricerca dei distributori più vicini avviene interamente sul tuo dispositivo: <strong>la posizione non viene inviata al sito né salvata</strong>. Le distanze sono in linea d'aria, non lungo le strade, e i raggi disponibili sono 2, 5, 10 e 20 km. I prezzi sono quelli in vigore alle 8:00 del giorno indicato, così come i gestori li hanno comunicati al MIMIT: alla pompa possono essere cambiati nel frattempo.</p>
 
+        <h2 id="salari">Salari: le fonti</h2>
+        <p>La sezione salari usa solo dati ufficiali e aperti:</p>
+        <ul>
+          <li><strong>Retribuzioni contrattuali</strong> (ISTAT): indici delle retribuzioni fissate dai contratti collettivi nazionali, orarie e per dipendente, mese per mese, per settore e qualifica, esclusi i dirigenti. Misurano quanto prevedono i contratti, non quanto si guadagna davvero: non comprendono straordinari, premi aziendali e superminimi. Includono gli importi una tantum dei rinnovi, che fanno sobbalzare alcuni mesi (soprattutto dicembre).</li>
+          <li><strong>Contratti in attesa di rinnovo</strong> (ISTAT, tensione contrattuale): quota di dipendenti con il contratto nazionale scaduto e mesi medi di attesa.</li>
+          <li><strong>Retribuzioni di fatto</strong> (ISTAT, OROS): retribuzioni lorde per unità di lavoro a tempo pieno (Ula), dati trimestrali destagionalizzati per l'industria e i servizi, esclusa la pubblica amministrazione. Comprendono straordinari, premi e arretrati.</li>
+          <li><strong>Paga oraria</strong> (ISTAT, registro RACLI): retribuzione lorda per ora retribuita dei dipendenti del settore privato, con media, mediana, 1° e 9° decile, per sesso, settore e provincia. Esce con circa due anni di ritardo.</li>
+          <li><strong>Confronto internazionale</strong>: OCSE, <em>Average annual wages</em> (salario medio annuo per dipendente a tempo pieno, a prezzi costanti e a parità di potere d'acquisto), ed Eurostat, salario medio annuo per dipendente a tempo pieno in euro (<code>nama_10_fte</code>).</li>
+        </ul>
+
+        <h2>Salari: come li confrontiamo con i prezzi</h2>
+        <p>Il salario "reale" è il salario diviso per l'indice dei prezzi: dice quanto si può comprare con lo stipendio. Si può scegliere tra due indici. Il <strong>NIC</strong> dell'ISTAT misura i prezzi per tutte le famiglie residenti ed è lo stesso usato nella pagina dei carburanti. L'<strong>IPCA</strong> è l'indice armonizzato europeo (fonte Eurostat), quello dei comunicati ISTAT sulle retribuzioni; la sua versione al netto dei beni energetici importati è il riferimento per i rinnovi dei contratti. I due indici danno risultati vicini ma non uguali.</p>
+        <p>Le basi degli indici delle retribuzioni contrattuali (dicembre 2005, 2010, 2015 e 2021) hanno pesi diversi e non sono proporzionali nei mesi in comune. Le raccordiamo nel dicembre di ogni base nuova: ogni base si usa dal suo dicembre in poi e quella precedente viene riportata allo stesso livello in quel mese. Il risultato è un'unica serie dal gennaio 2005, controllata da test automatici (nessun mese mancante, nessun salto mensile oltre l'8%). Le variazioni dell'ultimo anno coincidono con quelle dei comunicati ISTAT.</p>
+        <p>Nel confronto per settore usiamo medie di 12 mesi (gli ultimi 12 mesi contro la media del 2021 o del 2019), così le una tantum non falsano il risultato. Nel grafico mensile restano visibili.</p>
+        <p>Il confronto tra paesi dell'OCSE è a parità di potere d'acquisto e a prezzi costanti: tiene conto sia dell'inflazione sia del diverso costo della vita. I livelli in euro di Eurostat invece no: servono a dare un ordine di grandezza.</p>
+
         <h2>Limiti</h2>
         <ul>
           <li>Il prezzo di un distributore è quello dell'ultima comunicazione: un gestore che non aggiorna il dato resta fermo al prezzo precedente, fino a 8 giorni.</li>
@@ -73,7 +89,7 @@
         </ul>
 
         <h2>Codice, dati e licenze</h2>
-        <p>Tutto il codice è su <a href="https://github.com/gabrieleafferni/termometroitalia">GitHub</a>, con licenza <a href="https://github.com/gabrieleafferni/termometroitalia/blob/main/LICENSE">MIT</a>. Le tabelle finali sui carburanti e sui mercati (cartella <code>data/marts</code>, in formato Parquet) sono rilasciate con licenza <a href="https://creativecommons.org/licenses/by/4.0/deed.it">CC BY 4.0</a>: si possono riutilizzare, anche a fini commerciali, citando Termometro Italia e le fonti originali. I dati delle fonti conservano le loro licenze; per i dati del MIMIT la <a href="https://www.dati.gov.it/content/italian-open-data-license-v20">IODL 2.0</a> chiede di citare la fonte e di non presentarli come ufficiali. Il dettaglio, cartella per cartella, è nel file <a href="https://github.com/gabrieleafferni/termometroitalia/blob/main/data/LICENSE.md">data/LICENSE.md</a>.</p>
+        <p>Tutto il codice è su <a href="https://github.com/gabrieleafferni/termometroitalia">GitHub</a>, con licenza <a href="https://github.com/gabrieleafferni/termometroitalia/blob/main/LICENSE">MIT</a>. Le tabelle finali sui carburanti, sui mercati e sui salari (cartella <code>data/marts</code>, in formato Parquet) sono rilasciate con licenza <a href="https://creativecommons.org/licenses/by/4.0/deed.it">CC BY 4.0</a>: si possono riutilizzare, anche a fini commerciali, citando Termometro Italia e le fonti originali. I dati delle fonti conservano le loro licenze: per i dati OCSE va citata la fonte nella forma richiesta dall'OCSE, anche da chi riusa i nostri; per i dati del MIMIT la <a href="https://www.dati.gov.it/content/italian-open-data-license-v20">IODL 2.0</a> chiede di citare la fonte e di non presentarli come ufficiali. Il dettaglio, cartella per cartella, è nel file <a href="https://github.com/gabrieleafferni/termometroitalia/blob/main/data/LICENSE.md">data/LICENSE.md</a>.</p>
         <p>Termometro Italia è un progetto personale e indipendente di Gabriele Afferni. Non è una fonte ufficiale e non è collegato a enti pubblici, partiti, istituti di sondaggio o testate giornalistiche.</p>
       </article>
     </main>

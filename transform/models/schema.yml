@@ -130,3 +130,64 @@ models:
       - name: differenza
         tests: [not_null]
 
+  - name: int_salari__contrattuali_concatenate
+    description: >
+      Retribuzioni contrattuali (ISTAT) in un'unica serie dal 2005, base dicembre 2021 = 100,
+      raccordando le basi 2005, 2010, 2015 e 2021 nel dicembre di ciascuna base.
+    columns:
+      - name: indice
+        tests: [not_null]
+
+  - name: int_salari__deflatori
+    description: NIC e IPCA mese per mese, base 2025 = 100; l'ultimo valore disponibile copre i mesi mancanti.
+    columns:
+      - name: mese
+        tests: [unique, not_null]
+
+  - name: mart_salari__reali_mensile
+    description: >
+      Retribuzioni contrattuali nominali e reali (NIC, IPCA) per mese, tipo, qualifica e
+      settore, con medie mobili di 12 mesi e variazioni su un anno.
+    columns:
+      - name: reale_nic
+        tests: [not_null]
+      - name: reale_ipca
+        tests: [not_null]
+
+  - name: mart_salari__settori
+    description: Variazione nominale e reale per settore, ultimi 12 mesi contro il 2021 e il 2019.
+    columns:
+      - name: var_reale_nic
+        tests: [not_null]
+
+  - name: mart_salari__tensione
+    description: Quota di dipendenti in attesa di rinnovo del contratto e mesi di attesa, per comparto.
+    columns:
+      - name: quota_in_attesa
+        tests: [not_null]
+
+  - name: mart_salari__di_fatto_trimestrale
+    description: Retribuzioni di fatto per Ula (OROS, destagionalizzate) nominali e reali, per trimestre e settore.
+    columns:
+      - name: reale_nic
+        tests: [not_null]
+
+  - name: mart_salari__internazionale
+    description: Salario medio annuo per paese (OCSE in dollari PPA a prezzi costanti, Eurostat in euro).
+    columns:
+      - name: nome
+        tests: [not_null]
+
+  - name: mart_salari__racli
+    description: Retribuzione lorda oraria del settore privato (RACLI) per anno, sesso e settore.
+    columns:
+      - name: mediana
+        tests: [not_null]
+
+  - name: mart_salari__racli_province
+    description: Retribuzione lorda oraria del settore privato (RACLI) per anno, provincia e sesso.
+    columns:
+      - name: sigla
+        tests: [not_null]
+      - name: mediana
+        tests: [not_null]

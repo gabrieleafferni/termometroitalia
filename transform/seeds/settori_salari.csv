@@ -1,0 +1,51 @@
+codice,nome,nome_breve,livello,padre,ordine
+0010,Totale economia,Totale,totale,,1
+0011,Industria (costruzioni comprese),Industria,macro,0010,2
+0020,Industria in senso stretto,Industria in senso stretto,macro,0011,3
+0012,Servizi (pubblici e privati),Servizi,macro,0010,4
+0013,Servizi di mercato,Servizi di mercato,macro,0012,5
+0015,Industria e servizi di mercato,Industria e servizi di mercato,macro,0010,6
+A,"Agricoltura, silvicoltura e pesca",Agricoltura,sezione,0010,10
+B,Estrazione di minerali,Estrazione,sezione,0011,11
+C,Manifattura,Manifattura,sezione,0011,12
+CA,"Alimentari, bevande e tabacco",Alimentari,sottosezione,C,13
+CB,"Tessile, abbigliamento e pelle",Tessile e abbigliamento,sottosezione,C,14
+CC,"Legno, carta e stampa",Legno e carta,sottosezione,C,15
+CD,Raffinazione del petrolio,Raffinazione,sottosezione,C,16
+CE,Chimica,Chimica,sottosezione,C,17
+CF,Farmaceutica,Farmaceutica,sottosezione,C,18
+CG,"Gomma, plastica e minerali non metalliferi",Gomma e plastica,sottosezione,C,19
+CH,Metallurgia e prodotti in metallo,Metallurgia,sottosezione,C,20
+CI,Elettronica e ottica,Elettronica,sottosezione,C,21
+CJ,Apparecchiature elettriche,Apparecchi elettrici,sottosezione,C,22
+CK,Macchinari,Macchinari,sottosezione,C,23
+CL,Mezzi di trasporto,Mezzi di trasporto,sottosezione,C,24
+CM,"Mobili, altre manifatture e riparazioni",Altre manifatture,sottosezione,C,25
+D,"Energia elettrica, gas e vapore",Energia,sezione,0011,26
+E,"Acqua, reti fognarie e rifiuti",Acqua e rifiuti,sezione,0011,27
+F,Costruzioni,Costruzioni,sezione,0011,28
+G,Commercio,Commercio,sezione,0012,29
+H,Trasporti e magazzinaggio,Trasporti,sezione,0012,30
+I,Alberghi e ristorazione,Alberghi e ristoranti,sezione,0012,31
+J,Informazione e comunicazione,Informazione e tlc,sezione,0012,32
+JA,"Editoria, audiovisivi e radiotelevisione",Editoria e audiovisivi,sottosezione,J,33
+JB,Telecomunicazioni,Telecomunicazioni,sottosezione,J,34
+JC,Informatica e servizi d'informazione,Informatica,sottosezione,J,35
+K,Finanza e assicurazioni,Finanza e assicurazioni,sezione,0012,36
+L,Attività immobiliari,Immobiliare,sezione,0012,37
+M,"Attività professionali, scientifiche e tecniche",Attività professionali,sezione,0012,38
+MA,"Studi legali, contabili, di consulenza, architettura e ingegneria",Studi professionali,sottosezione,M,39
+MB,Ricerca e sviluppo,Ricerca e sviluppo,sottosezione,M,40
+MC,Altre attività professionali,Altre professioni,sottosezione,M,41
+N,"Noleggio, agenzie di viaggio e servizi alle imprese",Servizi alle imprese,sezione,0012,42
+O,Pubblica amministrazione e difesa,Pubblica amministrazione,sezione,0012,43
+P,Istruzione,Istruzione,sezione,0012,44
+Q,Sanità e assistenza sociale,Sanità e assistenza,sezione,0012,45
+QA,Assistenza sanitaria,Sanità,sottosezione,Q,46
+QB,Assistenza sociale,Assistenza sociale,sottosezione,Q,47
+R,"Arte, sport e intrattenimento",Arte e intrattenimento,sezione,0012,48
+S,Altri servizi,Altri servizi,sezione,0012,49
+0037,Industria e servizi (esclusa la PA),Industria e servizi,aggregato_oros,,50
+0038,Servizi (esclusa la PA),Servizi,aggregato_oros,0037,51
+0024,"Servizi alle imprese (immobiliare, professioni, noleggio)",Servizi alle imprese,aggregato_oros,0038,52
+0039,"Istruzione, sanità, arte e altri servizi",Istruzione e sanità,aggregato_oros,0038,53

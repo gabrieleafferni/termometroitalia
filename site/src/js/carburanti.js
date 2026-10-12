@@ -377,7 +377,7 @@ async function main() {
 
   // ---------- novità ----------
   const feed = document.getElementById("feed");
-  for (const n of novitaInEvidenza(novita.novita, 6)) {
+  for (const n of novitaInEvidenza(novita.novita.filter((x) => (x.tema ?? "carburanti") === "carburanti"), 6)) {
     const li = el("li");
     const dot = el("span", "dot");
     if (n.carburante && COLORE[n.carburante]) {

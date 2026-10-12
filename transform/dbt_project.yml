@@ -43,3 +43,21 @@ seeds:
         provincia: varchar
         regione: varchar
         cod_regione: varchar
+    settori_salari:
+      +column_types:
+        codice: varchar
+        nome: varchar
+        nome_breve: varchar
+        livello: varchar
+        padre: varchar
+        ordine: integer
+    paesi:
+      +column_types:
+        codice: varchar
+        codice_ue: varchar
+        nome: varchar
+    province_nuts:
+      +column_types:
+        codice_nuts: varchar
+        sigla: varchar
+        nome_istat: varchar

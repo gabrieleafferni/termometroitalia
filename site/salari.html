@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Salari · Termometro Italia</title>
+    <meta name="description" content="Salari contro inflazione in Italia: retribuzioni contrattuali, contratti scaduti, confronto con gli altri paesi OCSE e quanto si guadagna all'ora, con i dati ISTAT, OCSE ed Eurostat." />
+    <meta property="og:title" content="Salari · Termometro Italia" />
+    <meta property="og:description" content="Il potere d'acquisto degli stipendi italiani, mese per mese, con i dati aperti ISTAT." />
+    <meta name="theme-color" content="#05070f" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="page-head">
+        <div>
+          <span class="eyebrow">Termometro 02 · Salari</span>
+          <h1>Lo stipendio <em>contro i prezzi</em></h1>
+          <p class="lede">
+            Quanto sono cresciuti i salari rispetto all'inflazione, settore per settore. Quanti contratti aspettano il
+            rinnovo, come se la cava l'Italia rispetto agli altri paesi e quanto si guadagna davvero all'ora.
+            I dati sono quelli ufficiali di ISTAT, OCSE ed Eurostat e si aggiornano da soli quando escono.
+          </p>
+        </div>
+        <div class="stamp" id="stamp"></div>
+      </section>
+
+      <section class="grid grid-4" id="kpis" aria-label="I numeri principali sui salari"></section>
+
+      <div class="filters" role="toolbar" aria-label="Filtri della pagina">
+        <span class="label">Prezzi misurati con</span>
+        <div class="seg" id="deflatore" role="group" aria-label="Indice dei prezzi">
+          <button type="button" data-d="nic" aria-pressed="true" title="Indice nazionale dei prezzi al consumo per l'intera collettività (ISTAT)">NIC · tutte le famiglie</button>
+          <button type="button" data-d="ipca" aria-pressed="false" title="Indice armonizzato dei prezzi al consumo, uguale in tutta l'Unione europea">IPCA · armonizzato UE</button>
+        </div>
+      </div>
+
+      <section class="panel section reveal" id="forbice">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Salari contro prezzi · retribuzioni contrattuali orarie</div>
+            <h2 id="forbice-title">Salari e prezzi, mese per mese</h2>
+            <p class="sub" id="forbice-sub"></p>
+          </div>
+        </div>
+        <div class="seg seg-sm storico-modo" id="forbice-da" role="group" aria-label="Punto di partenza del confronto">
+          <button type="button" data-da="2021" aria-pressed="true">Dal 2021</button>
+          <button type="button" data-da="2005" aria-pressed="false">Dal 2005</button>
+        </div>
+        <div class="legend" id="forbice-legend"></div>
+        <div class="chart" id="forbice-chart"></div>
+        <p class="note" id="forbice-note"></p>
+      </section>
+
+      <section class="grid grid-storico section">
+        <article class="panel reveal" id="settori">
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Settore per settore</div>
+              <h2 id="settori-title">Chi ha recuperato l'inflazione</h2>
+              <p class="sub" id="settori-sub"></p>
+            </div>
+          </div>
+          <div class="filters-inline">
+            <div class="seg seg-sm" id="settori-rif" role="group" aria-label="Anno di riferimento">
+              <button type="button" data-rif="2021" aria-pressed="true">Rispetto al 2021</button>
+              <button type="button" data-rif="2019" aria-pressed="false">Rispetto al 2019</button>
+            </div>
+            <div class="seg seg-sm" id="settori-q" role="group" aria-label="Qualifica">
+              <button type="button" data-q="totale" aria-pressed="true">Tutti</button>
+              <button type="button" data-q="operai" aria-pressed="false">Operai</button>
+              <button type="button" data-q="impiegati" aria-pressed="false">Impiegati</button>
+            </div>
+          </div>
+          <div class="legend" id="settori-legend"></div>
+          <div class="chart" id="settori-chart"></div>
+        </article>
+        <article class="panel reveal" id="reale">
+          <div class="panel-title">Potere d'acquisto · dal 2015</div>
+          <h2 id="reale-title">Salari al netto dell'inflazione</h2>
+          <p class="sub" id="reale-sub"></p>
+          <div class="legend" id="reale-legend"></div>
+          <div class="chart" id="reale-chart"></div>
+        </article>
+      </section>
+
+      <section class="panel section reveal" id="rinnovi">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Contratti scaduti · tensione contrattuale</div>
+            <h2 id="rinnovi-title">Quanti aspettano il rinnovo</h2>
+            <p class="sub">Quota di dipendenti con il contratto nazionale scaduto e in attesa di rinnovo. Finché il contratto non viene rinnovato, la retribuzione contrattuale resta ferma.</p>
+          </div>
+        </div>
+        <div class="hist-stats" id="rinnovi-stats"></div>
+        <div class="legend" id="rinnovi-legend"></div>
+        <div class="chart" id="rinnovi-chart"></div>
+      </section>
+
+      <section class="grid grid-storico section">
+        <article class="panel reveal" id="mondo">
+          <div class="panel-title">Italia nel mondo · salario medio annuo, OCSE</div>
+          <h2 id="mondo-title">Trent'anni di salari reali</h2>
+          <p class="sub" id="mondo-sub"></p>
+          <div class="legend" id="mondo-legend"></div>
+          <div class="chart" id="mondo-chart"></div>
+        </article>
+        <article class="panel reveal" id="livelli">
+          <div class="panel-title">In euro · Eurostat</div>
+          <h2 id="livelli-title">Il salario medio di un anno</h2>
+          <p class="sub" id="livelli-sub"></p>
+          <div class="chart" id="livelli-chart"></div>
+        </article>
+      </section>
+
+      <section class="panel section reveal" id="orari">
+        <div class="panel-head">
+          <div>
+            <div class="panel-title">Quanto si guadagna all'ora · settore privato</div>
+            <h2 id="orari-title">La paga oraria lorda</h2>
+            <p class="sub" id="orari-sub"></p>
+          </div>
+        </div>
+        <div class="seg seg-sm storico-modo" id="orari-sesso" role="group" aria-label="Sesso">
+          <button type="button" data-s="totale" aria-pressed="true">Tutti</button>
+          <button type="button" data-s="donne" aria-pressed="false">Donne</button>
+          <button type="button" data-s="uomini" aria-pressed="false">Uomini</button>
+        </div>
+        <div class="hist-stats" id="orari-stats"></div>
+        <div class="grid grid-orari">
+          <div>
+            <h3 class="h3">Per settore: dal 10% meno pagato al 10% più pagato</h3>
+            <div class="legend" id="orari-legend"></div>
+            <div class="chart" id="orari-settori"></div>
+          </div>
+          <div>
+            <h3 class="h3" id="mappa-title">Per provincia: paga oraria mediana</h3>
+            <div class="chart" id="orari-mappa"></div>
+            <div class="map-legend" id="orari-mappa-legend"></div>
+          </div>
+        </div>
+      </section>
+
+      <p class="panel-foot" style="margin-top: 20px">
+        <span>Fonti: ISTAT – retribuzioni contrattuali, tensione contrattuale, retribuzioni lorde per Ula (OROS), retribuzioni orarie RACLI, indice dei prezzi NIC (CC BY 4.0); Eurostat – IPCA e salario medio a tempo pieno; OCSE – Average annual wages. Confini provinciali ISTAT 2023 via geojson-italy (CC BY). Elaborazione Termometro Italia.</span>
+        <a href="metodo.html#salari">Come sono calcolati questi numeri →</a>
+      </p>
+    </main>
+    <script type="module" src="./src/js/salari.js"></script>
+  </body>
+</html>

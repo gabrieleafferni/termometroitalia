@@ -16,12 +16,13 @@ import { sparkline } from "./charts/small.js";
 const COLORE = { benzina: "#c98500", gasolio: "#8f6ff0", gpl: "#3ecf8e", metano: "#4c9df5" };
 
 async function main() {
-  const [meta, naz, imp, novita, topo] = await Promise.all([
+  const [meta, naz, imp, novita, topo, salari] = await Promise.all([
     load("meta.json"),
     load("carburanti_nazionale.json"),
     load("carburanti_impianti.json"),
     load("novita.json"),
     loadGeo("regioni.topo.json"),
+    load("salari.json").catch(() => null), // sezione facoltativa
   ]);
   chrome("home", meta);
 
@@ -84,8 +85,9 @@ async function main() {
     const p = el("p", null, n.testo);
     p.style.cssText = "margin:10px 0 0;font-size:17px;line-height:1.45;color:var(--text)";
     card.append(t, p);
-    const a = el("a", null, "Vai ai carburanti →");
-    a.href = "carburanti.html";
+    const salari = n.tema === "salari";
+    const a = el("a", null, salari ? "Vai ai salari →" : "Vai ai carburanti →");
+    a.href = salari ? "salari.html" : "carburanti.html";
     a.style.cssText = "display:inline-block;margin-top:12px;font-size:13px";
     card.append(a);
     nov.append(card);
@@ -104,8 +106,33 @@ async function main() {
   sparkline(sp, byFuel.get("benzina").map((r) => r.media), COLORE.benzina);
   live.append(val, sp, el("span", "status", "Attivo · aggiornamento quotidiano"));
   temi.append(live);
+  // salari: tema attivo, con il salario reale rispetto al 2021 e la sua linea
+  if (salari) {
+    const sal = el("a", "panel theme-card is-live reveal");
+    sal.href = "salari.html";
+    sal.append(el("span", "num", "02"), el("h3", null, "Salari reali"),
+      el("p", null, "Retribuzioni contro inflazione, settore per settore; contratti scaduti; confronto con gli altri paesi."));
+    // salari reali: media degli ultimi 12 mesi contro la media del 2021 (NIC), come nella pagina
+    const w = salari.serie["0010|totale"], p = salari.nic;
+    const i21 = salari.mesi.indexOf("2021-01-01");
+    const media = (a, i0, i1) => d3.mean(d3.range(i0, i1 + 1), (i) => a[i]);
+    const w21 = media(w, i21, i21 + 11), p21 = media(p, i21, i21 + 11);
+    const reali = d3.range(i21 + 11, w.length).map((i) => (media(w, i - 11, i) / w21) / (media(p, i - 11, i) / p21) - 1);
+    const ultimoReale = reali.at(-1);
+    const testo = (ultimoReale < 0 ? "−" : "+") + Math.abs(ultimoReale * 100).toLocaleString("it-IT", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+    const v = el("div", "val", testo);
+    v.title = "Retribuzioni contrattuali al netto dell'inflazione NIC: media degli ultimi 12 mesi contro la media 2021";
+    const sps = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    sps.classList.add("spark");
+    sps.style.cssText = "width:100%;height:40px";
+    sparkline(sps, reali, "#3987e5");
+    const nota = el("div", null, "salari reali, ultimi 12 mesi contro il 2021");
+    nota.style.cssText = "font-size:12.5px;color:var(--text-2);margin-top:-6px";
+    sal.append(v, nota, sps, el("span", "status", "Attivo · dati ISTAT, OCSE ed Eurostat"));
+    temi.append(sal);
+  }
   const prossimi = [
-    ["02", "Salari reali", "Retribuzioni contrattuali contro inflazione: il potere d'acquisto, mese per mese (ISTAT)."],
+    ...(salari ? [] : [["02", "Salari reali", "Retribuzioni contrattuali contro inflazione: il potere d'acquisto, mese per mese (ISTAT)."]]),
     ["03", "Immigrazione", "Sbarchi, nazionalità e accoglienza dal cruscotto giornaliero del Viminale."],
     ["04", "Verso le elezioni", "Sondaggi depositati, attività del Parlamento e voti in aula."],
   ];

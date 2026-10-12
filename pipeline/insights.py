@@ -445,6 +445,50 @@ def accorpa_record(novita: list[dict], serie: dict) -> list[dict]:
     return out
 
 
+def novita_salari() -> list[dict]:
+    """Salari: l'ultimo mese delle retribuzioni contrattuali contro l'inflazione,
+    e i contratti in attesa di rinnovo. Una novità al mese, non al giorno."""
+    path = MARTS / "mart_salari__reali_mensile.parquet"
+    tens = MARTS / "mart_salari__tensione.parquet"
+    if not path.exists():
+        return []
+    righe = q(f"""
+        select mese, reale_nic_12m, var_salari_tend, var_nic_tend
+        from '{path}' where tipo = 'orario' and qualifica = 'totale' and settore = '0010' order by mese
+    """)
+    if not righe:
+        return []
+    u = righe[-1]
+    # media dei 12 mesi fino a dicembre 2021 = media 2021: confronto senza una tantum né saldi
+    rif = next((r for r in righe if r["mese"] == dt.date(2021, 12, 1)), None)
+    mese = f"{MESI[u['mese'].month - 1]} {u['mese'].year}"
+    sal, inf = u["var_salari_tend"], u["var_nic_tend"]
+    verso = "più" if sal > inf else "meno"
+    prep = "Ad" if mese.startswith("a") else "A"
+    testo = (f"{prep} {mese} le retribuzioni contrattuali orarie crescono del {euro(sal * 100, 1)}% in un anno, "
+             f"{verso} dei prezzi (inflazione NIC {euro(inf * 100, 1)}%).")
+    if rif and u["reale_nic_12m"] and rif["reale_nic_12m"]:
+        dist = u["reale_nic_12m"] / rif["reale_nic_12m"] - 1
+        testo += (f" Al netto dell'inflazione, negli ultimi 12 mesi valgono {'il ' + euro(abs(dist) * 100, 1) + '% in meno' if dist < 0 else 'il ' + euro(dist * 100, 1) + '% in più'}"
+                  f" che nel 2021.")
+    out = [{"id": "salari_inflazione", "tema": "salari", "titolo": "Salari contro inflazione",
+            "testo": testo, "rilevanza": 76}]
+    if tens.exists():
+        t = {r["comparto"]: r for r in q(f"""
+            select comparto, quota_in_attesa, mesi_attesa_in_attesa from '{tens}'
+            where mese = (select max(mese) from '{tens}')
+        """)}
+        if {"totale", "privato", "pa"} <= set(t):
+            out.append({
+                "id": "salari_rinnovi", "tema": "salari", "titolo": "Contratti da rinnovare",
+                "testo": f"Aspetta il rinnovo del contratto {pct(t['totale']['quota_in_attesa'])} dei dipendenti "
+                         f"({pct(t['privato']['quota_in_attesa'])} nel privato, {pct(t['pa']['quota_in_attesa'])} nella PA), "
+                         f"in media da {euro(t['totale']['mesi_attesa_in_attesa'], 0)} mesi.",
+                "rilevanza": 62,
+            })
+    return out
+
+
 def main() -> int:
     serie = serie_nazionale()
     ultimo = max(r["data"] for s in serie.values() for r in s)
@@ -489,6 +533,7 @@ def main() -> int:
             r.pop("frase", None)
             novita.append(r)
     novita += novita_tetto(ultimo)
+    novita += novita_salari()
     novita = accorpa_record(novita, serie)
     # prima gli andamenti generali, poi il contesto; dentro ciascun gruppo, per rilevanza
     novita.sort(key=lambda n: (bool(n.get("contesto")), -n["rilevanza"]))

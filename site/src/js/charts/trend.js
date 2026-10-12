@@ -11,12 +11,14 @@ import { tooltip, ttTitle, ttRow, reducedMotion, onResize } from "../lib/ui.js";
  *          essere più sottili e grigie: forma "enfasi")
  *   label: false per non mettere l'etichetta a fine linea
  *   shortName: nome corto per l'etichetta a fine linea sugli schermi stretti
+ *   tooltip: false per non elencare la serie nel tooltip (es. decine di linee grigie di contesto)
  * refLines: [{ value, label }]   linee orizzontali di riferimento (es. un tetto);
  *           con steps: [{ date, value, label? }] la linea cambia livello a quelle date (a gradino)
  * events:   [{ date, label, short?, detail }]  eventi verificati, linee verticali
  *           (short: etichetta corta per gli schermi stretti)
  * markMax:  evidenzia il massimo storico di ogni serie
- * xTicks:   "giorni" | "anni"
+ * xTicks:   "giorni" | "anno" (ogni anno) | "anni" (ogni 2 o 5 anni)
+ * yDomain:  [min, max] fisso; le linee che escono dal riquadro vengono tagliate
  * tooltipNote: testo fisso o funzione (data) => testo, sotto le righe del tooltip
  */
 export function trendChart(container, opts) {
@@ -30,6 +32,7 @@ export function trendChart(container, opts) {
     refLines = [],
     markMax = false,
     xTicks = "giorni",
+    yDomain = null,
     tooltipTitle = (d) => fmt.settimana(d),
     tooltipNote = null,
     ariaLabel = null,
@@ -78,7 +81,9 @@ export function trendChart(container, opts) {
     const lo = d3.min(values), hi = d3.max(values);
     const pad = (hi - lo) * 0.08 || 0.01;
     // prezzi sempre positivi: l'asse non scende sotto lo zero solo per il margine
-    const y = d3.scaleLinear().domain([lo >= 0 ? Math.max(0, lo - pad) : lo - pad, hi + pad]).nice(6).range([h, 0]);
+    const y = yDomain
+      ? d3.scaleLinear().domain(yDomain).range([h, 0])
+      : d3.scaleLinear().domain([lo >= 0 ? Math.max(0, lo - pad) : lo - pad, hi + pad]).nice(6).range([h, 0]);
 
     const svg = root.append("svg").attr("viewBox", `0 0 ${W} ${height}`).attr("role", "img")
       .attr("aria-label", ariaLabel || `Andamento: ${series.map((s) => s.name).join(", ")}`);
@@ -94,8 +99,10 @@ export function trendChart(container, opts) {
 
     const xt = xTicks === "anni"
       ? x.ticks(d3.timeYear.every(narrow ? 5 : 2))
-      : x.ticks(narrow ? 4 : 8);
-    const xf = xTicks === "anni" ? d3.timeFormat("%Y") : (d) => fmt.giornoBreve(d).trim();
+      : xTicks === "anno"
+        ? x.ticks(d3.timeYear.every(narrow ? 2 : 1))
+        : x.ticks(narrow ? 4 : 8);
+    const xf = xTicks === "anni" || xTicks === "anno" ? d3.timeFormat("%Y") : (d) => fmt.giornoBreve(d).trim();
     g.append("g").selectAll("text").data(xt).join("text").attr("class", "tick-label")
       .attr("x", (d) => x(d)).attr("y", h + 20).attr("text-anchor", "middle").text(xf);
     g.append("line").attr("x1", 0).attr("x2", w).attr("y1", h).attr("y2", h).attr("stroke", "var(--axis)");
@@ -140,10 +147,18 @@ export function trendChart(container, opts) {
         .attr("y", (narrow ? -30 : -12) - Math.min(p.riga, Math.max(0, righeStimate)) * 14);
     });
 
+    // con un dominio fisso le linee che ne escono vengono tagliate al bordo del riquadro
+    let clip = null;
+    if (yDomain) {
+      const id = `taglio-${Math.random().toString(36).slice(2, 9)}`;
+      svg.append("defs").append("clipPath").attr("id", id).append("rect").attr("x", -4).attr("y", -2).attr("width", w + 8).attr("height", h + 2);
+      clip = `url(#${id})`;
+    }
+
     // fasce p10–p90 (lavaggio al 12%)
     for (const s of series) {
       if (s.points[0]?.lo == null) continue;
-      g.append("path").datum(s.points).attr("fill", s.color).attr("opacity", 0.12)
+      g.append("path").datum(s.points).attr("fill", s.color).attr("opacity", 0.12).attr("clip-path", clip)
         .attr("d", d3.area().x((p) => x(p.date)).y0((p) => y(p.lo)).y1((p) => y(p.hi)).curve(d3.curveMonotoneX));
     }
 
@@ -155,10 +170,10 @@ export function trendChart(container, opts) {
       const width = s.width ?? 2;
       if (width >= 2) {
         g.append("path").datum(s.points).attr("fill", "none").attr("stroke", s.color).attr("stroke-width", 6)
-          .attr("stroke-opacity", 0.14).attr("stroke-linecap", "round").attr("d", line);
+          .attr("stroke-opacity", 0.14).attr("stroke-linecap", "round").attr("clip-path", clip).attr("d", line);
       }
       const p = g.append("path").datum(s.points).attr("fill", "none").attr("stroke", s.color).attr("stroke-width", width)
-        .attr("stroke-linejoin", "round").attr("stroke-linecap", "round").attr("d", line);
+        .attr("stroke-linejoin", "round").attr("stroke-linecap", "round").attr("clip-path", clip).attr("d", line);
       lines.push(p);
     }
 
@@ -227,7 +242,7 @@ export function trendChart(container, opts) {
         cross.attr("x1", x(d)).attr("x2", x(d)).attr("opacity", 1);
         tip.show((t) => {
           ttTitle(t, tooltipTitle(d));
-          const rows = series.map((s, i) => ({ s, i, p: byDate[i].get(+d) })).filter((r) => r.p);
+          const rows = series.map((s, i) => ({ s, i, p: byDate[i].get(+d) })).filter((r) => r.p && r.s.tooltip !== false);
           rows.sort((a, b) => b.p.v - a.p.v);
           series.forEach((_, i) => dots[i].attr("opacity", 0));
           for (const { s, i, p } of rows) {

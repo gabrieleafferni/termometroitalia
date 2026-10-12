@@ -129,6 +129,46 @@ jobs:
         timeout-minutes: 6
         run: python -m pipeline.mercati.quotazioni
 
+      # Salari: dati mensili o più rari, controllati una volta al giorno. Un segnaposto
+      # nella cache di GitHub Actions, con la data italiana nella chiave, dice se il
+      # controllo di oggi è già stato fatto (i giri sono ogni 2 ore e l'ISTAT accetta
+      # al massimo 5 richieste al minuto). Se una fonte non risponde, il segnaposto
+      # non viene salvato e il giro successivo riprova; intanto si usano i file salvati.
+      - name: 1e · Data del controllo dei salari
+        id: oggi
+        run: echo "data=$(TZ=Europe/Rome date +%F)" >> "$GITHUB_OUTPUT"
+
+      - name: 1e · Salari già controllati oggi?
+        id: controllo_salari
+        uses: actions/cache/restore@v4
+        with:
+          path: .controllo-salari
+          key: controllo-salari-${{ steps.oggi.outputs.data }}
+          lookup-only: true
+
+      - name: 1e · Salari (ISTAT, IPCA Eurostat, OCSE)
+        id: salari
+        if: steps.controllo_salari.outputs.cache-hit != 'true'
+        continue-on-error: true
+        timeout-minutes: 15
+        run: |
+          esito=0
+          python -m pipeline.istat.retribuzioni || esito=1
+          python -m pipeline.eurostat.ipca || esito=1
+          python -m pipeline.internazionale.salari || esito=1
+          exit $esito
+
+      - name: 1e · Segna il controllo di oggi
+        if: steps.salari.outcome == 'success'
+        run: mkdir -p .controllo-salari && date -u > .controllo-salari/fatto
+
+      - name: 1e · Salva il segnaposto
+        if: steps.salari.outcome == 'success'
+        uses: actions/cache/save@v4
+        with:
+          path: .controllo-salari
+          key: controllo-salari-${{ steps.oggi.outputs.data }}
+
       - name: 2 · Trasformazione e test di qualità (dbt)
         working-directory: transform
         run: dbt build --profiles-dir .
@@ -150,13 +190,17 @@ jobs:
           # si salva solo se cambiano i dati veri (nuova estrazione o mart diversi):
           # i mart sono deterministici, quindi a parità di dati non cambiano di un byte.
           # Le sole date di generazione (novita.json, ultimo_aggiornamento.json) non bastano.
-          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali data/raw/istat data/raw/mercati 'data/marts/*.parquet'; then
+          if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali data/raw/istat data/raw/mercati data/raw/eurostat data/raw/ocse 'data/marts/*.parquet'; then
             echo "Nessun dato nuovo da salvare."
             git reset -q
             # senza dati nuovi, i run programmati non ripubblicano il sito
             echo "pubblica=${{ github.event_name != 'schedule' }}" >> "$GITHUB_OUTPUT"
           else
-            git commit -m "Dati carburanti del $(jq -r .data_estrazione data/raw/carburanti/ultimo_aggiornamento.json)"
+            if git diff --cached --quiet -- data/raw/carburanti/prezzi; then
+              git commit -m "Dati aggiornati: salari, prezzi al consumo o quotazioni"
+            else
+              git commit -m "Dati carburanti del $(jq -r .data_estrazione data/raw/carburanti/ultimo_aggiornamento.json)"
+            fi
             git pull --rebase origin main
             git push origin HEAD:main
             echo "pubblica=true" >> "$GITHUB_OUTPUT"

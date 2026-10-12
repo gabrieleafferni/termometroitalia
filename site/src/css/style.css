@@ -480,3 +480,13 @@ a.theme-card:hover { text-decoration: none; transform: translateY(-3px); border-
   .live-dot { animation: none; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- pagina salari ---------- */
+.kpi-sub { font-size: 13px; color: var(--text-2); line-height: 1.45; }
+.kpi.kpi-salari .kpi-value { text-shadow: 0 0 32px rgba(57, 135, 229, 0.4); }
+.filters-inline { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 12px; }
+.grid-orari { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; margin-top: 8px; }
+.h3 { font-size: 15px; font-weight: 500; color: var(--text); margin: 6px 0 10px; letter-spacing: 0; }
+.map-legend { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11px; color: var(--text-2); margin-top: 6px; }
+.map-legend-bar { flex: 1; max-width: 220px; height: 8px; border-radius: 4px; }
+@media (max-width: 900px) { .grid-orari { grid-template-columns: 1fr; } }

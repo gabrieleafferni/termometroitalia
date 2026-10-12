@@ -13,7 +13,7 @@ const LOGO = `
 const VOCI = [
   { href: "index.html", label: "Panoramica", key: "home" },
   { href: "carburanti.html", label: "Carburanti", key: "carburanti" },
-  { href: null, label: "Salari", key: "salari" },
+  { href: "salari.html", label: "Salari", key: "salari" },
   { href: null, label: "Immigrazione", key: "immigrazione" },
   { href: null, label: "Elezioni", key: "elezioni" },
   { href: "metodo.html", label: "Metodo", key: "metodo" },
@@ -51,7 +51,7 @@ export function chrome(pagina, meta) {
       </div>
       <div>
         <h4>Fonti e licenze</h4>
-        <p>MIMIT – Osservaprezzi Carburanti (IODL 2.0) · MASE · ISTAT (CC BY 4.0) · EIA via FRED · BCE · confini ISTAT via openpolis</p>
+        <p>MIMIT – Osservaprezzi Carburanti (IODL 2.0) · MASE · ISTAT (CC BY 4.0) · Eurostat · OCSE · EIA via FRED · BCE · confini ISTAT via openpolis e geojson-italy</p>
         <p>Codice <a href="${REPO}/blob/main/LICENSE">MIT</a> · elaborazioni <a href="https://creativecommons.org/licenses/by/4.0/deed.it">CC BY 4.0</a> · <a href="${REPO}/blob/main/data/LICENSE.md">dettagli</a></p>
         <p>Progetto indipendente: non è una fonte ufficiale.</p>
       </div>

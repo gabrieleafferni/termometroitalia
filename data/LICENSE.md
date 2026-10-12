@@ -15,13 +15,16 @@ Queste cartelle contengono i dati delle fonti come sono stati scaricati, solo co
 | `raw/istat/nic/` | ISTAT, indice dei prezzi al consumo per l'intera collettività (NIC), [esploradati.istat.it](https://esploradati.istat.it/) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.it) |
 | `raw/mercati/quotazioni/` (Brent, benzina e gasolio NY Harbor) | U.S. Energy Information Administration (EIA), via [FRED](https://fred.stlouisfed.org/series/DCOILBRENTEU) | Pubblico dominio (dati del governo degli Stati Uniti); si chiede di citare la fonte |
 | `raw/mercati/quotazioni/` (cambio euro/dollaro) | Banca Centrale Europea, tassi di cambio di riferimento ([data.ecb.europa.eu](https://data.ecb.europa.eu/)) | Riuso con citazione della fonte ("Fonte: BCE") |
-| `../site/public/geo/` | Confini amministrativi ISTAT, via [openpolis/geojson-italy](https://github.com/openpolis/geojson-italy) | CC BY, come indicato da openpolis |
+| `raw/istat/retribuzioni/` | ISTAT: retribuzioni contrattuali, tensione contrattuale, retribuzioni lorde per Ula (OROS), retribuzioni orarie RACLI, [esploradati.istat.it](https://esploradati.istat.it/) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.it) |
+| `raw/eurostat/ipca/`, `raw/eurostat/salari/` | Eurostat: indice armonizzato dei prezzi al consumo (`prc_hicp_minr`) e salario medio per dipendente a tempo pieno (`nama_10_fte`) | Riuso consentito citando la fonte ("Fonte: Eurostat"), [decisione 2011/833/UE](https://ec.europa.eu/eurostat/about-us/policies/copyright) |
+| `raw/ocse/` | OCSE, *Average annual wages* ([data-explorer.oecd.org](https://data-explorer.oecd.org/)) | Riuso per qualunque scopo citando la fonte nella forma "OECD (anno), Average annual wages, URL (consultato il …)"; chi riusa deve chiedere la stessa citazione a chi riceve i dati ([termini OCSE](https://www.oecd.org/en/about/terms-conditions.html)) |
+| `../site/public/geo/` | Confini amministrativi ISTAT: regioni via [openpolis/geojson-italy](https://github.com/openpolis/geojson-italy), province al 1° gennaio 2023 via [guglielmo/geojson-italy](https://github.com/guglielmo/geojson-italy) (semplificate) | CC BY, come indicato dal progetto |
 
-## 2. Elaborazioni di Termometro Italia sui carburanti e sui mercati
+## 2. Elaborazioni di Termometro Italia su carburanti, mercati e salari
 
-`marts/mart_carburanti__*`, `marts/mart_mercati__*`, `marts/novita.json` e i file JSON generati per il sito (`site/public/data/`, non versionati) sono rilasciati con licenza **[Creative Commons Attribuzione 4.0 Internazionale (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/deed.it)**.
+`marts/mart_carburanti__*`, `marts/mart_mercati__*`, `marts/mart_salari__*`, `marts/novita.json` e i file JSON generati per il sito (`site/public/data/`, non versionati) sono rilasciati con licenza **[Creative Commons Attribuzione 4.0 Internazionale (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/deed.it)**.
 
-Chi li riusa deve citare: *Termometro Italia (Gabriele Afferni), https://github.com/gabrieleafferni/termometroitalia*, insieme alle fonti originali elencate sopra (per i dati MIMIT nel rispetto delle condizioni della IODL 2.0).
+Chi li riusa deve citare: *Termometro Italia (Gabriele Afferni), https://github.com/gabrieleafferni/termometroitalia*, insieme alle fonti originali elencate sopra (per i dati MIMIT nel rispetto delle condizioni della IODL 2.0; per i dati OCSE in `mart_salari__internazionale` con la citazione richiesta dall'OCSE).
 
 ## 3. Sezione elezioni (in costruzione)
 
