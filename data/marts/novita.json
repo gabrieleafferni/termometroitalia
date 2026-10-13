@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-12",
-  "generato_il": "2026-10-13T07:26:12+00:00",
+  "generato_il": "2026-10-13T15:05:53+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -79,16 +79,16 @@
       "id": "storico_benzina",
       "tema": "carburanti",
       "carburante": "benzina",
-      "titolo": "Il più alto da settembre 2026",
-      "testo": "Benzina: 2,073 €/l nella settimana del 5 ottobre, il livello più alto da settembre 2026 (2,156 €/l).",
+      "titolo": "Il più alto da ottobre 2026",
+      "testo": "Benzina: 2,021 €/l nella settimana del 12 ottobre, il livello più alto da ottobre 2026 (2,073 €/l).",
       "rilevanza": 70.1
     },
     {
       "id": "storico_gasolio",
       "tema": "carburanti",
       "carburante": "gasolio",
-      "titolo": "Il più alto da settembre 2026",
-      "testo": "Gasolio: 2,273 €/l nella settimana del 5 ottobre, il livello più alto da settembre 2026 (2,351 €/l).",
+      "titolo": "Il più alto da ottobre 2026",
+      "testo": "Gasolio: 2,241 €/l nella settimana del 12 ottobre, il livello più alto da ottobre 2026 (2,273 €/l).",
       "rilevanza": 70.1
     },
     {
@@ -161,7 +161,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Benzina: 2,073 €/l nella settimana del 5 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,538 €/l; in termini reali è il livello più alto da settembre 2026.",
+      "testo": "Benzina: 2,021 €/l nella settimana del 12 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,538 €/l; in termini reali è il livello più alto da ottobre 2026.",
       "rilevanza": 62
     },
     {
@@ -169,7 +169,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Gasolio: 2,273 €/l nella settimana del 5 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,503 €/l; in termini reali è il livello più alto da settembre 2026.",
+      "testo": "Gasolio: 2,241 €/l nella settimana del 12 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,503 €/l; in termini reali è il livello più alto da ottobre 2026.",
       "rilevanza": 62
     },
     {
@@ -198,7 +198,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Quanto pesano le tasse",
-      "testo": "Dei 2,073 €/l della benzina, 1,047 sono accise e IVA (50%). Dato MASE, settimana del 5 ottobre.",
+      "testo": "Dei 2,021 €/l della benzina, 1,037 sono accise e IVA (51%). Dato MASE, settimana del 12 ottobre.",
       "rilevanza": 58
     },
     {
