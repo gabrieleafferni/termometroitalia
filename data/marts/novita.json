@@ -1,6 +1,6 @@
 {
-  "aggiornato_al": "2026-10-11",
-  "generato_il": "2026-10-12T15:11:19+00:00",
+  "aggiornato_al": "2026-10-12",
+  "generato_il": "2026-10-13T07:26:12+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -23,18 +23,10 @@
       "titolo": "Metano",
       "valore": 1.915,
       "unita": "€/kg",
-      "delta_7g": 0.0169,
-      "delta_30g": 0.113,
-      "testo": "Metano a 1,915 €/kg: +1,7 cent in una settimana, +11,3 cent in un mese.",
-      "rilevanza": 90
-    },
-    {
-      "id": "gpl_striscia",
-      "tema": "carburanti",
-      "carburante": "gpl",
-      "titolo": "10 giorni di rialzo",
-      "testo": "GPL: 10 rilevazioni consecutive in rialzo.",
-      "rilevanza": 80
+      "delta_7g": 0.017,
+      "delta_30g": 0.0967,
+      "testo": "Metano a 1,915 €/kg: +1,7 cent in una settimana, +9,7 cent in un mese.",
+      "rilevanza": 88.7
     },
     {
       "id": "barile_gasolio",
@@ -47,21 +39,11 @@
     {
       "id": "salari_inflazione",
       "tema": "salari",
-      "titolo": "Salari contro inflazione",
-      "testo": "Ad agosto 2026 le retribuzioni contrattuali orarie crescono del 2,5% in un anno, meno dei prezzi (inflazione NIC 3,3%). Al netto dell'inflazione, negli ultimi 12 mesi valgono il 5,7% in meno che nel 2021.",
-      "rilevanza": 76
-    },
-    {
-      "id": "gasolio_quadro",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Gasolio self",
-      "valore": 2.253,
-      "unita": "€/l",
-      "delta_7g": 0.0086,
-      "delta_30g": 0.0588,
-      "testo": "Gasolio self a 2,253 €/l: +0,9 cent in una settimana, +5,9 cent in un mese.",
-      "rilevanza": 73.5
+      "ancora": "forbice",
+      "periodo": "agosto 2026",
+      "titolo": "Il costo della vita cresce più dei salari",
+      "testo": "Ad agosto 2026 le retribuzioni contrattuali orarie sono cresciute del 2,5% in un anno, i prezzi al consumo (NIC) del 3,3%.",
+      "rilevanza": 78
     },
     {
       "id": "benzina_quadro",
@@ -70,10 +52,28 @@
       "titolo": "Benzina self",
       "valore": 2.036,
       "unita": "€/l",
-      "delta_7g": -0.0139,
-      "delta_30g": -0.0523,
-      "testo": "Benzina self a 2,036 €/l: −1,4 cent in una settimana, −5,2 cent in un mese.",
-      "rilevanza": 70.9
+      "delta_7g": -0.0123,
+      "delta_30g": -0.0662,
+      "testo": "Benzina self a 2,036 €/l: −1,2 cent in una settimana, −6,6 cent in un mese.",
+      "rilevanza": 76.5
+    },
+    {
+      "id": "salari_reali_2021",
+      "tema": "salari",
+      "ancora": "forbice",
+      "periodo": "12 mesi fino ad agosto 2026",
+      "titolo": "Salari reali ancora sotto il 2021",
+      "testo": "Al netto dell'inflazione, negli ultimi 12 mesi i salari contrattuali valgono il 5,7% in meno che nel 2021 (6,6% con l'IPCA). Il punto più basso: −9,7% nei 12 mesi fino a settembre 2023.",
+      "rilevanza": 76
+    },
+    {
+      "id": "salari_settori",
+      "tema": "salari",
+      "ancora": "settori",
+      "periodo": "12 mesi fino ad agosto 2026",
+      "titolo": "Nessun settore ha recuperato l'inflazione",
+      "testo": "Dal 2021 i prezzi sono saliti del 19,1%. Al netto dell'inflazione il calo più forte è in alberghi e ristorazione (−9,1%), il più leggero in estrazione di minerali (−2,5%).",
+      "rilevanza": 72
     },
     {
       "id": "storico_benzina",
@@ -96,10 +96,40 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il costo di un pieno",
-      "testo": "Un pieno da 50 litri di benzina self costa 101,79 €: 2,62 € in meno di un mese fa.",
+      "testo": "Un pieno da 50 litri di benzina self costa 101,79 €: 3,31 € in meno di un mese fa.",
       "valore": 101.79,
       "unita": "€",
       "rilevanza": 70
+    },
+    {
+      "id": "salari_rinnovi",
+      "tema": "salari",
+      "ancora": "rinnovi",
+      "periodo": "agosto 2026",
+      "titolo": "Contratto scaduto per un dipendente su cinque",
+      "testo": "Aspetta il rinnovo del contratto nazionale il 19% dei dipendenti (l'11% nel privato, il 49% nella PA), in media da 20 mesi. Un anno prima erano il 43%.",
+      "rilevanza": 70
+    },
+    {
+      "id": "salari_ocse",
+      "tema": "salari",
+      "ancora": "mondo",
+      "periodo": "2025, OCSE",
+      "titolo": "Salari reali dal 1991: Italia ultima tra 24 paesi OCSE",
+      "testo": "Fatto 100 il salario medio reale del 1991, nel 2025 l'Italia è a 97, la media OCSE a 135 (Germania 135, Francia 133, Spagna 113).",
+      "rilevanza": 68
+    },
+    {
+      "id": "gasolio_quadro",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Gasolio self",
+      "valore": 2.252,
+      "unita": "€/l",
+      "delta_7g": 0.0095,
+      "delta_30g": 0.0426,
+      "testo": "Gasolio self a 2,252 €/l: +1,0 cent in una settimana, +4,3 cent in un mese.",
+      "rilevanza": 67.0
     },
     {
       "id": "barile_benzina",
@@ -118,6 +148,15 @@
       "rilevanza": 65
     },
     {
+      "id": "salari_divario",
+      "tema": "salari",
+      "ancora": "orari",
+      "periodo": "2023, settore privato",
+      "titolo": "Donne pagate l'8% in meno all'ora",
+      "testo": "Paga oraria lorda mediana nel settore privato: 11,42 € per le donne, 12,42 € per gli uomini. Sulla media la distanza sale al 10,6%.",
+      "rilevanza": 64
+    },
+    {
       "id": "reale_benzina",
       "tema": "carburanti",
       "carburante": "benzina",
@@ -134,10 +173,12 @@
       "rilevanza": 62
     },
     {
-      "id": "salari_rinnovi",
+      "id": "salari_di_fatto",
       "tema": "salari",
-      "titolo": "Contratti da rinnovare",
-      "testo": "Aspetta il rinnovo del contratto il 19% dei dipendenti (l'11% nel privato, il 49% nella PA), in media da 20 mesi.",
+      "ancora": "reale",
+      "periodo": "secondo trimestre 2026",
+      "titolo": "Anche le buste paga effettive sotto il 2021",
+      "testo": "Contando straordinari, premi e arretrati (industria e servizi esclusa la PA), nel secondo trimestre 2026 la retribuzione per unità di lavoro vale, al netto dell'inflazione, il 6,6% in meno della media 2021.",
       "rilevanza": 62
     },
     {
@@ -147,10 +188,10 @@
       "titolo": "GPL",
       "valore": 0.778,
       "unita": "€/l",
-      "delta_7g": 0.012,
-      "delta_30g": 0.0217,
-      "testo": "GPL a 0,778 €/l: +1,2 cent in una settimana, +2,2 cent in un mese.",
-      "rilevanza": 58.7
+      "delta_7g": 0.0114,
+      "delta_30g": 0.022,
+      "testo": "GPL a 0,778 €/l: +1,1 cent in una settimana, +2,2 cent in un mese.",
+      "rilevanza": 58.8
     },
     {
       "id": "tasse_benzina",
@@ -165,7 +206,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Divario tra regioni",
-      "testo": "Benzina self: Basilicata è la regione più cara (2,072 €/l), Liguria la più economica (2,023). Differenza: 4,9 cent.",
+      "testo": "Benzina self: Basilicata è la regione più cara (2,072 €/l), Liguria la più economica (2,023). Differenza: 5,0 cent.",
       "rilevanza": 55
     },
     {
@@ -183,7 +224,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Tetto Eni · benzina",
-      "testo": "Il 78% dei distributori Eni fuori autostrada vende la benzina self a 1,99 €/l o meno (il giorno prima: 79%). Prezzo medio Eni: 1,991 €/l.",
+      "testo": "Il 78% dei distributori Eni fuori autostrada vende la benzina self a 1,99 €/l o meno (il giorno prima: 78%). Prezzo medio Eni: 1,991 €/l.",
       "rilevanza": 95,
       "contesto": true
     },
@@ -192,7 +233,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Tetto Eni · gasolio",
-      "testo": "Il 98% dei distributori Eni fuori autostrada vende il gasolio self a 2,25 €/l o meno (il giorno prima: 97%). Prezzo medio Eni: 2,198 €/l. Dal 6 ottobre il prezzo massimo è 2,25 €/l (prima 2,19): è finito lo sconto di 6,1 cent sulle accise del gasolio.",
+      "testo": "Il 98% dei distributori Eni fuori autostrada vende il gasolio self a 2,25 €/l o meno (il giorno prima: 98%). Prezzo medio Eni: 2,194 €/l. Dal 6 ottobre il prezzo massimo è 2,25 €/l (prima 2,19): è finito lo sconto di 6,1 cent sulle accise del gasolio.",
       "rilevanza": 94,
       "contesto": true
     }
