@@ -20,6 +20,7 @@ import { tooltip, ttTitle, ttRow, reducedMotion, onResize } from "../lib/ui.js";
  * xTicks:   "giorni" | "anno" (ogni anno) | "anni" (ogni 2 o 5 anni)
  * yDomain:  [min, max] fisso; le linee che escono dal riquadro vengono tagliate
  * tooltipNote: testo fisso o funzione (data) => testo, sotto le righe del tooltip
+ * bandOpacity: opacità della fascia lo–hi (0,12 di default, un lavaggio leggero)
  */
 export function trendChart(container, opts) {
   const {
@@ -36,6 +37,7 @@ export function trendChart(container, opts) {
     tooltipTitle = (d) => fmt.settimana(d),
     tooltipNote = null,
     ariaLabel = null,
+    bandOpacity = 0.12,
   } = opts;
   const tip = tooltip();
   const root = d3.select(container);
@@ -158,7 +160,7 @@ export function trendChart(container, opts) {
     // fasce p10–p90 (lavaggio al 12%)
     for (const s of series) {
       if (s.points[0]?.lo == null) continue;
-      g.append("path").datum(s.points).attr("fill", s.color).attr("opacity", 0.12).attr("clip-path", clip)
+      g.append("path").datum(s.points).attr("fill", s.color).attr("opacity", bandOpacity).attr("clip-path", clip)
         .attr("d", d3.area().x((p) => x(p.date)).y0((p) => y(p.lo)).y1((p) => y(p.hi)).curve(d3.curveMonotoneX));
     }
 

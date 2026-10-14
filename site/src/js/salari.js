@@ -208,6 +208,7 @@ async function main() {
       ],
       height: 380,
       unit: "",
+      bandOpacity: 0.22, // la fascia è il messaggio del grafico: deve vedersi
       yFormat: (v) => fmt.intero(v),
       valueFormat: uno,
       xTicks: daAnno === 2021 ? "anno" : "anni",
