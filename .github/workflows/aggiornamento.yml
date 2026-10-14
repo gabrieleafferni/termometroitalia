@@ -153,9 +153,10 @@ jobs:
         timeout-minutes: 15
         run: |
           esito=0
-          python -m pipeline.istat.retribuzioni || esito=1
-          python -m pipeline.eurostat.ipca || esito=1
-          python -m pipeline.internazionale.salari || esito=1
+          : > .salari-errori
+          python -m pipeline.istat.retribuzioni || { esito=1; echo "ISTAT (retribuzioni)" >> .salari-errori; }
+          python -m pipeline.eurostat.ipca || { esito=1; echo "Eurostat (IPCA)" >> .salari-errori; }
+          python -m pipeline.internazionale.salari || { esito=1; echo "OCSE ed Eurostat (salari annui)" >> .salari-errori; }
           exit $esito
 
       - name: 1e · Segna il controllo di oggi
@@ -168,6 +169,19 @@ jobs:
         with:
           path: .controllo-salari
           key: controllo-salari-${{ steps.oggi.outputs.data }}
+
+      # Stato pubblico dei salari (data/stato/salari.json): ultimo controllo riuscito,
+      # fonti che non hanno risposto, periodo più recente di ogni serie e serie ferme
+      # oltre i tempi normali. Lo legge il controllo giornaliero di Claude. Da solo non
+      # crea un commit: si salva insieme ai dati (in pratica ogni mattina, con i carburanti).
+      - name: 1e · Stato pubblico dei salari
+        if: always()
+        run: |
+          if [ "${{ steps.controllo_salari.outputs.cache-hit }}" = "true" ] || [ "${{ steps.salari.outcome }}" = "success" ]; then
+            python -m pipeline.stato_salari --esito ok
+          else
+            python -m pipeline.stato_salari --esito errore --fonti "$(paste -sd, .salari-errori 2>/dev/null)"
+          fi
 
       - name: 2 · Trasformazione e test di qualità (dbt)
         working-directory: transform
