@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-14",
-  "generato_il": "2026-10-15T17:08:16+00:00",
+  "generato_il": "2026-10-15T21:30:29+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -39,14 +39,6 @@
       "delta_30g": -0.0734,
       "testo": "Benzina self a 2,035 €/l: −0,5 cent in una settimana, −7,3 cent in un mese.",
       "rilevanza": 79.4
-    },
-    {
-      "id": "barile_gasolio",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 5 ottobre il prezzo industriale (1,241 €/l, senza tasse) supera di 57 centesimi il costo del greggio Brent (0,667 €/l, 120 $ al barile). È 1,8 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 79.1
     },
     {
       "id": "salari_inflazione",
@@ -111,6 +103,14 @@
       "rilevanza": 70
     },
     {
+      "id": "barile_gasolio",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Gasolio: nella settimana del 12 ottobre il prezzo industriale (1,164 €/l, senza tasse) supera di 45 centesimi il costo del greggio Brent (0,715 €/l, 127 $ al barile). È 1,4 volte la media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 69.5
+    },
+    {
       "id": "salari_ocse",
       "tema": "salari",
       "ancora": "mondo",
@@ -118,14 +118,6 @@
       "titolo": "Salari reali dal 1991: Italia ultima tra 24 paesi OCSE",
       "testo": "Fatto 100 il salario medio reale del 1991, nel 2025 l'Italia è a 97, la media OCSE a 135 (Germania 135, Francia 133, Spagna 113).",
       "rilevanza": 68
-    },
-    {
-      "id": "barile_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 5 ottobre il prezzo industriale (1,026 €/l, senza tasse) supera di 36 centesimi il costo del greggio Brent (0,667 €/l, 120 $ al barile). È 1,3 volte la media 2005–2025 (28 centesimi in euro di oggi).",
-      "rilevanza": 66.7
     },
     {
       "id": "gap_gasolio_benzina",
@@ -180,6 +172,14 @@
       "titolo": "Anche le buste paga effettive sotto il 2021",
       "testo": "Contando straordinari, premi e arretrati (industria e servizi esclusa la PA), nel secondo trimestre 2026 la retribuzione per unità di lavoro vale, al netto dell'inflazione, il 6,6% in meno della media 2021.",
       "rilevanza": 62
+    },
+    {
+      "id": "barile_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Benzina: nella settimana del 12 ottobre il prezzo industriale (0,984 €/l, senza tasse) supera di 27 centesimi il costo del greggio Brent (0,715 €/l, 127 $ al barile). È in linea con la media 2005–2025 (28 centesimi in euro di oggi).",
+      "rilevanza": 60
     },
     {
       "id": "gpl_quadro",
