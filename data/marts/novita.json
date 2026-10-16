@@ -1,6 +1,6 @@
 {
-  "aggiornato_al": "2026-10-14",
-  "generato_il": "2026-10-15T21:30:29+00:00",
+  "aggiornato_al": "2026-10-15",
+  "generato_il": "2026-10-16T06:56:11+00:00",
   "fonte": "MIMIT",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -21,12 +21,12 @@
       "tema": "carburanti",
       "carburante": "metano",
       "titolo": "Metano",
-      "valore": 1.931,
+      "valore": 1.938,
       "unita": "€/kg",
-      "delta_7g": 0.0268,
-      "delta_30g": 0.1053,
-      "testo": "Metano a 1,931 €/kg: +2,7 cent in una settimana, +10,5 cent in un mese.",
-      "rilevanza": 90
+      "delta_7g": 0.0283,
+      "delta_30g": 0.0996,
+      "testo": "Metano a 1,938 €/kg: +2,8 cent in una settimana, +10,0 cent in un mese.",
+      "rilevanza": 89.8
     },
     {
       "id": "benzina_quadro",
@@ -35,10 +35,10 @@
       "titolo": "Benzina self",
       "valore": 2.035,
       "unita": "€/l",
-      "delta_7g": -0.0049,
-      "delta_30g": -0.0734,
-      "testo": "Benzina self a 2,035 €/l: −0,5 cent in una settimana, −7,3 cent in un mese.",
-      "rilevanza": 79.4
+      "delta_7g": -0.0025,
+      "delta_30g": -0.0871,
+      "testo": "Benzina self a 2,035 €/l: −0,2 cent in una settimana, −8,7 cent in un mese.",
+      "rilevanza": 84.8
     },
     {
       "id": "salari_inflazione",
@@ -88,8 +88,8 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il costo di un pieno",
-      "testo": "Un pieno da 50 litri di benzina self costa 101,76 €: 3,67 € in meno di un mese fa.",
-      "valore": 101.76,
+      "testo": "Un pieno da 50 litri di benzina self costa 101,75 €: 4,36 € in meno di un mese fa.",
+      "valore": 101.75,
       "unita": "€",
       "rilevanza": 70
     },
@@ -124,7 +124,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Gasolio contro benzina",
-      "testo": "Oggi il gasolio costa 21,7 cent al litro più della benzina (self).",
+      "testo": "Oggi il gasolio costa 21,9 cent al litro più della benzina (self).",
       "rilevanza": 65
     },
     {
@@ -135,18 +135,6 @@
       "titolo": "Donne pagate l'8% in meno all'ora",
       "testo": "Paga oraria lorda mediana nel settore privato: 11,42 € per le donne, 12,42 € per gli uomini. Sulla media la distanza sale al 10,6%.",
       "rilevanza": 64
-    },
-    {
-      "id": "gasolio_quadro",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Gasolio self",
-      "valore": 2.253,
-      "unita": "€/l",
-      "delta_7g": -0.009,
-      "delta_30g": 0.0348,
-      "testo": "Gasolio self a 2,253 €/l: −0,9 cent in una settimana, +3,5 cent in un mese.",
-      "rilevanza": 63.9
     },
     {
       "id": "reale_benzina",
@@ -186,12 +174,24 @@
       "tema": "carburanti",
       "carburante": "gpl",
       "titolo": "GPL",
-      "valore": 0.78,
+      "valore": 0.781,
       "unita": "€/l",
-      "delta_7g": 0.0063,
-      "delta_30g": 0.0243,
-      "testo": "GPL a 0,780 €/l: +0,6 cent in una settimana, +2,4 cent in un mese.",
-      "rilevanza": 59.7
+      "delta_7g": 0.0054,
+      "delta_30g": 0.0249,
+      "testo": "GPL a 0,781 €/l: +0,5 cent in una settimana, +2,5 cent in un mese.",
+      "rilevanza": 60.0
+    },
+    {
+      "id": "gasolio_quadro",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Gasolio self",
+      "valore": 2.254,
+      "unita": "€/l",
+      "delta_7g": -0.0073,
+      "delta_30g": 0.0212,
+      "testo": "Gasolio self a 2,254 €/l: −0,7 cent in una settimana, +2,1 cent in un mese.",
+      "rilevanza": 58.5
     },
     {
       "id": "tasse_benzina",
@@ -206,7 +206,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Divario tra regioni",
-      "testo": "Benzina self: Basilicata è la regione più cara (2,073 €/l), Liguria la più economica (2,022). Differenza: 5,1 cent.",
+      "testo": "Benzina self: Basilicata è la regione più cara (2,075 €/l), Liguria la più economica (2,021). Differenza: 5,4 cent.",
       "rilevanza": 55
     },
     {
@@ -214,8 +214,8 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il pieno in autostrada",
-      "testo": "Un pieno di benzina da 50 litri costa in media 0,53 € in più in autostrada.",
-      "valore": 0.53,
+      "testo": "Un pieno di benzina da 50 litri costa in media 0,60 € in più in autostrada.",
+      "valore": 0.6,
       "unita": "€",
       "rilevanza": 50
     },
@@ -233,7 +233,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Tetto Eni · gasolio",
-      "testo": "Il 98% dei distributori Eni fuori autostrada vende il gasolio self a 2,25 €/l o meno (il giorno prima: 98%). Prezzo medio Eni: 2,192 €/l. Dal 6 ottobre il prezzo massimo è 2,25 €/l (prima 2,19): è finito lo sconto di 6,1 cent sulle accise del gasolio.",
+      "testo": "Il 99% dei distributori Eni fuori autostrada vende il gasolio self a 2,25 €/l o meno (il giorno prima: 98%). Prezzo medio Eni: 2,191 €/l. Dal 6 ottobre il prezzo massimo è 2,25 €/l (prima 2,19): è finito lo sconto di 6,1 cent sulle accise del gasolio.",
       "rilevanza": 94,
       "contesto": true
     }
