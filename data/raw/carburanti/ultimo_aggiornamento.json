@@ -1,7 +1,7 @@
 {
-  "data_estrazione": "2026-10-15",
-  "fonte": "MIMIT via mirror benzina-data",
-  "righe_prezzi": 92674,
-  "impianti_attivi": 23926,
-  "scaricato_il": "2026-10-19T14:46:37+00:00"
+  "data_estrazione": "2026-10-18",
+  "fonte": "MIMIT (scaricato da un computer in Italia)",
+  "righe_prezzi": 92719,
+  "impianti_attivi": 23935,
+  "scaricato_il": "2026-10-19T16:19:25+00:00"
 }
