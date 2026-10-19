@@ -1,0 +1,73 @@
+Ora UTC: 2026-10-19 10:19:42
+IP pubblico del runner: 20.168.124.222
+
+== DNS e connessione TCP (porta 443, 10 s)
+www.mimit.gov.it 81.126.92.6: TCP errore dopo 10.0s: TimeoutError('timed out')
+mimit.gov.it 81.126.92.6: TCP errore dopo 10.0s: TimeoutError('timed out')
+www.mise.gov.it 81.126.92.8: TCP errore dopo 10.0s: TimeoutError('timed out')
+osservaprezzi.mise.gov.it 81.126.92.2: TCP errore dopo 10.0s: TimeoutError('timed out')
+carburanti.mise.gov.it 81.126.92.7: TCP errore dopo 10.0s: TimeoutError('timed out')
+www.istat.it 193.204.90.61: TCP ok in 0.15s; TLS ok (TLSv1.2)
+www.google.com 142.251.150.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 142.251.151.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 142.251.152.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 142.251.153.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 142.251.154.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 142.251.155.119: TCP ok in 0.01s; TLS ok (TLSv1.3)
+www.google.com 142.251.156.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 142.251.157.119: TCP ok in 0.00s; TLS ok (TLSv1.3)
+www.google.com 2001:4860:4826:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:4827:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:4828:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:4829:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:482a:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:482b:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:482c:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+www.google.com 2001:4860:482d:7700::: TCP errore dopo 0.0s: OSError(101, 'Network is unreachable')
+
+== HTTP GET (30 s), due user agent
+[progetto] https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+[browser] https://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+[progetto] https://www.mimit.gov.it/images/exportCSV/anagrafica_impianti_attivi.csv
+   errore dopo 30.4s: URLError(TimeoutError('timed out'))
+[browser] https://www.mimit.gov.it/images/exportCSV/anagrafica_impianti_attivi.csv
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+[progetto] http://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+[browser] http://www.mimit.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.4s: URLError(TimeoutError('timed out'))
+[progetto] https://mimit.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.2s: URLError(TimeoutError('timed out'))
+[browser] https://mimit.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 31.0s: URLError(TimeoutError('timed out'))
+[progetto] https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.4s: URLError(TimeoutError('timed out'))
+[browser] https://www.mise.gov.it/images/exportCSV/prezzo_alle_8.csv
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+[progetto] https://www.mimit.gov.it/it/open-data/elenco-dataset/carburanti-prezzi-praticati-e-anagrafica-degli-impianti
+   errore dopo 30.5s: URLError(TimeoutError('timed out'))
+[browser] https://www.mimit.gov.it/it/open-data/elenco-dataset/carburanti-prezzi-praticati-e-anagrafica-degli-impianti
+   errore dopo 30.0s: URLError(TimeoutError('timed out'))
+[progetto] https://www.mimit.gov.it/robots.txt
+   errore dopo 31.0s: URLError(TimeoutError('timed out'))
+[browser] https://www.mimit.gov.it/robots.txt
+   errore dopo 30.6s: URLError(TimeoutError('timed out'))
+[progetto] https://osservaprezzi.mise.gov.it/osservaprezzi-carburanti/comunicazioni
+   errore dopo 30.7s: URLError(TimeoutError('timed out'))
+[browser] https://osservaprezzi.mise.gov.it/osservaprezzi-carburanti/comunicazioni
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+[progetto] https://carburanti.mise.gov.it/ospzSearch/
+   errore dopo 30.4s: URLError(TimeoutError('timed out'))
+[browser] https://carburanti.mise.gov.it/ospzSearch/
+   errore dopo 30.3s: URLError(TimeoutError('timed out'))
+
+== curl -v sul file dei prezzi (IPv4, 40 s)
+* Host www.mimit.gov.it:443 was resolved.
+* IPv6: (none)
+* IPv4: 81.126.92.6
+*   Trying 81.126.92.6:443...
+* Connection timed out after 40001 milliseconds
+* Closing connection
+curl: (28) Connection timed out after 40001 milliseconds
