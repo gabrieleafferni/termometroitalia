@@ -549,3 +549,10 @@ a.theme-card:hover { text-decoration: none; transform: translateY(-3px); border-
 .spiega-grid p { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: var(--text-2); }
 .spiega-grid strong { color: var(--text); font-weight: 500; }
 .spiega-num { font-family: var(--mono); font-size: 12.5px !important; color: var(--text) !important; }
+
+/* avviso: dati dei carburanti fermi da più giorni */
+.avviso-dati { background: rgba(201, 133, 0, 0.12); border-bottom: 1px solid rgba(201, 133, 0, 0.35); color: var(--text); font-size: 13.5px; }
+.avviso-dati-inner { max-width: 1280px; margin: 0 auto; padding: 10px 32px; line-height: 1.5; }
+.avviso-dati strong { color: #f0b429; font-weight: 600; }
+.avviso-dati a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 640px) { .avviso-dati-inner { padding: 10px 16px; font-size: 13px; } }

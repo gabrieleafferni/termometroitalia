@@ -207,8 +207,10 @@ jobs:
           if git diff --cached --quiet -- data/raw/carburanti/prezzi data/raw/carburanti/impianti data/raw/carburanti/settimanali data/raw/istat data/raw/mercati data/raw/eurostat data/raw/ocse 'data/marts/*.parquet'; then
             echo "Nessun dato nuovo da salvare."
             git reset -q
-            # senza dati nuovi, i run programmati non ripubblicano il sito
-            echo "pubblica=${{ github.event_name != 'schedule' }}" >> "$GITHUB_OUTPUT"
+            # senza dati nuovi si ripubblica il sito solo dopo una modifica al codice (push)
+            # o un avvio manuale senza attesa: non i giri programmati, né quelli avviati
+            # dal passaggio di testimone (che passano attendi_minuti > 0)
+            echo "pubblica=${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && (inputs.attendi_minuti == '' || inputs.attendi_minuti == '0')) }}" >> "$GITHUB_OUTPUT"
           else
             if git diff --cached --quiet -- data/raw/carburanti/prezzi; then
               git commit -m "Dati aggiornati: salari, prezzi al consumo o quotazioni"

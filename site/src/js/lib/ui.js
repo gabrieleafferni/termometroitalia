@@ -19,8 +19,16 @@ const VOCI = [
   { href: "metodo.html", label: "Metodo", key: "metodo" },
 ];
 
-/** Barra superiore e footer comuni a tutte le pagine. */
-export function chrome(pagina, meta) {
+/** Giorni tra due date "AAAA-MM-GG" (b − a), contati sul calendario. */
+const giorniTra = (a, b) => Math.round((Date.UTC(...b.split("-").map((x, i) => +x - (i === 1))) - Date.UTC(...a.split("-").map((x, i) => +x - (i === 1)))) / 864e5);
+/** La data di oggi in Italia, "AAAA-MM-GG". */
+const oggiItalia = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Rome" }).format(new Date());
+
+/**
+ * Barra superiore e footer comuni a tutte le pagine.
+ * opzioni.live: testo HTML al posto di "dati del …" (es. la pagina salari mostra il mese dei suoi dati)
+ */
+export function chrome(pagina, meta, opzioni = {}) {
   const top = document.createElement("header");
   top.className = "topbar";
   const nav = VOCI.map((v) =>
@@ -35,10 +43,27 @@ export function chrome(pagina, meta) {
       <nav class="nav" aria-label="Sezioni">${nav}</nav>
       <div class="live" title="Ultima rilevazione disponibile">
         <span class="live-dot" aria-hidden="true"></span>
-        <span><span class="long">dati del </span>${agg ? fmt.giornoAnno(parseDay(agg)).trim() : "—"}</span>
+        <span>${opzioni.live ?? `<span class="long">dati del </span>${agg ? fmt.giornoAnno(parseDay(agg)).trim() : "—"}`}</span>
       </div>
     </div>`;
   document.body.prepend(top);
+
+  // Prezzi dei carburanti fermi: il MIMIT pubblica ogni mattina i prezzi del giorno prima,
+  // quindi un ritardo di 3 giorni o più vuol dire che la raccolta automatica non è riuscita.
+  // Lo si dice chiaramente invece di mostrare dati vecchi come se fossero di oggi.
+  if (agg && (pagina === "carburanti" || pagina === "home")) {
+    const ritardo = giorniTra(agg, oggiItalia());
+    if (ritardo >= 3) {
+      const avviso = document.createElement("div");
+      avviso.className = "avviso-dati";
+      avviso.setAttribute("role", "status");
+      const giorno = fmt.giornoAnno(parseDay(agg)).trim();
+      avviso.innerHTML = `<div class="avviso-dati-inner"><strong>Prezzi dei carburanti fermi al ${giorno}.</strong> ` +
+        "Da allora la raccolta automatica dei dati del MIMIT non è riuscita: il sito si aggiornerà da solo appena i nuovi dati saranno disponibili. " +
+        `<a href="metodo.html#aggiornamento">Come funziona l'aggiornamento</a></div>`;
+      top.after(avviso);
+    }
+  }
 
   const foot = document.createElement("footer");
   foot.className = "footer";

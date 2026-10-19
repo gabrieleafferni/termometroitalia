@@ -19,7 +19,7 @@
       </section>
 
       <article class="prose">
-        <h2>La pipeline</h2>
+        <h2 id="aggiornamento">La pipeline</h2>
         <p>Ogni mattina un workflow di <strong>GitHub Actions</strong> esegue quattro passi:</p>
         <ol>
           <li><strong>Raccolta.</strong> Uno script Python scarica gli open data e li archivia in file <code>Parquet</code> datati e immutabili. Se la fonte ufficiale non risponde, usa un archivio pubblico di riserva. Ogni mattina un giro della pipeline resta in attesa della pubblicazione del MIMIT (di solito verso le 9:30) e la scarica appena esce; in più un controllo gira ogni 2 ore. Se il calendario di GitHub salta un giro, quello in attesa ne avvia da solo un altro, fino alle 14.</li>
@@ -27,6 +27,7 @@
           <li><strong>Novità.</strong> Un modulo confronta l'ultimo giorno con la storia e segnala record, strisce di rialzi o ribassi e variazioni giornaliere fuori dal normale (z-score oltre 2,5). Per i salari scrive le notizie dell'ultimo dato pubblicato (salari contro costo della vita, settori, contratti scaduti, confronto internazionale, divario tra donne e uomini), ognuna con il periodo a cui si riferisce e il grafico che la mostra.</li>
           <li><strong>Pubblicazione.</strong> Il sito viene ricostruito e pubblicato su GitHub Pages.</li>
         </ol>
+        <p><strong>Quando la fonte non risponde.</strong> Se per più giorni non arrivano prezzi nuovi, le pagine dei carburanti lo dicono con un avviso in alto e mostrano gli ultimi dati disponibili con la loro data, senza inventare i giorni mancanti. Dal 16 ottobre 2026 il sito del MIMIT non risponde ai server di GitHub che eseguono la pipeline, e anche l'archivio di riserva è fermo al 15 ottobre.</p>
 
         <h2>Carburanti: la fonte</h2>
         <p>I dati vengono dall'<strong>Osservatorio prezzi carburanti</strong> del Ministero delle Imprese e del Made in Italy (MIMIT): i gestori sono obbligati per legge a comunicare i prezzi praticati. Il MIMIT pubblica ogni giorno due file, i prezzi in vigore alle 8 e l'anagrafica degli impianti attivi, con licenza <strong>IODL 2.0</strong>. Lo storico parte dal 28 luglio 2026 ed è stato ricostruito dall'archivio pubblico <code>LucaDDDD/benzina-data</code>, che conserva le stesse pubblicazioni.</p>

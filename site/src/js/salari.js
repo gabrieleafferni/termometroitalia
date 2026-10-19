@@ -57,7 +57,9 @@ async function main() {
     loadGeo("province_2023.topo.json"),
     load("novita.json").catch(() => null), // le notizie sono facoltative: la pagina regge senza
   ]);
-  chrome("salari", meta);
+  // nella barra in alto il mese degli ultimi dati sui salari, non il giorno dei carburanti:
+  // l'ISTAT pubblica le retribuzioni contrattuali con circa un mese e mezzo di ritardo
+  chrome("salari", meta, { live: `<span class="long">retribuzioni di </span>${meseAnno(parseDay(S.mesi.at(-1)))}` });
 
   const mesi = S.mesi.map(parseDay);
   const pos = new Map(mesi.map((d, i) => [+d, i]));

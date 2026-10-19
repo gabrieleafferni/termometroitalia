@@ -402,8 +402,23 @@ def run_oggi(source: str, force: bool, attendi_minuti: int = 0) -> None:
             except Exception as err:  # noqa: BLE001 - qualunque errore -> fallback
                 if source == "mimit":
                     raise
-                log.warning("MIMIT non disponibile (%s): uso il mirror", err)
-                break
+                log.warning("MIMIT non disponibile (%s): provo il mirror", err)
+                # Dal 16/10/2026 il MIMIT non risponde ai server di GitHub. Prima il giro
+                # passava subito al mirror e, se anche il mirror era fermo, finiva: il
+                # passaggio di testimone avviava allora un giro nuovo ogni 6 minuti, ognuno
+                # con una ripubblicazione del sito. Ora, se c'è ancora tempo per aspettare,
+                # si resta in questo giro e si riprova ogni 5 minuti, come quando il MIMIT
+                # risponde ma non ha ancora pubblicato.
+                try:
+                    pronto = mirror_last_date() >= atteso
+                except Exception as err_m:  # noqa: BLE001
+                    log.warning("Mirror non disponibile: %s", err_m)
+                    pronto = False
+                if pronto or time.monotonic() >= scadenza:
+                    break
+                log.info("Né il MIMIT né il mirror hanno i dati del %s: riprovo tra 5 minuti.", atteso)
+                time.sleep(300)
+                continue
             nuova = data_estrazione(testi["prezzi"])
             anagrafica = data_estrazione(testi["impianti"])
             adesso = time.monotonic()
