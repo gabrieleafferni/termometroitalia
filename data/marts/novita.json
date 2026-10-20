@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-10-19T16:26:06+00:00",
+  "generato_il": "2026-10-20T10:47:09+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -68,19 +68,19 @@
       "rilevanza": 72
     },
     {
-      "id": "storico_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Il più alto da ottobre 2026",
-      "testo": "Benzina: 2,021 €/l nella settimana del 12 ottobre, il livello più alto da ottobre 2026 (2,073 €/l).",
-      "rilevanza": 70.1
-    },
-    {
       "id": "storico_gasolio",
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Il più alto da ottobre 2026",
-      "testo": "Gasolio: 2,241 €/l nella settimana del 12 ottobre, il livello più alto da ottobre 2026 (2,273 €/l).",
+      "testo": "Gasolio: 2,244 €/l nella settimana del 19 ottobre, il livello più alto da ottobre 2026 (2,273 €/l).",
+      "rilevanza": 70.2
+    },
+    {
+      "id": "storico_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Il più alto da ottobre 2026",
+      "testo": "Benzina: 2,016 €/l nella settimana del 19 ottobre, il livello più alto da ottobre 2026 (2,021 €/l).",
       "rilevanza": 70.1
     },
     {
@@ -107,8 +107,8 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 12 ottobre il prezzo industriale (1,164 €/l, senza tasse) supera di 45 centesimi il costo del greggio Brent (0,715 €/l, 127 $ al barile). È 1,4 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 69.5
+      "testo": "Gasolio: nella settimana del 19 ottobre il prezzo industriale (1,167 €/l, senza tasse) supera di 45 centesimi il costo del greggio Brent (0,716 €/l, 127 $ al barile). È 1,4 volte la media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 69.6
     },
     {
       "id": "gpl_striscia",
@@ -169,7 +169,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Benzina: 2,021 €/l nella settimana del 12 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,538 €/l; in termini reali è il livello più alto da ottobre 2026.",
+      "testo": "Benzina: 2,016 €/l nella settimana del 19 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,538 €/l; in termini reali è il livello più alto da ottobre 2026.",
       "rilevanza": 62
     },
     {
@@ -177,7 +177,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Gasolio: 2,241 €/l nella settimana del 12 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,503 €/l; in termini reali è il livello più alto da ottobre 2026.",
+      "testo": "Gasolio: 2,244 €/l nella settimana del 19 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,503 €/l; in termini reali è il livello più alto da ottobre 2026.",
       "rilevanza": 62
     },
     {
@@ -206,7 +206,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 12 ottobre il prezzo industriale (0,984 €/l, senza tasse) supera di 27 centesimi il costo del greggio Brent (0,715 €/l, 127 $ al barile). È in linea con la media 2005–2025 (28 centesimi in euro di oggi).",
+      "testo": "Benzina: nella settimana del 19 ottobre il prezzo industriale (0,979 €/l, senza tasse) supera di 26 centesimi il costo del greggio Brent (0,716 €/l, 127 $ al barile). È in linea con la media 2005–2025 (28 centesimi in euro di oggi).",
       "rilevanza": 60
     },
     {
@@ -214,7 +214,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Quanto pesano le tasse",
-      "testo": "Dei 2,021 €/l della benzina, 1,037 sono accise e IVA (51%). Dato MASE, settimana del 12 ottobre.",
+      "testo": "Dei 2,016 €/l della benzina, 1,036 sono accise e IVA (51%). Dato MASE, settimana del 19 ottobre.",
       "rilevanza": 58
     },
     {
