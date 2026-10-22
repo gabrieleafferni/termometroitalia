@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-10-21T13:58:38+00:00",
+  "generato_il": "2026-10-22T04:56:37+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -68,6 +68,14 @@
       "rilevanza": 72
     },
     {
+      "id": "barile_gasolio",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Gasolio: nella settimana del 19 ottobre il prezzo industriale (1,167 €/l, senza tasse) supera di 46 centesimi il costo del greggio Brent (0,705 €/l, 126 $ al barile). È 1,4 volte la media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 70.5
+    },
+    {
       "id": "storico_gasolio",
       "tema": "carburanti",
       "carburante": "gasolio",
@@ -101,14 +109,6 @@
       "titolo": "Contratto scaduto per un dipendente su cinque",
       "testo": "Aspetta il rinnovo del contratto nazionale il 19% dei dipendenti (l'11% nel privato, il 49% nella PA), in media da 20 mesi. Un anno prima erano il 43%.",
       "rilevanza": 70
-    },
-    {
-      "id": "barile_gasolio",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 19 ottobre il prezzo industriale (1,167 €/l, senza tasse) supera di 45 centesimi il costo del greggio Brent (0,716 €/l, 127 $ al barile). È 1,4 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 69.6
     },
     {
       "id": "gpl_striscia",
@@ -206,7 +206,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 19 ottobre il prezzo industriale (0,979 €/l, senza tasse) supera di 26 centesimi il costo del greggio Brent (0,716 €/l, 127 $ al barile). È in linea con la media 2005–2025 (28 centesimi in euro di oggi).",
+      "testo": "Benzina: nella settimana del 19 ottobre il prezzo industriale (0,979 €/l, senza tasse) supera di 27 centesimi il costo del greggio Brent (0,705 €/l, 126 $ al barile). È in linea con la media 2005–2025 (28 centesimi in euro di oggi).",
       "rilevanza": 60
     },
     {
