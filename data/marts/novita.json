@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-10-29T19:46:57+00:00",
+  "generato_il": "2026-10-30T10:59:05+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -64,7 +64,7 @@
       "carburante": "gasolio",
       "titolo": "Dal barile alla pompa",
       "testo": "Gasolio: nella settimana del 26 ottobre il prezzo industriale (1,169 €/l, senza tasse) supera di 49 centesimi il costo del greggio Brent (0,679 €/l, 121 $ al barile). È 1,5 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 72.6
+      "rilevanza": 72.3
     },
     {
       "id": "salari_settori",
@@ -169,7 +169,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Benzina: 2,006 €/l nella settimana del 26 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,538 €/l; in termini reali è il livello più alto da ottobre 2026.",
+      "testo": "Benzina: 2,006 €/l nella settimana del 26 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di ottobre 2026 vale 2,560 €/l; in termini reali è il livello più alto da ottobre 2026.",
       "rilevanza": 62
     },
     {
@@ -177,7 +177,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Gasolio: 2,247 €/l nella settimana del 26 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di settembre 2026 vale 2,503 €/l; in termini reali è il livello più alto da ottobre 2026.",
+      "testo": "Gasolio: 2,247 €/l nella settimana del 26 ottobre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di ottobre 2026 vale 2,525 €/l; in termini reali è il livello più alto da ottobre 2026.",
       "rilevanza": 62
     },
     {
@@ -190,14 +190,6 @@
       "rilevanza": 62
     },
     {
-      "id": "barile_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 26 ottobre il prezzo industriale (0,971 €/l, senza tasse) supera di 29 centesimi il costo del greggio Brent (0,679 €/l, 121 $ al barile). È in linea con la media 2005–2025 (28 centesimi in euro di oggi).",
-      "rilevanza": 60.8
-    },
-    {
       "id": "gpl_quadro",
       "tema": "carburanti",
       "carburante": "gpl",
@@ -208,6 +200,14 @@
       "delta_30g": 0.0267,
       "testo": "GPL a 0,783 €/l: +0,5 cent in una settimana, +2,7 cent in un mese.",
       "rilevanza": 60.7
+    },
+    {
+      "id": "barile_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Benzina: nella settimana del 26 ottobre il prezzo industriale (0,971 €/l, senza tasse) supera di 29 centesimi il costo del greggio Brent (0,679 €/l, 121 $ al barile). È in linea con la media 2005–2025 (29 centesimi in euro di oggi).",
+      "rilevanza": 60.6
     },
     {
       "id": "tasse_benzina",
