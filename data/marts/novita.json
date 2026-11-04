@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-11-04T15:32:08+00:00",
+  "generato_il": "2026-11-04T19:56:12+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -63,8 +63,8 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 26 ottobre il prezzo industriale (1,169 €/l, senza tasse) supera di 49 centesimi il costo del greggio Brent (0,679 €/l, 121 $ al barile). È 1,5 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 72.3
+      "testo": "Gasolio: nella settimana del 2 novembre il prezzo industriale (1,202 €/l, senza tasse) supera di 52 centesimi il costo del greggio Brent (0,683 €/l, 121 $ al barile). È 1,6 volte la media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 74.5
     },
     {
       "id": "salari_settori",
@@ -206,8 +206,8 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 26 ottobre il prezzo industriale (0,971 €/l, senza tasse) supera di 29 centesimi il costo del greggio Brent (0,679 €/l, 121 $ al barile). È in linea con la media 2005–2025 (29 centesimi in euro di oggi).",
-      "rilevanza": 60.6
+      "testo": "Benzina: nella settimana del 2 novembre il prezzo industriale (0,967 €/l, senza tasse) supera di 28 centesimi il costo del greggio Brent (0,683 €/l, 121 $ al barile). È in linea con la media 2005–2025 (29 centesimi in euro di oggi).",
+      "rilevanza": 60
     },
     {
       "id": "tasse_benzina",
