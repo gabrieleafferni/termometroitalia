@@ -1,5 +1,5 @@
 {
-  "controllato_il": "2026-11-04",
+  "controllato_il": "2026-11-05",
   "ultimo_errore": null,
   "periodi": {
     "retribuzioni contrattuali (ISTAT)": "2026-09",
@@ -8,7 +8,7 @@
     "paga oraria per settore (ISTAT, RACLI)": "2023",
     "paga oraria per provincia (ISTAT, RACLI)": "2023",
     "prezzi al consumo NIC (ISTAT)": "2026-10",
-    "prezzi al consumo IPCA (Eurostat)": "2026-09",
+    "prezzi al consumo IPCA (Eurostat)": "2026-10",
     "salari medi annui (OCSE)": "2025",
     "salario medio a tempo pieno (Eurostat)": "2024"
   },
