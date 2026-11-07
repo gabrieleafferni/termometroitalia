@@ -1,5 +1,5 @@
 {
-  "controllato_il": "2026-11-06",
+  "controllato_il": "2026-11-07",
   "ultimo_errore": null,
   "periodi": {
     "retribuzioni contrattuali (ISTAT)": "2026-09",
@@ -10,7 +10,7 @@
     "prezzi al consumo NIC (ISTAT)": "2026-10",
     "prezzi al consumo IPCA (Eurostat)": "2026-10",
     "salari medi annui (OCSE)": "2025",
-    "salario medio a tempo pieno (Eurostat)": "2024"
+    "salario medio a tempo pieno (Eurostat)": "2025"
   },
   "ritardi": []
 }
