@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-11-12T16:04:34+00:00",
+  "generato_il": "2026-11-13T05:16:26+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -41,6 +41,14 @@
       "rilevanza": 86.8
     },
     {
+      "id": "barile_gasolio",
+      "tema": "carburanti",
+      "carburante": "gasolio",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Gasolio: nella settimana del 9 novembre il prezzo industriale (1,145 €/l, senza tasse) supera di 58 centesimi il costo del greggio Brent (0,563 €/l, 100 $ al barile). È 1,8 volte la media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 79.3
+    },
+    {
       "id": "salari_inflazione",
       "tema": "salari",
       "ancora": "forbice",
@@ -57,14 +65,6 @@
       "titolo": "Salari reali ancora sotto il 2021",
       "testo": "Al netto dell'inflazione, negli ultimi 12 mesi i salari contrattuali valgono il 5,8% in meno che nel 2021 (6,7% con l'IPCA). Il punto più basso: −9,7% nei 12 mesi fino a settembre 2023.",
       "rilevanza": 76
-    },
-    {
-      "id": "barile_gasolio",
-      "tema": "carburanti",
-      "carburante": "gasolio",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 2 novembre il prezzo industriale (1,202 €/l, senza tasse) supera di 52 centesimi il costo del greggio Brent (0,683 €/l, 121 $ al barile). È 1,6 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 74.5
     },
     {
       "id": "salari_settori",
@@ -100,6 +100,14 @@
       "valore": 101.48,
       "unita": "€",
       "rilevanza": 70
+    },
+    {
+      "id": "barile_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Benzina: nella settimana del 9 novembre il prezzo industriale (0,963 €/l, senza tasse) supera di 40 centesimi il costo del greggio Brent (0,563 €/l, 100 $ al barile). È 1,4 volte la media 2005–2025 (29 centesimi in euro di oggi).",
+      "rilevanza": 70.0
     },
     {
       "id": "salari_rinnovi",
@@ -200,14 +208,6 @@
       "delta_30g": 0.0267,
       "testo": "GPL a 0,783 €/l: +0,5 cent in una settimana, +2,7 cent in un mese.",
       "rilevanza": 60.7
-    },
-    {
-      "id": "barile_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 2 novembre il prezzo industriale (0,967 €/l, senza tasse) supera di 28 centesimi il costo del greggio Brent (0,683 €/l, 121 $ al barile). È in linea con la media 2005–2025 (29 centesimi in euro di oggi).",
-      "rilevanza": 60
     },
     {
       "id": "tasse_benzina",
