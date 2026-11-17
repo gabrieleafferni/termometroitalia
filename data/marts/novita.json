@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-11-16T17:08:23+00:00",
+  "generato_il": "2026-11-17T13:11:24+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -45,8 +45,8 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Dal barile alla pompa",
-      "testo": "Gasolio: nella settimana del 9 novembre il prezzo industriale (1,145 €/l, senza tasse) supera di 58 centesimi il costo del greggio Brent (0,563 €/l, 100 $ al barile). È 1,8 volte la media 2005–2025 (33 centesimi in euro di oggi).",
-      "rilevanza": 79.3
+      "testo": "Gasolio: nella settimana del 16 novembre il prezzo industriale (1,179 €/l, senza tasse) supera di 67 centesimi il costo del greggio Brent (0,513 €/l, 91 $ al barile). È il doppio della media 2005–2025 (33 centesimi in euro di oggi).",
+      "rilevanza": 85
     },
     {
       "id": "salari_inflazione",
@@ -67,6 +67,14 @@
       "rilevanza": 76
     },
     {
+      "id": "barile_benzina",
+      "tema": "carburanti",
+      "carburante": "benzina",
+      "titolo": "Dal barile alla pompa",
+      "testo": "Benzina: nella settimana del 16 novembre il prezzo industriale (0,942 €/l, senza tasse) supera di 43 centesimi il costo del greggio Brent (0,513 €/l, 91 $ al barile). È 1,5 volte la media 2005–2025 (29 centesimi in euro di oggi).",
+      "rilevanza": 72.5
+    },
+    {
       "id": "salari_settori",
       "tema": "salari",
       "ancora": "settori",
@@ -80,7 +88,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Il più alto da novembre 2026",
-      "testo": "Benzina: 1,995 €/l nella settimana del 9 novembre, il livello più alto da novembre 2026 (2,001 €/l).",
+      "testo": "Benzina: 1,970 €/l nella settimana del 16 novembre, il livello più alto da novembre 2026 (1,995 €/l).",
       "rilevanza": 70.1
     },
     {
@@ -88,7 +96,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Il più alto da novembre 2026",
-      "testo": "Gasolio: 2,218 €/l nella settimana del 9 novembre, il livello più alto da novembre 2026 (2,238 €/l).",
+      "testo": "Gasolio: 2,210 €/l nella settimana del 16 novembre, il livello più alto da novembre 2026 (2,218 €/l).",
       "rilevanza": 70.1
     },
     {
@@ -100,14 +108,6 @@
       "valore": 101.48,
       "unita": "€",
       "rilevanza": 70
-    },
-    {
-      "id": "barile_benzina",
-      "tema": "carburanti",
-      "carburante": "benzina",
-      "titolo": "Dal barile alla pompa",
-      "testo": "Benzina: nella settimana del 9 novembre il prezzo industriale (0,963 €/l, senza tasse) supera di 40 centesimi il costo del greggio Brent (0,563 €/l, 100 $ al barile). È 1,4 volte la media 2005–2025 (29 centesimi in euro di oggi).",
-      "rilevanza": 70.0
     },
     {
       "id": "salari_rinnovi",
@@ -177,7 +177,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Benzina: 1,995 €/l nella settimana del 9 novembre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di ottobre 2026 vale 2,560 €/l; in termini reali è il livello più alto da novembre 2026.",
+      "testo": "Benzina: 1,970 €/l nella settimana del 16 novembre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di ottobre 2026 vale 2,562 €/l; in termini reali è il livello più alto da novembre 2026.",
       "rilevanza": 62
     },
     {
@@ -185,7 +185,7 @@
       "tema": "carburanti",
       "carburante": "gasolio",
       "titolo": "Al netto dell'inflazione",
-      "testo": "Gasolio: 2,218 €/l nella settimana del 9 novembre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di ottobre 2026 vale 2,525 €/l; in termini reali è il livello più alto da novembre 2026.",
+      "testo": "Gasolio: 2,210 €/l nella settimana del 16 novembre. Al netto dell'inflazione resta sotto il picco di marzo 2022, che ai prezzi di ottobre 2026 vale 2,527 €/l; in termini reali è il livello più alto da novembre 2026.",
       "rilevanza": 62
     },
     {
@@ -214,7 +214,7 @@
       "tema": "carburanti",
       "carburante": "benzina",
       "titolo": "Quanto pesano le tasse",
-      "testo": "Dei 1,995 €/l della benzina, 1,033 sono accise e IVA (52%). Dato MASE, settimana del 9 novembre.",
+      "testo": "Dei 1,970 €/l della benzina, 1,028 sono accise e IVA (52%). Dato MASE, settimana del 16 novembre.",
       "rilevanza": 58
     },
     {
