@@ -1,6 +1,6 @@
 {
   "aggiornato_al": "2026-10-18",
-  "generato_il": "2026-11-26T17:48:51+00:00",
+  "generato_il": "2026-11-27T09:49:47+00:00",
   "fonte": "MIMIT (scaricato da un computer in Italia)",
   "inizio_serie": "2026-07-28",
   "novita": [
@@ -52,27 +52,27 @@
       "id": "salari_inflazione",
       "tema": "salari",
       "ancora": "forbice",
-      "periodo": "settembre 2026",
+      "periodo": "ottobre 2026",
       "titolo": "Il costo della vita cresce più dei salari",
-      "testo": "A settembre 2026 le retribuzioni contrattuali orarie sono cresciute del 2,5% in un anno, i prezzi al consumo (NIC) del 4,2%.",
+      "testo": "A ottobre 2026 le retribuzioni contrattuali orarie sono cresciute del 2,6% in un anno, i prezzi al consumo (NIC) del 5,5%.",
       "rilevanza": 78
     },
     {
       "id": "salari_reali_2021",
       "tema": "salari",
       "ancora": "forbice",
-      "periodo": "12 mesi fino a settembre 2026",
+      "periodo": "12 mesi fino a ottobre 2026",
       "titolo": "Salari reali ancora sotto il 2021",
-      "testo": "Al netto dell'inflazione, negli ultimi 12 mesi i salari contrattuali valgono il 5,8% in meno che nel 2021 (6,7% con l'IPCA). Il punto più basso: −9,7% nei 12 mesi fino a settembre 2023.",
+      "testo": "Al netto dell'inflazione, negli ultimi 12 mesi i salari contrattuali valgono il 6,0% in meno che nel 2021 (6,9% con l'IPCA). Il punto più basso: −9,7% nei 12 mesi fino a settembre 2023.",
       "rilevanza": 76
     },
     {
       "id": "salari_settori",
       "tema": "salari",
       "ancora": "settori",
-      "periodo": "12 mesi fino a settembre 2026",
+      "periodo": "12 mesi fino a ottobre 2026",
       "titolo": "Nessun settore ha recuperato l'inflazione",
-      "testo": "Dal 2021 i prezzi sono saliti del 19,5%. Al netto dell'inflazione il calo più forte è in alberghi e ristorazione (−9,3%), il più leggero in estrazione di minerali (−2,5%).",
+      "testo": "Dal 2021 i prezzi sono saliti del 20,0%. Al netto dell'inflazione il calo più forte è in alberghi e ristorazione (−9,5%), il più leggero in estrazione di minerali (−2,6%).",
       "rilevanza": 72
     },
     {
@@ -105,9 +105,9 @@
       "id": "salari_rinnovi",
       "tema": "salari",
       "ancora": "rinnovi",
-      "periodo": "settembre 2026",
+      "periodo": "ottobre 2026",
       "titolo": "Contratto scaduto per un dipendente su cinque",
-      "testo": "Aspetta il rinnovo del contratto nazionale il 19% dei dipendenti (l'11% nel privato, il 49% nella PA), in media da 21 mesi. Un anno prima erano il 43%.",
+      "testo": "Aspetta il rinnovo del contratto nazionale il 18% dei dipendenti (il 9% nel privato, il 49% nella PA), in media da 23 mesi. Un anno prima erano il 43%.",
       "rilevanza": 70
     },
     {
